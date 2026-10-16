@@ -2,7 +2,7 @@
 
 <h1 align="center">KEMAS</h1>
 <p align="center"><b>Your PC, Kemas.</b><br/>Clean · Organize · Speed up Windows</p>
-<p align="center"><a href="https://github.com/amzarsyaf2002/KEMAS/releases/latest"><b>⬇ Download the latest version</b></a></p>
+<p align="center"><a href="https://github.com/AmzSyafxProject/KEMAS/releases/latest"><b>⬇ Download the latest version</b></a></p>
 
 **KEMAS is a premium, native Windows utility that keeps your computer clean, organized and fast — without the clutter, ads or complexity of traditional cleaners.**
 
@@ -27,8 +27,10 @@ Built natively for Windows 10 and 11, KEMAS renders at your display's full refre
 - Private by design no accounts, no tracking, no ads
 
 ### Get started
-1. Download **KEMAS.exe** from the [latest release](https://github.com/amzarsyaf2002/KEMAS/releases/latest).
+1. Download **KEMAS.exe** from the [latest release](https://github.com/AmzSyafxProject/KEMAS/releases/latest).
 2. Run it and choose **Yes** when Windows asks for permission.
 3. Choose **Install** to add KEMAS to your Start menu — future updates arrive automatically inside the app.
 
-*Created by Amzar Syafiq. Thank you for choosing KEMAS.*
+Explore more projects at **[AMZProject Unity](https://amzsyafxproject.github.io)**.
+
+*Created by Amzar Syafiq · Ceritareka Studio. Thank you for choosing KEMAS.*
