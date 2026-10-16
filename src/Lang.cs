@@ -382,6 +382,7 @@ namespace Kemas
             // ---- updates / install
             A("update_ready", "Update available", "Kemas kini tersedia");
             A("update_idle", "Updates are checked from the official release page.", "Kemas kini disemak dari halaman rasmi.");
+            A("update_store", "Updates are delivered automatically by Microsoft Store.", "Kemas kini dihantar secara automatik oleh Microsoft Store.");
             A("update_not_configured", "Update channel is not set up in this build.", "Saluran kemas kini belum ditetapkan dalam binaan ini.");
             A("update_checking", "Checking for updates...", "Menyemak kemas kini...");
             A("update_offline", "Couldn't reach the update server. Check your internet.", "Tidak dapat capai pelayan kemas kini. Semak internet anda.");

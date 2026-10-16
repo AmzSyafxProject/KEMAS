@@ -424,6 +424,12 @@ namespace Kemas
         void LoadSettingsIntoUi()
         {
             loadingUi = true;
+            if (AppInfo.IsStore)
+            {
+                // Microsoft Store build: the Store installs, updates and removes KEMAS
+                foreach (var n in new[] { "AutoUpdateRow", "AutoUpdateLine", "InstallRow", "InstallRowLine", "BtnCheckUpdate", "BtnAboutUpdate" })
+                    E<FrameworkElement>(n).Visibility = Visibility.Collapsed;
+            }
             E<RadioButton>(S.Theme == "light" ? "ThemeLight" : S.Theme == "system" ? "ThemeSystem" : "ThemeDark").IsChecked = true;
             E<RadioButton>(S.Language == "ms" ? "LangMs" : "LangEn").IsChecked = true;
             E<RadioButton>(S.AutoClean == "daily" ? "AutoDaily" : S.AutoClean == "weekly" ? "AutoWeekly" : "AutoOff").IsChecked = true;
@@ -468,7 +474,7 @@ namespace Kemas
             TB("DateText").Text = DateTime.Now.ToString("dddd, d MMMM yyyy", ci) + "  ·  " + L.T("tagline");
             TB("MotionDesc").Text = S.ReducedMotion ? L.T("motion_reduced") : string.Format(L.T("motion_full"), App.RefreshRate);
             TB("VersionLine").Text = string.Format(L.T("version_line"), AppInfo.Version);
-            if (TB("UpdateStatus").Text.Length == 0 || !Updater.Configured) TB("UpdateStatus").Text = Updater.Configured ? L.T("update_idle") : L.T("update_not_configured");
+            if (TB("UpdateStatus").Text.Length == 0 || !Updater.Configured) TB("UpdateStatus").Text = AppInfo.IsStore ? L.T("update_store") : Updater.Configured ? L.T("update_idle") : L.T("update_not_configured");
             TB("AboutVersion").Text = string.Format(L.T("about_version"), AppInfo.Version, App.RefreshRate);
             TB("CopyrightText").Text = "© 2026 Amzar Syafiq. " + L.T("rights");
             bool installedCopy = Installer.IsInstalledCopy;

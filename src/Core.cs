@@ -24,6 +24,16 @@ namespace Kemas
         public static string UndoDir { get { return Path.Combine(DataDir, "undo"); } }
 
         public static Version ParsedVersion { get { return new Version(Version); } }
+
+        // Running as the Microsoft Store (MSIX) package? Then the Store handles install, updates and signing.
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        static extern int GetCurrentPackageFullName(ref int length, StringBuilder name);
+        public static readonly bool IsStore = DetectPackage();
+        static bool DetectPackage()
+        {
+            try { int len = 0; return GetCurrentPackageFullName(ref len, null) == 122; }   // 122 = buffer too small -> has identity; 15700 = no package
+            catch { return false; }                                                         // Windows 7: API missing
+        }
     }
 
     public static class Log

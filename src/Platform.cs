@@ -64,14 +64,14 @@ namespace Kemas
         public static bool SetStartup(bool on)
         {
             if (!on) { Schtasks("/Delete /F /TN \"" + StartupTask + "\""); return true; }
-            return Schtasks("/Create /F /TN \"" + StartupTask + "\" /TR \"\\\"" + Installer.ExePath + "\\\" --tray\" /SC ONLOGON /RL HIGHEST /DELAY 0000:20") == 0;
+            return Schtasks("/Create /F /TN \"" + StartupTask + "\" /TR \"\\\"" + Installer.LaunchPath + "\\\" --tray\" /SC ONLOGON /RL HIGHEST /DELAY 0000:20") == 0;
         }
 
         public static bool SetAutoClean(string mode)
         {
             if (mode == "off") { Schtasks("/Delete /F /TN \"" + CleanTask + "\""); return true; }
             string sched = mode == "weekly" ? "/SC WEEKLY /D SUN /ST 12:00" : "/SC DAILY /ST 12:00";
-            return Schtasks("/Create /F /TN \"" + CleanTask + "\" /TR \"\\\"" + Installer.ExePath + "\\\" --autoclean\" " + sched + " /RL HIGHEST") == 0;
+            return Schtasks("/Create /F /TN \"" + CleanTask + "\" /TR \"\\\"" + Installer.LaunchPath + "\\\" --autoclean\" " + sched + " /RL HIGHEST") == 0;
         }
 
         public static void RemoveAll() { SetStartup(false); SetAutoClean("off"); }
@@ -83,6 +83,11 @@ namespace Kemas
         const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\KEMAS";
 
         public static string ExePath { get { return Assembly.GetExecutingAssembly().Location; } }
+        // What scheduled tasks launch. Store build: the app execution alias, so the task starts KEMAS with its package identity.
+        public static string LaunchPath
+        {
+            get { return AppInfo.IsStore ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\WindowsApps\kemas.exe") : ExePath; }
+        }
         public static string InstallDir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "KEMAS"); } }
         public static string InstalledExe { get { return Path.Combine(InstallDir, "KEMAS.exe"); } }
 
@@ -157,6 +162,7 @@ namespace Kemas
 
         public static void CleanupOldFiles()
         {
+            if (AppInfo.IsStore) return;
             try { var old = ExePath + ".old"; if (File.Exists(old)) File.Delete(old); } catch { }
         }
     }
@@ -182,7 +188,7 @@ namespace Kemas
 
     public static class Updater
     {
-        public static bool Configured { get { return !string.IsNullOrEmpty(AppInfo.UpdateRepo); } }
+        public static bool Configured { get { return !AppInfo.IsStore && !string.IsNullOrEmpty(AppInfo.UpdateRepo); } }
 
         static string Get(string url)
         {

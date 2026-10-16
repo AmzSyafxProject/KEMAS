@@ -926,7 +926,7 @@ namespace Kemas
         // ================================================================ install / uninstall
         void OfferInstall()
         {
-            if (Installer.IsInstalledCopy || S.InstallOffered || App.Portable) return;
+            if (AppInfo.IsStore || Installer.IsInstalledCopy || S.InstallOffered || App.Portable) return;
             S.InstallOffered = true; QueueSave();
             Ask(L.T("install_q"), L.T("install_q_d"), L.T("install"), "E896", false, RequestInstallNow);
         }
