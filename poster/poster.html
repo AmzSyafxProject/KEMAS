@@ -1,0 +1,104 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1600px; height: 900px; }
+  body { font-family: "Inter Display", "Inter", sans-serif; background: #090B12; color: #EEF0F7; overflow: hidden; position: relative; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); }
+  .b1 { width: 760px; height: 760px; left: 820px; top: -320px; background: rgba(123,92,255,.55); }
+  .b2 { width: 640px; height: 640px; left: 1120px; top: 420px; background: rgba(47,212,255,.32); }
+  .b3 { width: 520px; height: 520px; left: -160px; top: 520px; background: rgba(255,92,184,.18); }
+  .grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px); background-size: 4px 4px; }
+  .left { position: absolute; left: 110px; top: 0; bottom: 0; width: 640px; display: flex; flex-direction: column; justify-content: center; }
+  .brand { display: flex; align-items: center; gap: 22px; }
+  .brand img { width: 108px; height: 108px; filter: drop-shadow(0 18px 40px rgba(123,92,255,.55)); }
+  .brand .name { font-size: 92px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+  .tag { margin-top: 30px; font-size: 44px; font-weight: 600; letter-spacing: -.5px;
+         background: linear-gradient(90deg, #A897FF, #5FE0FF); -webkit-background-clip: text; color: transparent; }
+  .lead { margin-top: 18px; font-family: Inter, sans-serif; font-size: 22px; line-height: 1.55; color: #AEB5CF; max-width: 560px; }
+  .pills { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 12px; max-width: 600px; }
+  .pill { font-family: Inter, sans-serif; font-size: 16px; font-weight: 500; padding: 10px 16px; border-radius: 999px;
+          background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: #DDE1EE; }
+  .foot { position: absolute; left: 110px; bottom: 54px; font-family: Inter, sans-serif; font-size: 15px; color: #6F7792; letter-spacing: .4px; }
+  .foot b { color: #C9CFE3; font-weight: 600; }
+
+  /* app mock */
+  .win { position: absolute; left: 790px; top: 150px; width: 760px; height: 600px; border-radius: 26px;
+         background: rgba(14,17,27,.86); border: 1px solid rgba(255,255,255,.12);
+         box-shadow: 0 50px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03) inset; transform: perspective(1800px) rotateY(-9deg) rotateX(3deg); overflow: hidden; }
+  .side { position: absolute; left: 0; top: 0; bottom: 0; width: 196px; background: rgba(255,255,255,.025); border-right: 1px solid rgba(255,255,255,.07); padding: 24px 16px; }
+  .side .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .side .logo img { width: 30px; } .side .logo span { font-weight: 900; font-size: 17px; }
+  .nav { height: 32px; white-space: nowrap; border-radius: 9px; margin-bottom: 6px; display: flex; align-items: center; padding: 0 10px; gap: 10px; font-family: Inter; font-size: 12.5px; color: #8C93AB; }
+  .nav i { width: 14px; height: 14px; border-radius: 4px; background: rgba(255,255,255,.18); }
+  .nav.on { background: rgba(255,255,255,.08); color: #EEF0F7; } .nav.on i { background: linear-gradient(135deg,#7B5CFF,#2FD4FF); }
+  .main { position: absolute; left: 220px; right: 24px; top: 26px; }
+  .hi { font-size: 24px; font-weight: 600; } .date { font-family: Inter; font-size: 12px; color: #8C93AB; margin-top: 4px; }
+  .hero { margin-top: 18px; height: 210px; border-radius: 20px; background: linear-gradient(135deg, rgba(38,29,99,.95), rgba(14,51,80,.95));
+          border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; padding: 0 26px; gap: 26px; }
+  .ring { width: 150px; height: 150px; position: relative; }
+  .ring svg { position: absolute; inset: 0; }
+  .ring .score { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .score b { font-size: 46px; font-weight: 800; } .ring .score span { font-family: Inter; font-size: 9px; letter-spacing: 1px; color: #B7BEDA; font-weight: 700; }
+  .htxt h3 { font-size: 20px; font-weight: 600; } .htxt p { font-family: Inter; font-size: 12px; color: #C3CAE3; margin-top: 6px; }
+  .btn { margin-top: 16px; display: inline-block; padding: 10px 22px; border-radius: 999px; background: linear-gradient(135deg,#7B5CFF,#2FD4FF); font-family: Inter; font-weight: 600; font-size: 13px; box-shadow: 0 10px 30px rgba(123,92,255,.45); }
+  .cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 14px; }
+  .card { border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); padding: 14px; }
+  .card .l { font-family: Inter; font-size: 9px; letter-spacing: 1px; font-weight: 700; color: #8C93AB; }
+  .card .v { font-size: 19px; font-weight: 600; margin-top: 6px; } .card .v.c { color: #2FD4FF; }
+  .bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.1); margin-top: 10px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg,#7B5CFF,#2FD4FF); }
+  .rows { margin-top: 14px; }
+  .row { height: 40px; border-radius: 12px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06); margin-bottom: 8px; display: flex; align-items: center; padding: 0 12px; gap: 10px; font-family: Inter; font-size: 12px; }
+  .row .ok { width: 16px; height: 16px; border-radius: 50%; background: #21C98A; position: relative; }
+  .row .ok:after { content: ""; position: absolute; left: 5px; top: 3px; width: 4px; height: 7px; border: solid #0B0D14; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .row .sz { margin-left: auto; color: #8C93AB; }
+  .badge { position: absolute; right: 70px; top: 96px; padding: 12px 18px; border-radius: 16px; background: rgba(20,24,38,.92); border: 1px solid rgba(255,255,255,.14);
+           font-family: Inter; font-size: 14px; display: flex; gap: 10px; align-items: center; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  .badge b { color: #21C98A; font-size: 18px; }
+</style></head>
+<body>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grain"></div>
+
+  <div class="left">
+    <div class="brand"><img src="logo.png"><div class="name">KEMAS</div></div>
+    <div class="tag">Your PC, Kemas.</div>
+    <div class="lead">The beautifully simple way to clean, organize and speed up Windows — engineered for speed, designed for calm.</div>
+    <div class="pills">
+      <div class="pill">System Cleaner</div><div class="pill">File Organizer</div><div class="pill">Memory Booster</div>
+      <div class="pill">Startup Manager</div><div class="pill">Auto Updates</div><div class="pill">Dark &amp; Light</div>
+    </div>
+  </div>
+  <div class="foot">Free for Windows 10 &amp; 11 &nbsp;·&nbsp; Created by <b>Amzar Syafiq</b> &nbsp;·&nbsp; Ceritareka Studio</div>
+
+  <div class="win">
+    <div class="side">
+      <div class="logo"><img src="logo.png"><span>KEMAS</span></div>
+      <div class="nav on"><i></i>Dashboard</div><div class="nav"><i></i>System Cleaner</div><div class="nav"><i></i>File Organizer</div>
+      <div class="nav"><i></i>Memory Booster</div><div class="nav"><i></i>Startup Apps</div><div class="nav"><i></i>Programs</div>
+    </div>
+    <div class="main">
+      <div class="hi">Hi, Amzar &nbsp;Good evening</div>
+      <div class="date">Friday, 16 October 2026 · Your PC, Kemas.</div>
+      <div class="hero">
+        <div class="ring">
+          <svg viewBox="0 0 150 150"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5CFF"/><stop offset="1" stop-color="#2FD4FF"/></linearGradient></defs>
+            <circle cx="75" cy="75" r="64" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="11"/>
+            <circle cx="75" cy="75" r="64" fill="none" stroke="url(#g)" stroke-width="11" stroke-linecap="round" stroke-dasharray="402" stroke-dashoffset="32" transform="rotate(-90 75 75)"/></svg>
+          <div class="score"><b>92</b><span>HEALTH SCORE</span></div>
+        </div>
+        <div class="htxt"><h3>Your PC is in great shape</h3><p>2.4 GB of junk found · Disk 61% full · RAM 48% used</p><div class="btn">✦ Smart Clean</div></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="l">STORAGE C:</div><div class="v">291 GB used</div><div class="bar"><i style="width:61%"></i></div></div>
+        <div class="card"><div class="l">MEMORY (RAM)</div><div class="v">7.6 GB used</div><div class="bar"><i style="width:48%"></i></div></div>
+        <div class="card"><div class="l">JUNK FOUND</div><div class="v c">2.4 GB</div><div class="bar"><i style="width:30%"></i></div></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span class="ok"></span>Browser cache<span class="sz">Freed 1.2 GB</span></div>
+        <div class="row"><span class="ok"></span>User temporary files<span class="sz">Freed 846 MB</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="badge"><b>+2.4 GB</b> freed up</div>
+</body></html>

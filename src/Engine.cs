@@ -1,0 +1,735 @@
+// KEMAS - Engine: cleaner, organizer, memory, programs, startup apps.  (no WPF dependencies)
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32;
+
+namespace Kemas
+{
+    public static class Native
+    {
+        [DllImport("psapi.dll")] public static extern bool EmptyWorkingSet(IntPtr hProcess);
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern int SHEmptyRecycleBin(IntPtr hwnd, string root, uint flags);
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern int SHQueryRecycleBin(string root, ref SHQUERYRBINFO info);
+        [DllImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")] public static extern uint DnsFlushResolverCache();
+        [DllImport("secur32.dll", CharSet = CharSet.Unicode)] public static extern bool GetUserNameEx(int format, StringBuilder name, ref uint size);
+        [DllImport("kernel32.dll")] public static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX m);
+        [DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public struct SHQUERYRBINFO { public int cbSize; public long i64Size; public long i64NumItems; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MEMORYSTATUSEX
+        {
+            public uint dwLength; public uint dwMemoryLoad; public ulong ullTotalPhys; public ulong ullAvailPhys;
+            public ulong ullTotalPageFile; public ulong ullAvailPageFile; public ulong ullTotalVirtual; public ulong ullAvailVirtual; public ulong ullAvailExtendedVirtual;
+        }
+
+        public static void TrimSelf()
+        {
+            try { GC.Collect(); GC.WaitForPendingFinalizers(); EmptyWorkingSet(GetCurrentProcess()); } catch { }
+        }
+    }
+
+    public static class UserName
+    {
+        // "Hi, Amzar" - friendly first name from the Windows account (display name first, then account name)
+        public static string Detect()
+        {
+            string n = null;
+            try
+            {
+                uint size = 256; var sb = new StringBuilder(256);
+                if (Native.GetUserNameEx(3 /* NameDisplay */, sb, ref size)) n = sb.ToString();
+            }
+            catch { }
+            if (string.IsNullOrWhiteSpace(n)) n = Environment.UserName;
+            n = (n ?? "").Trim();
+            int sp = n.IndexOfAny(new[] { ' ', '.', '_', '@' });
+            if (sp > 0) n = n.Substring(0, sp);
+            if (n.Length == 0) return "there";
+            return char.ToUpper(n[0], CultureInfo.InvariantCulture) + (n.Length > 1 ? n.Substring(1) : "");
+        }
+    }
+
+    // ===================================================================== CLEANER
+    public enum ItemState { Waiting, Working, Done, Partial, Skipped }
+
+    public class CleanTarget
+    {
+        public string Key, Icon, Tag;     // Tag: safe | rebuild | permanent | browser | optional
+        public bool Default = true;
+        public Func<IEnumerable<string>> Folders;         // folders whose CONTENTS are removed
+        public Func<IEnumerable<FileInfo>> Files;         // individual files
+        public Func<long> CustomSize;
+        public Action Custom;                             // runs before folder clearing; throw = partial
+        public Action Before, After;
+        public bool NoFolderClear;
+        public long Size;
+        public bool IsDns { get { return Key == "dns"; } }
+    }
+
+    public class CleanResult
+    {
+        public string Key; public ItemState State; public long Freed; public int Locked; public List<string> Notes = new List<string>();
+    }
+
+    public class Cleaner
+    {
+        public volatile bool Cancel;
+        public bool SkipRecentTemp = true;
+        int locked;
+        static readonly string[] NeverClean;
+
+        static Cleaner()
+        {
+            var list = new List<string>();
+            foreach (var p in new[] {
+                Environment.GetEnvironmentVariable("SystemDrive") + "\\", Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                Environment.GetFolderPath(Environment.SpecialFolder.System), Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "/" })
+                if (!string.IsNullOrEmpty(p)) list.Add(Norm(p));
+            NeverClean = list.ToArray();
+        }
+
+        static string Norm(string p) { try { return Path.GetFullPath(p).TrimEnd('\\', '/').ToLowerInvariant(); } catch { return p.ToLowerInvariant(); } }
+
+        public static string Win { get { return Environment.GetFolderPath(Environment.SpecialFolder.Windows); } }
+        static string Local { get { return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData); } }
+        static string ProgData { get { return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); } }
+
+        public static List<CleanTarget> CreateTargets()
+        {
+            return new List<CleanTarget>
+            {
+                new CleanTarget { Key = "usertemp", Icon = "E8B7", Tag = "safe", Folders = () => new[] { Path.GetTempPath() } },
+                new CleanTarget { Key = "wintemp", Icon = "E770", Tag = "safe", Folders = () => new[] { Path.Combine(Win, "Temp") } },
+                new CleanTarget { Key = "prefetch", Icon = "E945", Tag = "rebuild", Folders = () => new[] { Path.Combine(Win, "Prefetch") } },
+                new CleanTarget { Key = "recycle", Icon = "E74D", Tag = "permanent", NoFolderClear = true, CustomSize = RecycleBinSize,
+                    Custom = () => { int r = Native.SHEmptyRecycleBin(IntPtr.Zero, null, 7); if (r != 0 && r != unchecked((int)0x8000FFFF)) throw new CleanException("err_recycle"); } },
+                new CleanTarget { Key = "browser", Icon = "E774", Tag = "browser", Folders = BrowserCaches },
+                new CleanTarget { Key = "thumbs", Icon = "E8B9", Tag = "safe", Files = () => SafeFiles(Path.Combine(Local, @"Microsoft\Windows\Explorer"), "thumbcache_*.db") },
+                new CleanTarget { Key = "wer", Icon = "E7BA", Tag = "safe", Folders = () => new[] {
+                    Path.Combine(ProgData, @"Microsoft\Windows\WER\ReportArchive"), Path.Combine(ProgData, @"Microsoft\Windows\WER\ReportQueue"),
+                    Path.Combine(Local, @"Microsoft\Windows\WER"), Path.Combine(Local, "CrashDumps"), Path.Combine(Win, "Minidump") } },
+                new CleanTarget { Key = "delivery", Icon = "E896", Tag = "safe", Folders = () => new[] {
+                    Path.Combine(Win, @"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache") } },
+                new CleanTarget { Key = "logs", Icon = "E9F9", Tag = "safe", Files = OldLogs },
+                new CleanTarget { Key = "winupdate", Icon = "E777", Tag = "optional", Default = false,
+                    Folders = () => new[] { Path.Combine(Win, @"SoftwareDistribution\Download") },
+                    Before = () => { Service("stop", "wuauserv"); Service("stop", "bits"); },
+                    After = () => { Service("start", "wuauserv"); Service("start", "bits"); } },
+                new CleanTarget { Key = "dns", Icon = "E701", Tag = "safe", Custom = () => { Native.DnsFlushResolverCache(); } }
+            };
+        }
+
+        static void Service(string verb, string name)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("sc.exe", verb + " " + name) { CreateNoWindow = true, UseShellExecute = false };
+                using (var p = Process.Start(psi)) p.WaitForExit(15000);
+                if (verb == "stop") System.Threading.Thread.Sleep(1200);
+            }
+            catch { }
+        }
+
+        static long RecycleBinSize()
+        {
+            try
+            {
+                var info = new Native.SHQUERYRBINFO { cbSize = Marshal.SizeOf(typeof(Native.SHQUERYRBINFO)) };
+                if (Native.SHQueryRecycleBin(null, ref info) == 0) return info.i64Size;
+            }
+            catch { }
+            return 0;
+        }
+
+        static IEnumerable<FileInfo> SafeFiles(string dir, string pattern)
+        {
+            try { if (Directory.Exists(dir)) return new DirectoryInfo(dir).GetFiles(pattern); } catch { }
+            return new FileInfo[0];
+        }
+
+        static IEnumerable<FileInfo> OldLogs()
+        {
+            // Windows setup / CBS logs older than 7 days
+            var list = new List<FileInfo>();
+            var cutoff = DateTime.Now.AddDays(-7);
+            foreach (var d in new[] { Path.Combine(Win, @"Logs\CBS"), Path.Combine(Win, @"Logs\DISM"), Path.Combine(Win, @"Panther") })
+                foreach (var f in SafeFiles(d, "*.log")) if (f.LastWriteTime < cutoff) list.Add(f);
+            return list;
+        }
+
+        public static IEnumerable<string> BrowserCaches()
+        {
+            var list = new List<string>();
+            var chromium = new[] { @"Google\Chrome\User Data", @"Microsoft\Edge\User Data", @"BraveSoftware\Brave-Browser\User Data", @"Vivaldi\User Data" };
+            foreach (var rel in chromium)
+            {
+                var root = Path.Combine(Local, rel);
+                if (!Directory.Exists(root)) continue;
+                try
+                {
+                    foreach (var prof in Directory.GetDirectories(root))
+                        foreach (var sub in new[] { "Cache", "Code Cache", "GPUCache" })
+                        {
+                            var p = Path.Combine(prof, sub);
+                            if (Directory.Exists(p)) list.Add(p);
+                        }
+                }
+                catch { }
+                foreach (var sub in new[] { "ShaderCache", "GrShaderCache" })
+                {
+                    var p = Path.Combine(root, sub);
+                    if (Directory.Exists(p)) list.Add(p);
+                }
+            }
+            var opera = Path.Combine(Local, @"Opera Software\Opera Stable\Cache");
+            if (Directory.Exists(opera)) list.Add(opera);
+            var ff = Path.Combine(Local, @"Mozilla\Firefox\Profiles");
+            if (Directory.Exists(ff))
+                try { foreach (var prof in Directory.GetDirectories(ff)) { var p = Path.Combine(prof, "cache2"); if (Directory.Exists(p)) list.Add(p); } } catch { }
+            return list;
+        }
+
+        public static bool BrowserRunning()
+        {
+            foreach (var n in new[] { "chrome", "msedge", "firefox", "brave", "opera", "vivaldi" })
+                try { if (Process.GetProcessesByName(n).Length > 0) return true; } catch { }
+            return false;
+        }
+
+        // ---- measuring ----
+        public long TreeSize(string path)
+        {
+            long total = 0;
+            if (Cancel) return 0;
+            try
+            {
+                var di = new DirectoryInfo(path);
+                if (!di.Exists) return 0;
+                foreach (var f in di.EnumerateFiles()) total += f.Length;
+                foreach (var d in di.EnumerateDirectories())
+                    if ((d.Attributes & FileAttributes.ReparsePoint) == 0) total += TreeSize(d.FullName);
+            }
+            catch { }
+            return total;
+        }
+
+        public long Measure(CleanTarget t)
+        {
+            long total = 0;
+            try
+            {
+                if (t.CustomSize != null) total += t.CustomSize();
+                if (t.Folders != null) foreach (var p in t.Folders()) if (!string.IsNullOrEmpty(p)) total += TreeSize(p);
+                if (t.Files != null) foreach (var f in t.Files()) total += f.Length;
+            }
+            catch { }
+            return total;
+        }
+
+        // ---- deleting ----
+        bool TooRecent(FileSystemInfo f, bool isTemp)
+        {
+            return isTemp && SkipRecentTemp && f.LastWriteTime > DateTime.Now.AddHours(-24);
+        }
+
+        void RemoveTree(DirectoryInfo di, bool isTemp)
+        {
+            if (Cancel) return;
+            try
+            {
+                if ((di.Attributes & FileAttributes.ReparsePoint) != 0) { di.Delete(); return; }   // remove the link, never follow it
+                foreach (var f in di.GetFiles())
+                {
+                    if (TooRecent(f, isTemp)) { continue; }
+                    try { f.Attributes = FileAttributes.Normal; f.Delete(); } catch { locked++; }
+                }
+                foreach (var d in di.GetDirectories()) RemoveTree(d, isTemp);
+                if (di.GetFileSystemInfos().Length == 0) di.Delete();
+            }
+            catch { }
+        }
+
+        public bool ClearFolder(string path, bool isTemp)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            string full = Norm(path);
+            if (full.Length <= 3 || NeverClean.Contains(full)) return false;
+            var di = new DirectoryInfo(path);
+            if (!di.Exists) return false;
+            try
+            {
+                foreach (var f in di.GetFiles())
+                {
+                    if (Cancel) return true;
+                    if (TooRecent(f, isTemp)) continue;
+                    try { f.Attributes = FileAttributes.Normal; f.Delete(); } catch { locked++; }
+                }
+            }
+            catch { }
+            try { foreach (var d in di.GetDirectories()) RemoveTree(d, isTemp); } catch { }
+            return true;
+        }
+
+        public CleanResult Clean(CleanTarget t)
+        {
+            var r = new CleanResult { Key = t.Key, State = ItemState.Done };
+            locked = 0;
+            long before = Measure(t);
+            bool isTemp = t.Key == "usertemp" || t.Key == "wintemp";
+            foreach (var step in new[] { t.Before, t.Custom })
+            {
+                if (step == null) continue;
+                try { step(); }
+                catch (CleanException ce) { r.State = ItemState.Partial; r.Notes.Add(ce.Message); }
+                catch (Exception ex) { r.State = ItemState.Partial; r.Notes.Add(Friendly(ex)); }
+            }
+            if (t.Folders != null && !t.NoFolderClear) foreach (var p in t.Folders()) ClearFolder(p, isTemp);
+            if (t.Files != null) foreach (var f in t.Files()) { try { f.Delete(); } catch { locked++; } }
+            if (t.After != null) { try { t.After(); } catch (Exception ex) { r.Notes.Add(Friendly(ex)); } }
+            t.Size = Measure(t);
+            r.Freed = Math.Max(0, before - t.Size);
+            r.Locked = locked;
+            if (isTemp && SkipRecentTemp && t.Size > 0) r.Notes.Add("note_recent");
+            return r;
+        }
+
+        public static string Friendly(Exception ex)
+        {
+            if (ex is UnauthorizedAccessException) return "err_access";
+            if (ex is FileNotFoundException || ex is DirectoryNotFoundException) return "err_gone";
+            var io = ex as IOException;
+            if (io != null) { int code = Marshal.GetHRForException(io) & 0xFFFF; if (code == 32 || code == 33) return "err_inuse"; }
+            var m = ex.Message ?? "";
+            return m.Length > 110 ? m.Substring(0, 107) + "..." : m;
+        }
+    }
+
+    public class CleanException : Exception { public CleanException(string key) : base(key) { } }
+
+    // ===================================================================== ORGANIZER
+    public class PlanItem
+    {
+        public string File { get; set; }
+        public string Folder { get; set; }
+        public string Destination { get; set; }
+        public string Size { get; set; }
+        public long Bytes { get; set; }
+        public string Source;
+        public string DestDir;
+    }
+
+    public class OrgOutcome { public int Moved; public List<string> Skipped = new List<string>(); public string UndoFile; }
+
+    public static class Organizer
+    {
+        static readonly HashSet<string> SkipExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".crdownload", ".part", ".partial", ".tmp", ".download", ".opdownload", ".!ut", ".aria2", ".lnk", ".url", ".ini", ".sys" };
+
+        public static Dictionary<string, string> BuildMap(IEnumerable<OrgRule> rules)
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var r in rules)
+            {
+                var name = CleanName(r.Name);
+                if (name.Length == 0 || string.IsNullOrEmpty(r.Extensions)) continue;
+                foreach (var raw in r.Extensions.Split(new[] { ',', ' ', ';', '|' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var e = raw.Trim().TrimStart('*').TrimStart('.');
+                    if (e.Length > 0 && !map.ContainsKey("." + e)) map["." + e] = name;
+                }
+            }
+            return map;
+        }
+
+        public static string CleanName(string name)
+        {
+            if (name == null) return "";
+            var bad = Path.GetInvalidFileNameChars();
+            var sb = new StringBuilder();
+            foreach (var c in name.Trim()) sb.Append(Array.IndexOf(bad, c) >= 0 ? '-' : c);
+            var s = sb.ToString().Trim().TrimEnd('.');
+            return s;
+        }
+
+        public static string DateFolder(DateTime dt, int format)
+        {
+            var inv = CultureInfo.InvariantCulture;
+            switch (format)
+            {
+                case 1: return dt.ToString("yyyy-MM", inv);
+                case 2: return dt.ToString("yyyy", inv) + Path.DirectorySeparatorChar + dt.ToString("MMMM", inv);
+                default: return dt.ToString("yyyy", inv) + Path.DirectorySeparatorChar + dt.ToString("MM - MMMM", inv);
+            }
+        }
+
+        public static List<PlanItem> Plan(IEnumerable<OrgFolder> folders, IEnumerable<OrgRule> rules, string othersName, int dateFormat)
+        {
+            var plan = new List<PlanItem>();
+            var map = BuildMap(rules);
+            var others = CleanName(othersName); if (others.Length == 0) others = "Others";
+            var cutoff = DateTime.Now.AddMinutes(-2);
+            foreach (var f in folders)
+            {
+                if (!f.Enabled || string.IsNullOrEmpty(f.Path) || !Directory.Exists(f.Path)) continue;
+                FileInfo[] files;
+                try { files = new DirectoryInfo(f.Path).GetFiles(); } catch { continue; }
+                foreach (var file in files)
+                {
+                    if ((file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) != 0) continue;
+                    if (SkipExt.Contains(file.Extension) || file.LastWriteTime > cutoff) continue;
+                    string sub;
+                    if (f.ByDate) sub = DateFolder(file.LastWriteTime, dateFormat);
+                    else { if (!map.TryGetValue(file.Extension, out sub)) sub = others; }
+                    plan.Add(new PlanItem
+                    {
+                        File = file.Name, Folder = f.Name, Destination = f.Name + Path.DirectorySeparatorChar + sub, Size = Fmt.Size(file.Length),
+                        Bytes = file.Length, Source = file.FullName, DestDir = Path.Combine(f.Path, sub)
+                    });
+                }
+            }
+            return plan;
+        }
+
+        public static string UniquePath(string path)
+        {
+            if (!System.IO.File.Exists(path) && !Directory.Exists(path)) return path;
+            string dir = Path.GetDirectoryName(path), b = Path.GetFileNameWithoutExtension(path), e = Path.GetExtension(path);
+            for (int n = 1; ; n++)
+            {
+                var c = Path.Combine(dir, b + " (" + n + ")" + e);
+                if (!System.IO.File.Exists(c) && !Directory.Exists(c)) return c;
+            }
+        }
+
+        public static OrgOutcome Run(List<PlanItem> plan, Func<bool> cancel, Action<int, int, PlanItem> progress)
+        {
+            var res = new OrgOutcome();
+            var log = new StringBuilder();
+            int i = 0;
+            foreach (var p in plan)
+            {
+                if (cancel != null && cancel()) break;
+                i++;
+                try
+                {
+                    if (!System.IO.File.Exists(p.Source)) throw new FileNotFoundException();
+                    Directory.CreateDirectory(p.DestDir);
+                    var dest = UniquePath(Path.Combine(p.DestDir, p.File));
+                    System.IO.File.Move(p.Source, dest);
+                    log.Append(p.Source).Append('\t').Append(dest).Append('\n');
+                    res.Moved++;
+                }
+                catch (Exception ex) { res.Skipped.Add(p.File + "|" + Cleaner.Friendly(ex)); }
+                if (progress != null) progress(i, plan.Count, p);
+            }
+            if (res.Moved > 0)
+            {
+                Directory.CreateDirectory(AppInfo.UndoDir);
+                res.UndoFile = Path.Combine(AppInfo.UndoDir, "undo_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".tsv");
+                System.IO.File.WriteAllText(res.UndoFile, log.ToString(), Encoding.UTF8);
+            }
+            return res;
+        }
+
+        public static string LastUndoFile()
+        {
+            try
+            {
+                if (!Directory.Exists(AppInfo.UndoDir)) return null;
+                return Directory.GetFiles(AppInfo.UndoDir, "undo_*.tsv").OrderByDescending(x => x).FirstOrDefault();
+            }
+            catch { return null; }
+        }
+
+        public static int UndoCount(string file)
+        {
+            try { return System.IO.File.ReadAllLines(file).Count(l => l.Contains("\t")); } catch { return 0; }
+        }
+
+        public static OrgOutcome Undo(string file, Action<int, int> progress)
+        {
+            var res = new OrgOutcome();
+            var lines = System.IO.File.ReadAllLines(file).Where(l => l.Contains("\t")).Reverse().ToList();
+            var touched = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            int i = 0;
+            foreach (var l in lines)
+            {
+                i++;
+                var parts = l.Split('\t');
+                string from = parts[0], to = parts[1];
+                try
+                {
+                    if (!System.IO.File.Exists(to)) throw new CleanException("err_gone");
+                    if (System.IO.File.Exists(from)) throw new CleanException("err_exists");
+                    System.IO.File.Move(to, from);
+                    res.Moved++;
+                    touched[Path.GetDirectoryName(to)] = Path.GetDirectoryName(from);
+                }
+                catch (CleanException ce) { res.Skipped.Add(Path.GetFileName(from) + "|" + ce.Message); }
+                catch (Exception ex) { res.Skipped.Add(Path.GetFileName(from) + "|" + Cleaner.Friendly(ex)); }
+                if (progress != null) progress(i, lines.Count);
+            }
+            foreach (var kv in touched)
+            {
+                string root = kv.Value.TrimEnd('\\', '/'), cur = kv.Key;
+                while (cur != null && cur.TrimEnd('\\', '/').Length > root.Length && cur.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                {
+                    try { if (Directory.Exists(cur) && Directory.GetFileSystemEntries(cur).Length == 0) Directory.Delete(cur); else break; } catch { break; }
+                    cur = Path.GetDirectoryName(cur);
+                }
+            }
+            try { System.IO.File.Move(file, file + ".done"); } catch { }
+            return res;
+        }
+    }
+
+    // ===================================================================== MEMORY
+    public class ProcRow
+    {
+        public string App { get; set; }
+        public string RAM { get; set; }
+        public double RamMB { get; set; }
+        public int Procs { get; set; }
+        public string Description { get; set; }
+        public string Status { get; set; }
+        public bool Protected;
+    }
+
+    public static class Memory
+    {
+        public static readonly HashSet<string> Protected = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "idle", "system", "secure system", "registry", "memory compression", "smss", "csrss", "wininit", "winlogon", "services", "lsass",
+            "lsaiso", "svchost", "dwm", "explorer", "fontdrvhost", "sihost", "ctfmon", "taskhostw", "runtimebroker", "searchhost",
+            "searchindexer", "searchapp", "startmenuexperiencehost", "shellexperiencehost", "textinputhost", "securityhealthservice",
+            "securityhealthsystray", "msmpeng", "nissrv", "mpdefendercoreservice", "spoolsv", "audiodg", "conhost", "dllhost", "wudfhost",
+            "smartscreen", "lsm", "wmiprvse", "applicationframehost", "vmmem", "vmmemwsl", "msedgewebview2", "kemas"
+        };
+
+        public static void Info(out double total, out double free, out int pct)
+        {
+            var m = new Native.MEMORYSTATUSEX { dwLength = (uint)Marshal.SizeOf(typeof(Native.MEMORYSTATUSEX)) };
+            if (Native.GlobalMemoryStatusEx(ref m)) { total = m.ullTotalPhys; free = m.ullAvailPhys; pct = (int)m.dwMemoryLoad; }
+            else { total = 1; free = 1; pct = 0; }
+        }
+
+        public static List<ProcRow> Groups()
+        {
+            var rows = new List<ProcRow>();
+            Process[] all;
+            try { all = Process.GetProcesses(); } catch { return rows; }
+            foreach (var g in all.Where(p => p.Id > 4).GroupBy(p => SafeName(p), StringComparer.OrdinalIgnoreCase))
+            {
+                long sum = 0;
+                foreach (var p in g) { try { sum += p.WorkingSet64; } catch { } }
+                string desc = "";
+                try { var first = g.First(); desc = first.MainModule.FileVersionInfo.FileDescription ?? ""; } catch { }
+                bool prot = Protected.Contains(g.Key) || g.Any(p => p.Id == Process.GetCurrentProcess().Id);
+                rows.Add(new ProcRow { App = g.Key, Procs = g.Count(), RamMB = Math.Round(sum / 1048576.0, 1), RAM = Fmt.Size(sum), Description = desc, Protected = prot,
+                    Status = prot ? "protected" : "canclose" });
+            }
+            foreach (var p in all) { try { p.Dispose(); } catch { } }
+            return rows.OrderByDescending(r => r.RamMB).Take(60).ToList();
+        }
+
+        static string SafeName(Process p) { try { return p.ProcessName; } catch { return "?"; } }
+
+        public static long Trim(Action<double> progress)
+        {
+            double t, before, after; int pct;
+            Info(out t, out before, out pct);
+            var procs = Process.GetProcesses();
+            for (int i = 0; i < procs.Length; i++)
+            {
+                try { Native.EmptyWorkingSet(procs[i].Handle); } catch { }
+                try { procs[i].Dispose(); } catch { }
+                if (progress != null && i % 8 == 0) progress((double)i / procs.Length);
+            }
+            System.Threading.Thread.Sleep(600);
+            Info(out t, out after, out pct);
+            return (long)Math.Max(0, after - before);
+        }
+
+        public static int Kill(string name)
+        {
+            int killed = 0, me = Process.GetCurrentProcess().Id;
+            foreach (var p in Process.GetProcessesByName(name))
+            {
+                try { if (p.Id != me) { p.Kill(); killed++; } } catch { }
+                finally { p.Dispose(); }
+            }
+            return killed;
+        }
+    }
+
+    // ===================================================================== PROGRAMS
+    public class AppRow
+    {
+        public string Name { get; set; }
+        public string Publisher { get; set; }
+        public string Version { get; set; }
+        public string Size { get; set; }
+        public double SizeMB { get; set; }
+        public string Installed { get; set; }
+        public string InstallSort { get; set; }
+        public string Uninstall;
+    }
+
+    public static class Programs
+    {
+        public static List<AppRow> List()
+        {
+            var rows = new Dictionary<string, AppRow>(StringComparer.OrdinalIgnoreCase);
+            var roots = new[] {
+                Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry64), Tuple.Create(RegistryHive.LocalMachine, RegistryView.Registry32),
+                Tuple.Create(RegistryHive.CurrentUser, RegistryView.Default) };
+            foreach (var r in roots)
+            {
+                try
+                {
+                    using (var bk = RegistryKey.OpenBaseKey(r.Item1, r.Item2))
+                    using (var k = bk.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall"))
+                    {
+                        if (k == null) continue;
+                        foreach (var sub in k.GetSubKeyNames())
+                        {
+                            try
+                            {
+                                using (var s = k.OpenSubKey(sub))
+                                {
+                                    var name = s.GetValue("DisplayName") as string;
+                                    var un = s.GetValue("UninstallString") as string;
+                                    if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(un)) continue;
+                                    if (Convert.ToInt32(s.GetValue("SystemComponent", 0)) == 1 || s.GetValue("ParentKeyName") != null) continue;
+                                    if (rows.ContainsKey(name)) continue;
+                                    double kb = 0; try { kb = Convert.ToDouble(s.GetValue("EstimatedSize", 0)); } catch { }
+                                    string date = s.GetValue("InstallDate") as string ?? "", nice = "";
+                                    DateTime dt;
+                                    if (date.Length == 8 && DateTime.TryParseExact(date, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                                        nice = dt.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+                                    else date = "";
+                                    rows[name] = new AppRow { Name = name, Publisher = s.GetValue("Publisher") as string ?? "", Version = s.GetValue("DisplayVersion") as string ?? "",
+                                        SizeMB = Math.Round(kb / 1024, 1), Size = kb > 0 ? Fmt.Size(kb * 1024) : "-", Installed = nice, InstallSort = date, Uninstall = un };
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch { }
+            }
+            return rows.Values.OrderByDescending(a => a.SizeMB).ToList();
+        }
+
+        public static void StartUninstall(AppRow a)
+        {
+            var cmd = System.Text.RegularExpressions.Regex.Replace(a.Uninstall, @"(?i)msiexec(\.exe)?\s+/I", "MsiExec.exe /X");
+            var psi = new ProcessStartInfo("cmd.exe", "/c \"" + cmd + "\"") { CreateNoWindow = true, UseShellExecute = false };
+            Process.Start(psi);
+        }
+    }
+
+    // ===================================================================== STARTUP APPS
+    public class StartupItem
+    {
+        public string Name { get; set; }
+        public string Command { get; set; }
+        public string Location { get; set; }
+        public bool Enabled { get; set; }
+        public RegistryHive Hive;
+        public RegistryView View;
+        public string ApprovedKey;     // StartupApproved\Run | Run32 | StartupFolder
+        public string ValueName;
+    }
+
+    public static class Startup
+    {
+        const string Approved = @"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\";
+
+        public static List<StartupItem> List()
+        {
+            var list = new List<StartupItem>();
+            AddRun(list, RegistryHive.CurrentUser, RegistryView.Default, "Run", "User");
+            AddRun(list, RegistryHive.LocalMachine, RegistryView.Registry64, "Run", "All users");
+            AddRun(list, RegistryHive.LocalMachine, RegistryView.Registry32, "Run32", "All users (32-bit)");
+            AddFolder(list, Environment.GetFolderPath(Environment.SpecialFolder.Startup), RegistryHive.CurrentUser, "Startup folder");
+            AddFolder(list, Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), RegistryHive.LocalMachine, "Startup folder (all users)");
+            return list.Where(i => !i.Name.Equals("KEMAS", StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.Name).ToList();
+        }
+
+        static void AddRun(List<StartupItem> list, RegistryHive hive, RegistryView view, string approvedKey, string where)
+        {
+            try
+            {
+                using (var bk = RegistryKey.OpenBaseKey(hive, view))
+                using (var k = bk.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run"))
+                {
+                    if (k == null) return;
+                    foreach (var v in k.GetValueNames())
+                    {
+                        if (string.IsNullOrEmpty(v)) continue;
+                        list.Add(new StartupItem { Name = v, Command = Convert.ToString(k.GetValue(v)), Location = where, Hive = hive, View = view,
+                            ApprovedKey = approvedKey, ValueName = v, Enabled = IsEnabled(hive, approvedKey, v) });
+                    }
+                }
+            }
+            catch { }
+        }
+
+        static void AddFolder(List<StartupItem> list, string dir, RegistryHive hive, string where)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return;
+                foreach (var f in Directory.GetFiles(dir))
+                {
+                    if (Path.GetFileName(f).Equals("desktop.ini", StringComparison.OrdinalIgnoreCase)) continue;
+                    var n = Path.GetFileName(f);
+                    list.Add(new StartupItem { Name = Path.GetFileNameWithoutExtension(f), Command = f, Location = where, Hive = hive, View = RegistryView.Default,
+                        ApprovedKey = "StartupFolder", ValueName = n, Enabled = IsEnabled(hive, "StartupFolder", n) });
+                }
+            }
+            catch { }
+        }
+
+        static bool IsEnabled(RegistryHive hive, string approvedKey, string name)
+        {
+            try
+            {
+                using (var bk = RegistryKey.OpenBaseKey(hive, RegistryView.Default))
+                using (var k = bk.OpenSubKey(Approved + approvedKey))
+                {
+                    var b = k == null ? null : k.GetValue(name) as byte[];
+                    if (b == null || b.Length == 0) return true;
+                    return (b[0] & 1) == 0;   // 02 / 06 = enabled, 03 / 07 = disabled (same as Task Manager)
+                }
+            }
+            catch { return true; }
+        }
+
+        public static void SetEnabled(StartupItem item, bool enabled)
+        {
+            using (var bk = RegistryKey.OpenBaseKey(item.Hive, RegistryView.Default))
+            using (var k = bk.CreateSubKey(Approved + item.ApprovedKey))
+            {
+                var b = new byte[12];
+                b[0] = (byte)(enabled ? 0x02 : 0x03);
+                if (!enabled) BitConverter.GetBytes(DateTime.Now.ToFileTimeUtc()).CopyTo(b, 4);
+                k.SetValue(item.ValueName, b, RegistryValueKind.Binary);
+            }
+            item.Enabled = enabled;
+        }
+    }
+}

@@ -1,0 +1,403 @@
+// KEMAS - languages: English / Bahasa Melayu
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows;
+
+namespace Kemas
+{
+    public static class L
+    {
+        static string lang = "en";
+        static Dictionary<string, string[]> map;
+        public static CultureInfo Culture { get { return lang == "ms" ? new CultureInfo("ms-MY") : new CultureInfo("en-US"); } }
+
+        public static void Set(string l) { lang = l == "ms" ? "ms" : "en"; }
+
+        public static string T(string key)
+        {
+            if (map == null) Build();
+            string[] v;
+            if (key != null && map.TryGetValue(key, out v)) return lang == "ms" ? v[1] : v[0];
+            return key;
+        }
+
+        /// Puts every string into the window resources as "L_key" so XAML updates live.
+        public static void Apply(ResourceDictionary r, string l)
+        {
+            Set(l);
+            if (map == null) Build();
+            foreach (var kv in map) r["L_" + kv.Key] = lang == "ms" ? kv.Value[1] : kv.Value[0];
+        }
+
+        static void A(string k, string en, string ms) { map[k] = new[] { en, ms }; }
+
+        static void Build()
+        {
+            map = new Dictionary<string, string[]>();
+            // ---- general
+            A("tagline", "Your PC, Kemas.", "PC anda, Kemas.");
+            A("greet", "Hi, {0}", "Hai, {0}");
+            A("greet_morning", "Good morning ☀", "Selamat pagi ☀");
+            A("greet_afternoon", "Good afternoon", "Selamat petang");
+            A("greet_evening", "Good evening", "Selamat malam");
+            A("nav_dash", "Dashboard", "Papan Utama");
+            A("nav_clean", "System Cleaner", "Pembersih Sistem");
+            A("nav_org", "File Organizer", "Penyusun Fail");
+            A("nav_ram", "Memory Booster", "Penggalak Memori");
+            A("nav_startup", "Startup Apps", "Apps Permulaan");
+            A("nav_apps", "Programs", "Program");
+            A("nav_settings", "Settings", "Tetapan");
+            A("nav_about", "About", "Perihal");
+            A("refresh", "Refresh", "Muat semula");
+            A("cancel", "Cancel", "Batal");
+            A("remove", "Remove", "Buang");
+            A("reset", "Reset", "Set semula");
+            A("finish", "Finish", "Selesai");
+            A("stop", "Stop", "Henti");
+            A("stopping", "Stopping...", "Menghentikan...");
+            A("stopped", "Stopped", "Dihentikan");
+            A("please_wait", "Please wait - KEMAS is still working.", "Sila tunggu - KEMAS masih bekerja.");
+            A("task_error", "Something went wrong:", "Ada masalah:");
+            A("saved", "Saved", "Disimpan");
+            A("search", "Search programs...", "Cari program...");
+            A("activity", "ACTIVITY", "AKTIVITI");
+            A("used", "used", "digunakan");
+            A("storage", "STORAGE", "STORAN");
+            A("free_of", "{0} free of {1}", "{0} kosong daripada {1}");
+            A("in_use_of", "{0} of {1} in use", "{0} daripada {1} digunakan");
+            A("waiting", "Waiting", "Menunggu");
+            A("starting", "Starting...", "Memulakan...");
+            A("done_word", "Done", "Siap");
+            A("failed", "Failed", "Gagal");
+            A("skipped", "Skipped", "Dilangkau");
+            A("no_errors", "No errors recorded. KEMAS is running smoothly.", "Tiada ralat direkodkan. KEMAS berjalan lancar.");
+
+            // ---- dashboard
+            A("health", "HEALTH SCORE", "SKOR KESIHATAN");
+            A("checking", "Checking your PC...", "Menyemak PC anda...");
+            A("checking_desc", "KEMAS is looking for junk, cache and leftovers.", "KEMAS sedang mencari sampah, cache dan sisa fail.");
+            A("smart", "Smart Clean", "Bersih Pintar");
+            A("scan_again", "Scan again", "Imbas semula");
+            A("ram_card", "MEMORY (RAM)", "MEMORI (RAM)");
+            A("junk_card", "JUNK FOUND", "SAMPAH DITEMUI");
+            A("score_great", "Your PC is in great shape", "PC anda dalam keadaan terbaik");
+            A("score_ok", "Your PC could use a tidy-up", "PC anda perlu dikemaskan");
+            A("score_bad", "Your PC needs some care", "PC anda perlukan penjagaan");
+            A("score_desc", "{0} of junk  ·  Disk {1}% full  ·  RAM {2}% used", "{0} sampah  ·  Cakera {1}% penuh  ·  RAM {2}% digunakan");
+            A("last_clean", "Last clean: {0} ({1})", "Pembersihan terakhir: {0} ({1})");
+            A("not_scanned", "Press Scan to check", "Tekan Imbas untuk semak");
+            A("across", "across {0} locations", "dari {0} lokasi");
+            A("left_in_use", "left (files in use are skipped)", "berbaki (fail yang sedang digunakan dilangkau)");
+
+            // ---- cleaner
+            A("clean_title", "System Cleaner", "Pembersih Sistem");
+            A("clean_sub", "Temp files, Prefetch, Recycle Bin, browser caches and Windows leftovers.", "Fail temp, Prefetch, Tong Kitar Semula, cache pelayar dan sisa Windows.");
+            A("select_all", "Select all", "Pilih semua");
+            A("select_none", "Select none", "Nyahpilih semua");
+            A("clean_selected", "Clean selected", "Bersihkan pilihan");
+            A("selected_total", "{0} selected", "{0} dipilih");
+            A("selected_count", "{0} of {1} items ticked", "{0} daripada {1} item ditanda");
+            A("scanning", "Scanning", "Mengimbas");
+            A("scanning_short", "Scanning...", "Mengimbas...");
+            A("scan_start", "Scanning for junk files...", "Mengimbas fail sampah...");
+            A("scan_done", "Scan complete: {0} of junk found.", "Imbasan siap: {0} sampah ditemui.");
+            A("refresh_word", "Refresh", "Segar");
+            A("clean_word", "Clean", "Bersih");
+            A("nothing_ticked", "Nothing is ticked in System Cleaner.", "Tiada item ditanda dalam Pembersih Sistem.");
+            A("confirm_clean", "Ready to clean?", "Sedia untuk bersihkan?");
+            A("confirm_smart", "Start Smart Clean?", "Mulakan Bersih Pintar?");
+            A("confirm_clean_d", "KEMAS will clean: {0}.", "KEMAS akan bersihkan: {0}.");
+            A("confirm_trim", "Then it frees up memory from running apps.", "Kemudian ia membebaskan memori daripada apps yang sedang berjalan.");
+            A("confirm_recycle", "The Recycle Bin will be emptied permanently.", "Tong Kitar Semula akan dikosongkan secara kekal.");
+            A("confirm_browser", "A browser is open. Close it first for a deeper clean.", "Pelayar sedang dibuka. Tutup dulu untuk pembersihan lebih mendalam.");
+            A("confirm_safe", "Files that are in use are skipped safely.", "Fail yang sedang digunakan akan dilangkau dengan selamat.");
+            A("clean_now", "Clean now", "Bersihkan sekarang");
+            A("clean_start", "Cleaning started...", "Pembersihan bermula...");
+            A("clean_done", "Clean finished: freed {0}.", "Pembersihan siap: {0} dibebaskan.");
+            A("cleaning", "Cleaning...", "Membersihkan...");
+            A("freed_x", "Freed {0}", "{0} dibebaskan");
+            A("refreshed", "Refreshed", "Disegarkan");
+            A("free_ram_item", "Free up memory (RAM)", "Bebaskan memori (RAM)");
+            A("freeing", "Freeing memory...", "Membebaskan memori...");
+            A("released_x", "Released {0}", "{0} dilepaskan");
+            A("t_usertemp", "User temporary files", "Fail sementara pengguna");
+            A("t_usertemp_d", "Leftover files apps and installers leave in your Temp folder.", "Sisa fail yang ditinggalkan apps dan pemasang dalam folder Temp anda.");
+            A("t_wintemp", "Windows temporary files", "Fail sementara Windows");
+            A("t_wintemp_d", "The system Temp folder used by updates and services.", "Folder Temp sistem yang digunakan oleh kemas kini dan servis.");
+            A("t_prefetch", "Prefetch", "Prefetch");
+            A("t_prefetch_d", "Launch hints Windows rebuilds by itself. Apps may open slightly slower once.", "Data pelancaran yang Windows bina semula sendiri. Apps mungkin lambat sedikit sekali sahaja.");
+            A("t_recycle", "Recycle Bin", "Tong Kitar Semula");
+            A("t_recycle_d", "Permanently empties the Recycle Bin on every drive.", "Mengosongkan Tong Kitar Semula di semua pemacu secara kekal.");
+            A("t_browser", "Browser cache", "Cache pelayar");
+            A("t_browser_d", "Cached web files from Chrome, Edge, Brave, Opera, Vivaldi and Firefox. Logins and history are not touched.", "Fail web cache dari Chrome, Edge, Brave, Opera, Vivaldi dan Firefox. Log masuk dan sejarah tidak disentuh.");
+            A("t_thumbs", "Thumbnail cache", "Cache gambar kecil");
+            A("t_thumbs_d", "Picture and video previews. Windows recreates them when needed.", "Pratonton gambar dan video. Windows akan bina semula bila perlu.");
+            A("t_wer", "Error reports and crash dumps", "Laporan ralat dan crash dump");
+            A("t_wer_d", "Old Windows Error Reporting files and memory dumps from crashed apps.", "Fail Laporan Ralat Windows lama dan memory dump dari apps yang crash.");
+            A("t_delivery", "Delivery Optimization cache", "Cache Delivery Optimization");
+            A("t_delivery_d", "Update pieces Windows keeps to share with other PCs.", "Kepingan kemas kini yang Windows simpan untuk dikongsi dengan PC lain.");
+            A("t_logs", "Old Windows logs", "Log Windows lama");
+            A("t_logs_d", "Setup and servicing logs older than 7 days.", "Log pemasangan dan servis yang lebih lama dari 7 hari.");
+            A("t_winupdate", "Windows Update download cache", "Cache muat turun Windows Update");
+            A("t_winupdate_d", "Already-installed update files. Skip this while Windows is installing an update.", "Fail kemas kini yang sudah dipasang. Langkau jika Windows sedang memasang kemas kini.");
+            A("t_dns", "DNS cache", "Cache DNS");
+            A("t_dns_d", "Refreshes stored website addresses. Fixes some \"site can't be reached\" problems.", "Menyegarkan alamat laman web yang disimpan. Membaiki sesetengah masalah \"laman tidak dapat dicapai\".");
+            A("tag_safe", "Safe", "Selamat");
+            A("tag_rebuild", "Rebuilds itself", "Dibina semula");
+            A("tag_permanent", "Permanent", "Kekal");
+            A("tag_browser", "Close browsers first", "Tutup pelayar dulu");
+            A("tag_optional", "Optional", "Pilihan");
+            A("err_access", "Windows blocked access to it", "Windows menyekat akses");
+            A("err_gone", "It could not be found (already gone)", "Tidak dijumpai (sudah tiada)");
+            A("err_inuse", "It is being used by another app", "Sedang digunakan oleh app lain");
+            A("err_exists", "A file with the same name is already there", "Fail dengan nama sama sudah ada");
+            A("err_recycle", "Windows could not empty the Recycle Bin", "Windows tidak dapat mengosongkan Tong Kitar Semula");
+            A("note_recent", "temp files newer than 24 hours were kept (see Settings)", "fail temp lebih baharu dari 24 jam disimpan (lihat Tetapan)");
+            A("note_browser", "a browser is open - close it for a deeper clean", "pelayar sedang dibuka - tutup untuk pembersihan lebih mendalam");
+            A("note_stopped", "stopped before it started", "dihentikan sebelum bermula");
+            A("note_locked", "{0} file(s) in use were skipped", "{0} fail sedang digunakan dilangkau");
+
+            // ---- overlay / finish
+            A("ov_clean", "Maintaining your PC", "Menyelenggara PC anda");
+            A("ov_clean_d", "Sit back. KEMAS is tidying things up.", "Bersantai. KEMAS sedang mengemaskan semuanya.");
+            A("ov_org", "Organizing your files", "Menyusun fail anda");
+            A("ov_org_d", "Sorting everything into neat folders.", "Menyusun semuanya ke dalam folder yang kemas.");
+            A("ov_undo", "Putting files back", "Memulangkan fail");
+            A("ov_undo_d", "Undoing the last organize.", "Membatalkan penyusunan terakhir.");
+            A("ov_ram", "Freeing up memory", "Membebaskan memori");
+            A("ov_ram_d", "Asking apps to release memory they are not using.", "Meminta apps melepaskan memori yang tidak digunakan.");
+            A("ov_update", "Updating KEMAS", "Mengemas kini KEMAS");
+            A("ov_update_d", "Installing version {0}.", "Memasang versi {0}.");
+            A("done_title", "Your PC is Kemas!", "PC anda sudah Kemas!");
+            A("done_skips", "Done, with a few skips", "Siap, dengan beberapa langkauan");
+            A("done_none", "Nothing could be cleaned", "Tiada apa yang dapat dibersihkan");
+            A("done_sub", "Finished. Anything KEMAS could not clean was skipped safely.", "Selesai. Apa yang KEMAS tidak dapat bersihkan dilangkau dengan selamat.");
+            A("freed_up", "freed up", "dibebaskan");
+            A("chip_cleaned", "{0} cleaned", "{0} dibersihkan");
+            A("chip_skipped", "{0} skipped", "{0} dilangkau");
+            A("chip_moved", "{0} moved", "{0} dipindah");
+            A("chip_restored", "{0} restored", "{0} dipulangkan");
+            A("was_skipped", "was skipped", "dilangkau");
+            A("partly", "partly cleaned", "dibersihkan sebahagian");
+            A("you_stopped", "You stopped the task. Remaining items were skipped.", "Anda menghentikan tugasan. Item yang berbaki dilangkau.");
+            A("all_good", "Everything finished without problems.", "Semuanya selesai tanpa masalah.");
+
+            // ---- organizer
+            A("org_title", "File Organizer", "Penyusun Fail");
+            A("org_sub", "Your rules, your folder names. Nothing is deleted, and you can undo.", "Peraturan anda, nama folder anda. Tiada fail dipadam, dan boleh dibatalkan.");
+            A("undo", "Undo last", "Batal terakhir");
+            A("preview", "Preview", "Pratonton");
+            A("organize", "Organize now", "Susun sekarang");
+            A("org_tab_folders", "Folders", "Folder");
+            A("org_tab_rules", "Rules", "Peraturan");
+            A("org_tab_preview", "Preview", "Pratonton");
+            A("by_type", "By type", "Ikut jenis");
+            A("by_date", "By date", "Ikut tarikh");
+            A("add_folder", "Add folder", "Tambah folder");
+            A("date_format", "Date folders:", "Folder tarikh:");
+            A("rule_folder", "FOLDER NAME", "NAMA FOLDER");
+            A("rule_types", "FILE TYPES (comma separated)", "JENIS FAIL (dipisah koma)");
+            A("add_rule", "Add rule", "Tambah peraturan");
+            A("others_name", "Unknown files go to:", "Fail lain masuk ke:");
+            A("import", "Import", "Import");
+            A("export", "Export", "Eksport");
+            A("org_hint", "Press Preview to see what will move.", "Tekan Pratonton untuk lihat apa yang akan dipindah.");
+            A("new_folder", "New Folder", "Folder Baharu");
+            A("reset_rules_q", "Reset organizer rules?", "Set semula peraturan penyusun?");
+            A("reset_rules_d", "Your custom folder names and file types will be replaced with the defaults.", "Nama folder dan jenis fail tersuai anda akan diganti dengan lalai.");
+            A("rules_reset", "Rules reset to default", "Peraturan diset semula");
+            A("pick_folder", "Choose a folder for KEMAS to organize", "Pilih folder untuk KEMAS susun");
+            A("folder_exists", "That folder is already in the list", "Folder itu sudah ada dalam senarai");
+            A("folder_unsafe", "For safety, system folders and whole drives can't be organized", "Demi keselamatan, folder sistem dan keseluruhan pemacu tidak boleh disusun");
+            A("exported", "Rules exported - share the file with anyone", "Peraturan dieksport - kongsi fail ini dengan sesiapa");
+            A("export_fail", "Could not export:", "Gagal eksport:");
+            A("imported", "Imported {0} rules", "{0} peraturan diimport");
+            A("import_fail", "Could not import:", "Gagal import:");
+            A("import_invalid", "This is not a KEMAS rules file.", "Ini bukan fail peraturan KEMAS.");
+            A("looking", "Looking at your folders...", "Melihat folder anda...");
+            A("already_tidy", "Everything is already tidy - no loose files to move.", "Semuanya sudah kemas - tiada fail untuk dipindah.");
+            A("n_in", "{0} in {1}", "{0} dalam {1}");
+            A("will_move", "{0} files will be moved.", "{0} fail akan dipindah.");
+            A("preview_ready", "Preview ready: {0} files to tidy.", "Pratonton siap: {0} fail untuk dikemaskan.");
+            A("org_q", "Organize your files?", "Susun fail anda?");
+            A("org_q_d", "KEMAS will move {0} files into tidy folders.\n\nNothing is deleted, and 'Undo last' puts everything back.", "KEMAS akan memindah {0} fail ke folder yang kemas.\n\nTiada fail dipadam, dan 'Batal terakhir' memulangkan semuanya.");
+            A("n_files", "{0}  ({1} files)", "{0}  ({1} fail)");
+            A("moving", "Moving", "Memindah");
+            A("x_skipped", "{0} skipped", "{0} dilangkau");
+            A("more_skipped", "...and {0} more skipped files", "...dan {0} lagi fail dilangkau");
+            A("undo_hint", "Changed your mind? Press 'Undo last' on the File Organizer page.", "Ubah fikiran? Tekan 'Batal terakhir' di halaman Penyusun Fail.");
+            A("org_done", "Folders are Kemas!", "Folder sudah Kemas!");
+            A("org_done_skips", "Organized, with a few skips", "Disusun, dengan beberapa langkauan");
+            A("org_done_sub", "Your files are sorted into neat folders.", "Fail anda sudah disusun ke dalam folder yang kemas.");
+            A("files_tidied", "files tidied", "fail dikemaskan");
+            A("organized_n", "Organized {0} files.", "{0} fail disusun.");
+            A("nothing_undo", "Nothing to undo", "Tiada apa untuk dibatalkan");
+            A("nothing_undo_d", "There is no recent organize to put back.", "Tiada penyusunan terkini untuk dipulangkan.");
+            A("undo_q", "Undo last organize?", "Batalkan penyusunan terakhir?");
+            A("undo_q_d", "KEMAS will put {0} files back where they were.", "KEMAS akan memulangkan {0} fail ke tempat asal.");
+            A("restore_item", "Restore moved files", "Pulangkan fail yang dipindah");
+            A("restoring", "Restoring...", "Memulangkan...");
+            A("restored_n", "Restored {0}", "{0} dipulangkan");
+            A("undo_done", "Files are back", "Fail sudah dipulangkan");
+            A("undo_done_sub", "Everything was moved back to where it was.", "Semua fail dipulangkan ke tempat asal.");
+            A("files_restored", "files restored", "fail dipulangkan");
+
+            // ---- memory
+            A("ram_title", "Memory Booster", "Penggalak Memori");
+            A("ram_sub", "See which apps eat your RAM, free memory, or close heavy apps.", "Lihat apps yang guna RAM, bebaskan memori, atau tutup apps berat.");
+            A("free_ram", "Free up RAM", "Bebaskan RAM");
+            A("end_selected", "End selected", "Tamatkan pilihan");
+            A("ram_tip", "Tip: hold Ctrl to select several apps. Windows system processes are protected. Save your work before ending an app.", "Tip: tekan Ctrl untuk pilih beberapa apps. Proses sistem Windows dilindungi. Simpan kerja anda sebelum menamatkan app.");
+            A("st_protected", "Protected", "Dilindungi");
+            A("st_canclose", "Can close", "Boleh tutup");
+            A("ram_done", "Memory refreshed", "Memori disegarkan");
+            A("ram_done_sub", "Running apps released memory they were not using.", "Apps yang berjalan melepaskan memori yang tidak digunakan.");
+            A("ram_released", "of RAM released", "RAM dilepaskan");
+            A("ram_note", "Windows reloads anything an app needs again. Closing heavy apps frees more memory.", "Windows akan muat semula apa yang app perlukan. Menutup apps berat membebaskan lebih banyak memori.");
+            A("select_app", "Select one or more apps first", "Pilih satu atau lebih app dulu");
+            A("protected_q", "Protected app", "App dilindungi");
+            A("protected_d", "Windows needs these processes to run, so KEMAS will not end them.", "Windows memerlukan proses ini untuk berjalan, jadi KEMAS tidak akan menamatkannya.");
+            A("kill_q", "End selected apps?", "Tamatkan apps yang dipilih?");
+            A("kill_d", "End {0}?\n\nAny unsaved work in these apps will be lost.", "Tamatkan {0}?\n\nKerja yang belum disimpan dalam apps ini akan hilang.");
+            A("kill_protected", "Protected system processes will be skipped.", "Proses sistem yang dilindungi akan dilangkau.");
+            A("end_apps", "End apps", "Tamatkan apps");
+            A("ended", "Ended {0} (was using {1})", "{0} ditamatkan (menggunakan {1})");
+            A("end_fail", "Could not end {0}", "Gagal menamatkan {0}");
+
+            // ---- startup
+            A("startup_title", "Startup Apps", "Apps Permulaan");
+            A("startup_sub", "Choose which apps start with Windows. Fewer startup apps = faster boot.", "Pilih apps yang bermula bersama Windows. Kurang apps = boot lebih laju.");
+            A("startup_summary", "{0} of {1} apps start with Windows. Changes apply on the next sign-in.", "{0} daripada {1} apps bermula bersama Windows. Perubahan berkuat kuasa pada log masuk seterusnya.");
+            A("startup_enabled", "{0} will start with Windows", "{0} akan bermula bersama Windows");
+            A("startup_disabled", "{0} won't start with Windows", "{0} tidak akan bermula bersama Windows");
+            A("startup_fail_item", "Could not change this startup app", "Gagal mengubah app permulaan ini");
+
+            // ---- programs
+            A("apps_title", "Programs", "Program");
+            A("apps_sub", "Find big programs you no longer use and remove them.", "Cari program besar yang tidak digunakan lagi dan buangkannya.");
+            A("uninstall", "Uninstall", "Nyahpasang");
+            A("apps_summary", "{0} programs installed, about {1} in total. Biggest first.", "{0} program dipasang, kira-kira {1} keseluruhan. Paling besar dahulu.");
+            A("select_program", "Pick a program in the list first", "Pilih program dalam senarai dulu");
+            A("uninstall_q", "Uninstall {0}?", "Nyahpasang {0}?");
+            A("uninstall_d", "Its own uninstaller will open. Follow the steps there, then press Refresh.", "Penyahpasangnya akan dibuka. Ikut langkah di sana, kemudian tekan Muat semula.");
+            A("uninstall_started", "Uninstaller started for {0}.", "Penyahpasang dimulakan untuk {0}.");
+            A("uninstall_fail", "Could not start the uninstaller:", "Gagal memulakan penyahpasang:");
+
+            // ---- columns
+            A("col_file", "File", "Fail"); A("col_from", "From", "Dari"); A("col_to", "Moves to", "Pindah ke"); A("col_size", "Size", "Saiz");
+            A("col_app", "App", "App"); A("col_memory", "Memory", "Memori"); A("col_procs", "Processes", "Proses"); A("col_desc", "Description", "Penerangan"); A("col_status", "Status", "Status");
+            A("col_program", "Program", "Program"); A("col_publisher", "Publisher", "Penerbit"); A("col_version", "Version", "Versi"); A("col_installed", "Installed", "Dipasang");
+
+            // ---- settings
+            A("settings_title", "Settings", "Tetapan");
+            A("settings_sub", "Make KEMAS work the way you like. Changes save automatically.", "Sesuaikan KEMAS mengikut cara anda. Perubahan disimpan secara automatik.");
+            A("set_appearance", "APPEARANCE", "PAPARAN");
+            A("set_theme", "Theme", "Tema");
+            A("set_theme_d", "Dark, light, or follow Windows.", "Gelap, cerah, atau ikut Windows.");
+            A("dark", "Dark", "Gelap"); A("light", "Light", "Cerah"); A("system", "System", "Sistem");
+            A("set_lang", "Language", "Bahasa");
+            A("set_lang_d", "Interface language.", "Bahasa paparan.");
+            A("set_motion", "Animations", "Animasi");
+            A("motion_full", "Smooth animations at your screen's {0} Hz.", "Animasi lancar pada {0} Hz skrin anda.");
+            A("motion_reduced", "Animations are reduced to save power.", "Animasi dikurangkan untuk jimat kuasa.");
+            A("set_name", "Your name", "Nama anda");
+            A("set_name_d", "Used in the greeting. Leave empty to use your Windows name.", "Digunakan dalam ucapan. Biarkan kosong untuk guna nama Windows.");
+            A("set_general", "GENERAL", "UMUM");
+            A("set_startup", "Start with Windows", "Mula bersama Windows");
+            A("set_startup_d", "Open KEMAS quietly in the tray when you sign in.", "Buka KEMAS secara senyap di tray bila anda log masuk.");
+            A("set_tray", "Keep running in the tray", "Terus berjalan di tray");
+            A("set_tray_d", "Closing the window keeps KEMAS in the system tray.", "Menutup tetingkap mengekalkan KEMAS di system tray.");
+            A("set_scanstart", "Scan on startup", "Imbas semasa mula");
+            A("set_scanstart_d", "Check for junk every time KEMAS opens.", "Semak sampah setiap kali KEMAS dibuka.");
+            A("set_cleaning", "CLEANING", "PEMBERSIHAN");
+            A("set_auto", "Automatic cleaning", "Pembersihan automatik");
+            A("set_auto_d", "Cleans the items you ticked, at 12:00 PM, even when KEMAS is closed.", "Membersihkan item yang anda tanda, pada 12:00 tengah hari, walaupun KEMAS ditutup.");
+            A("off", "Off", "Tutup"); A("daily", "Daily", "Harian"); A("weekly", "Weekly", "Mingguan");
+            A("set_confirm", "Ask before cleaning", "Tanya sebelum membersihkan");
+            A("set_confirm_d", "Show a summary before anything is removed.", "Tunjuk ringkasan sebelum apa-apa dibuang.");
+            A("set_recent", "Keep recent temp files", "Simpan fail temp terkini");
+            A("set_recent_d", "Skip temp files newer than 24 hours (safer for running installers).", "Langkau fail temp lebih baharu dari 24 jam (lebih selamat untuk pemasang yang sedang berjalan).");
+            A("set_smartram", "Free RAM after Smart Clean", "Bebaskan RAM selepas Bersih Pintar");
+            A("set_smartram_d", "Smart Clean also releases unused memory.", "Bersih Pintar turut melepaskan memori yang tidak digunakan.");
+            A("set_updates", "UPDATES", "KEMAS KINI");
+            A("set_autoupdate", "Check for updates automatically", "Semak kemas kini secara automatik");
+            A("set_autoupdate_d", "KEMAS tells you when a new version is ready.", "KEMAS memberitahu bila versi baharu tersedia.");
+            A("check_now", "Check for updates", "Semak kemas kini");
+            A("version_line", "KEMAS {0}", "KEMAS {0}");
+            A("set_data", "DATA", "DATA");
+            A("open_data", "Open data folder", "Buka folder data");
+            A("error_log", "Error log", "Log ralat");
+            A("reset_settings", "Reset all settings", "Set semula semua tetapan");
+            A("reset_q", "Reset all settings?", "Set semula semua tetapan?");
+            A("reset_d", "Theme, language, organizer rules and schedules go back to default. Your cleaning history is kept.", "Tema, bahasa, peraturan penyusun dan jadual kembali ke lalai. Sejarah pembersihan disimpan.");
+            A("settings_reset", "Settings reset", "Tetapan diset semula");
+            A("startup_on", "KEMAS will start with Windows", "KEMAS akan bermula bersama Windows");
+            A("startup_off", "KEMAS won't start with Windows", "KEMAS tidak akan bermula bersama Windows");
+            A("startup_fail", "Could not change the startup setting", "Gagal mengubah tetapan permulaan");
+            A("auto_on", "Automatic cleaning scheduled", "Pembersihan automatik dijadualkan");
+            A("auto_off", "Automatic cleaning turned off", "Pembersihan automatik dimatikan");
+            A("auto_fail", "Could not schedule automatic cleaning", "Gagal menjadualkan pembersihan automatik");
+            A("autoclean_done", "Automatic clean finished - {0} freed.", "Pembersihan automatik siap - {0} dibebaskan.");
+            A("tray_hint", "KEMAS is still running here. Right-click for options.", "KEMAS masih berjalan di sini. Klik kanan untuk pilihan.");
+            A("tray_open", "Open KEMAS", "Buka KEMAS");
+            A("tray_exit", "Exit", "Keluar");
+
+            // ---- updates / install
+            A("update_ready", "Update available", "Kemas kini tersedia");
+            A("update_idle", "Updates are checked from the official release page.", "Kemas kini disemak dari halaman rasmi.");
+            A("update_not_configured", "Update channel is not set up in this build.", "Saluran kemas kini belum ditetapkan dalam binaan ini.");
+            A("update_checking", "Checking for updates...", "Menyemak kemas kini...");
+            A("update_offline", "Couldn't reach the update server. Check your internet.", "Tidak dapat capai pelayan kemas kini. Semak internet anda.");
+            A("update_latest", "You're up to date (checked {0}).", "Anda sudah terkini (disemak {0}).");
+            A("update_none", "You have the latest version", "Anda mempunyai versi terkini");
+            A("update_found", "Version {0} is available.", "Versi {0} tersedia.");
+            A("update_q", "KEMAS {0} is ready", "KEMAS {0} sudah sedia");
+            A("update_q_d", "You have {0}. Update to {1} now? It takes a few seconds and KEMAS restarts by itself.", "Anda ada {0}. Kemas kini ke {1} sekarang? Ia mengambil beberapa saat dan KEMAS akan dimulakan semula.");
+            A("update_now", "Update now", "Kemas kini sekarang");
+            A("skip_version", "Skip this version", "Langkau versi ini");
+            A("upd_download", "Download update", "Muat turun kemas kini");
+            A("upd_verify", "Security check", "Semakan keselamatan");
+            A("upd_install", "Install", "Pasang");
+            A("restarting", "Restarting KEMAS...", "Memulakan semula KEMAS...");
+            A("update_failed", "Update didn't finish", "Kemas kini tidak selesai");
+            A("update_failed_d", "Your current version is untouched.", "Versi semasa anda tidak terjejas.");
+            A("update_failed_note", "Try again later, or download the new version from the release page.", "Cuba lagi nanti, atau muat turun versi baharu dari halaman release.");
+            A("install_app", "Install KEMAS on this PC", "Pasang KEMAS pada PC ini");
+            A("install_app_d", "Adds Start menu and desktop shortcuts and shows in Apps & features.", "Menambah pintasan Start menu dan desktop serta muncul dalam Apps & features.");
+            A("uninstall_app", "Uninstall KEMAS", "Nyahpasang KEMAS");
+            A("uninstall_app_d", "Removes KEMAS, its shortcuts and scheduled tasks.", "Membuang KEMAS, pintasan dan tugasan berjadual.");
+            A("install", "Install", "Pasang");
+            A("install_q", "Install KEMAS?", "Pasang KEMAS?");
+            A("install_q_d", "KEMAS will be installed to Program Files with Start menu and desktop shortcuts, so you can open it anytime and receive updates.", "KEMAS akan dipasang ke Program Files dengan pintasan Start menu dan desktop, supaya anda boleh membukanya bila-bila masa dan menerima kemas kini.");
+            A("installed_title", "KEMAS is installed", "KEMAS sudah dipasang");
+            A("installed_d", "Find it in the Start menu or on your desktop. Open the installed copy now?", "Cari di Start menu atau desktop anda. Buka salinan yang dipasang sekarang?");
+            A("open_installed", "Open KEMAS", "Buka KEMAS");
+            A("install_fail", "Could not install:", "Gagal memasang:");
+            A("self_uninstall_q", "Uninstall KEMAS?", "Nyahpasang KEMAS?");
+            A("self_uninstall_d", "KEMAS, its shortcuts and scheduled tasks will be removed.", "KEMAS, pintasan dan tugasan berjadual akan dibuang.");
+            A("remove_data", "Also remove my settings and history", "Turut buang tetapan dan sejarah saya");
+            A("uninstall_mode_q", "Uninstall KEMAS?\n\nYes = remove KEMAS and your settings\nNo = remove KEMAS, keep settings\nCancel = keep KEMAS", "Nyahpasang KEMAS?\n\nYes = buang KEMAS dan tetapan\nNo = buang KEMAS, simpan tetapan\nCancel = kekalkan KEMAS");
+            A("uninstalled", "KEMAS has been removed. Thank you for using it!", "KEMAS telah dibuang. Terima kasih kerana menggunakannya!");
+
+            // ---- about
+            A("about_version", "Version {0}  ·  Native Windows app  ·  Rendering at {1} Hz", "Versi {0}  ·  Apps Windows asli  ·  Paparan pada {1} Hz");
+            A("credits", "CREDITS", "KREDIT");
+            A("cr_headline", "Crafted for people who care about the details.", "Dihasilkan untuk mereka yang menghargai setiap perincian.");
+            A("cr_story1", "KEMAS began with a simple belief: a computer should feel as clean and calm as the day it was first switched on. Every screen, every animation and every safeguard in this app was designed with that feeling in mind - fast where it matters, careful where it counts, and never in your way.", "KEMAS bermula dengan satu keyakinan mudah: sebuah komputer sepatutnya terasa sebersih dan setenang hari pertama ia dihidupkan. Setiap skrin, setiap animasi dan setiap perlindungan dalam aplikasi ini direka dengan perasaan itu - pantas di tempat yang penting, berhati-hati di tempat yang perlu, dan tidak pernah mengganggu anda.");
+            A("cr_story2", "From the cleaning engine to the smallest transition, KEMAS is built natively for Windows, tuned to your display, and engineered to leave nothing behind but space, speed and order.", "Daripada enjin pembersihan hinggalah peralihan yang paling kecil, KEMAS dibina secara asli untuk Windows, ditala mengikut paparan anda, dan direka untuk tidak meninggalkan apa-apa selain ruang, kelajuan dan kekemasan.");
+            A("cr_created", "CREATED BY", "DICIPTA OLEH");
+            A("cr_role", "Founder, Designer & Developer", "Pengasas, Pereka & Pembangun");
+            A("cr_ack", "ACKNOWLEDGEMENTS", "PENGHARGAAN");
+            A("cr_ack_text", "Built on Microsoft .NET and Windows Presentation Foundation. Iconography by Segoe Fluent Icons. Motion artwork produced with Higgsfield. Development tooling by Anthropic.", "Dibina di atas Microsoft .NET dan Windows Presentation Foundation. Ikon oleh Segoe Fluent Icons. Seni animasi dihasilkan dengan Higgsfield. Alatan pembangunan oleh Anthropic.");
+            A("cr_thanks_title", "Thank you.", "Terima kasih.");
+            A("cr_thanks", "To everyone who installs KEMAS, shares it, and sends feedback - thank you for trusting it with your PC. Every update is shaped by the people who use it, and this is only the beginning.", "Kepada semua yang memasang KEMAS, berkongsi dan memberi maklum balas - terima kasih kerana mempercayainya untuk PC anda. Setiap kemas kini dibentuk oleh mereka yang menggunakannya, dan ini baru permulaan.");
+            A("ab_privacy", "Private by design", "Privasi terjamin");
+            A("ab_privacy_d", "No accounts, no tracking. KEMAS only goes online to check for updates.", "Tiada akaun, tiada penjejakan. KEMAS hanya ke internet untuk semak kemas kini.");
+            A("ab_safe", "Safe by default", "Selamat secara lalai");
+            A("ab_safe_d", "Files in use are skipped, system folders are protected, and organizing can be undone.", "Fail yang digunakan dilangkau, folder sistem dilindungi, dan penyusunan boleh dibatalkan.");
+            A("ab_light", "Light and fast", "Ringan dan pantas");
+            A("ab_light_d", "Native code, work runs in the background, and memory is released when idle.", "Kod asli, kerja berjalan di latar belakang, dan memori dilepaskan bila tidak aktif.");
+            A("rights", "All rights reserved.", "Hak cipta terpelihara.");
+        }
+    }
+}
