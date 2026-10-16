@@ -16,8 +16,8 @@ using System.Windows.Threading;
 [assembly: AssemblyCompany("Amzar Syafiq")]
 [assembly: AssemblyProduct("KEMAS")]
 [assembly: AssemblyCopyright("(c) 2026 Amzar Syafiq")]
-[assembly: AssemblyVersion("3.0.3.0")]
-[assembly: AssemblyFileVersion("3.0.3.0")]
+[assembly: AssemblyVersion("3.1.0.0")]
+[assembly: AssemblyFileVersion("3.1.0.0")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName = ".NET Framework 4.8")]
 
 namespace Kemas
@@ -26,6 +26,7 @@ namespace Kemas
     {
         public static int RefreshRate = 60;
         public static bool Portable;
+        public static bool JustUpdated;
         static Mutex mutex;
         static EventWaitHandle showSignal;
         static MainWin main;
@@ -84,7 +85,7 @@ namespace Kemas
                 return 1;
             }
 
-            if (has("--updated")) Settings.Current.InstallOffered = true;
+            if (has("--updated")) { Settings.Current.InstallOffered = true; JustUpdated = true; }
             main.W.ContentRendered += (s, e) => { if (splash != null) splash.Close(); };
 
             var listener = new Thread(() =>
@@ -250,7 +251,7 @@ namespace Kemas
                 foreach (var t in Cleaner.CreateTargets())
                 {
                     bool on = sel != null ? sel.Contains(t.Key) : t.Default;
-                    if (!on || t.Key == "winupdate") continue;   // never touch update files unattended
+                    if (!on || t.Key == "winupdate" || Cleaner.IsDeep(t)) continue;   // never touch update files or deep items unattended
                     try { freed += c.Clean(t).Freed; } catch (Exception ex) { Log.Error("AutoClean " + t.Key, ex); }
                 }
                 s.LastClean = DateTime.Now.ToString("dd MMM, HH:mm", L.Culture);

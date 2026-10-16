@@ -30,8 +30,26 @@ namespace Kemas
             var list = E<StackPanel>("CleanList");
             list.Children.Clear();
             var sel = S.CleanSelection;
+            bool deepHeader = false;
             foreach (var t in targets)
             {
+                if (!deepHeader && Cleaner.IsDeep(t))
+                {
+                    deepHeader = true;
+                    var head = new StackPanel { Margin = new Thickness(4, 14, 0, 12) };
+                    var hl = new StackPanel { Orientation = Orientation.Horizontal };
+                    hl.Children.Add(new TextBlock { Text = Glyph("E945"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15, Foreground = Hex("#9C8BFF"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) });
+                    var ht = new TextBlock { FontSize = 16, FontWeight = FontWeights.SemiBold };
+                    ht.SetResourceReference(TextBlock.TextProperty, "L_deep_head");
+                    ht.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+                    hl.Children.Add(ht);
+                    head.Children.Add(hl);
+                    var hd = new TextBlock { FontSize = 12.5, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
+                    hd.SetResourceReference(TextBlock.TextProperty, "L_deep_head_d");
+                    hd.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                    head.Children.Add(hd);
+                    list.Children.Add(head);
+                }
                 var row = new Border { CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 13, 16, 13), Margin = new Thickness(0, 0, 0, 10), BorderThickness = new Thickness(1) };
                 row.SetResourceReference(Border.BackgroundProperty, "CardBrush");
                 row.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
@@ -55,7 +73,7 @@ namespace Kemas
                 var right = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0), MinWidth = 110 };
                 var size = new TextBlock { Text = "-", FontSize = 17, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
                 var tag = new TextBlock { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) };
-                tag.Foreground = t.Tag == "safe" ? (Brush)W.FindResource("GoodBrush") : t.Tag == "permanent" ? (Brush)W.FindResource("BadBrush") : (Brush)W.FindResource("WarnBrush");
+                tag.Foreground = t.Tag == "safe" ? (Brush)W.FindResource("GoodBrush") : t.Tag == "permanent" ? (Brush)W.FindResource("BadBrush") : t.Tag == "deep" ? Hex("#9C8BFF") : (Brush)W.FindResource("WarnBrush");
                 right.Children.Add(size); right.Children.Add(tag);
                 Grid.SetColumn(right, 2); g.Children.Add(right);
                 row.Child = g;
@@ -72,6 +90,7 @@ namespace Kemas
         {
             var l = targetSizes[t.Key];
             if (t.IsDns) l.Text = L.T("refresh_word");
+            else if (t.MeasureByDrive) l.Text = L.T("varies_word");
             else if (!scanned) l.Text = "-";
             else l.Text = t.Size <= 0 ? L.T("clean_word") : Fmt.Size(t.Size);
         }
@@ -83,7 +102,8 @@ namespace Kemas
             foreach (var t in targets) if (targetChecks[t.Key].IsChecked == true) { sum += t.Size; n++; }
             TB("SelTotal").Text = string.Format(L.T("selected_total"), Fmt.Size(sum));
             TB("SelCount").Text = string.Format(L.T("selected_count"), n, targets.Count);
-            BT("BtnSelAll").Content = n == targets.Count ? L.T("select_none") : L.T("select_all");
+            bool allStd = targets.Where(t => !Cleaner.IsDeep(t)).All(t => targetChecks[t.Key].IsChecked == true);
+            BT("BtnSelAll").Content = allStd ? L.T("select_none") : L.T("select_all");
         }
 
         // ================================================================ scan
@@ -138,9 +158,100 @@ namespace Kemas
             string msg = string.Format(L.T("confirm_clean_d"), names);
             if (trim) msg += " " + L.T("confirm_trim");
             if (sel.Any(t => t.Key == "recycle")) msg += "\n\n" + L.T("confirm_recycle");
+            if (sel.Any(t => t.Key == "winold") && System.IO.Directory.Exists(Cleaner.WinOld)) msg += "\n\n" + L.T("deep_confirm_winold");
+            if (sel.Any(t => t.Slow)) msg += "\n\n" + L.T("slow_note");
             if (sel.Any(t => t.Key == "browser") && Cleaner.BrowserRunning()) msg += "\n\n" + L.T("confirm_browser");
             msg += "\n\n" + L.T("confirm_safe");
             Ask(smart ? L.T("confirm_smart") : L.T("confirm_clean"), msg, L.T("clean_now"), "E74D", false, () => StartClean(sel, trim));
+        }
+
+        public void RequestDeepClean()
+        {
+            if (busy) { Toast(L.T("please_wait"), "E916"); return; }
+            // everything except the Windows Update download cache (it can break an update that is installing)
+            foreach (var t in targets) targetChecks[t.Key].IsChecked = t.Key != "winupdate";
+            var sel = targets.Where(t => targetChecks[t.Key].IsChecked == true).ToList();
+            string msg = L.T("deep_confirm_d");
+            if (System.IO.Directory.Exists(Cleaner.WinOld)) msg += "\n\n" + L.T("deep_confirm_winold");
+            if (Cleaner.BrowserRunning()) msg += "\n\n" + L.T("confirm_browser");
+            msg += "\n\n" + L.T("confirm_safe");
+            Ask(L.T("deep_confirm"), msg, L.T("deep_go"), "E945", false, () => StartClean(sel, S.TrimRamOnSmart));
+        }
+
+        // ================================================================ what's new
+        static readonly string[][] WhatsNewItems =
+        {
+            new[] { "E945", "wn1" },   // Deep Clean
+            new[] { "E7F4", "wn2" },   // GPU + app caches
+            new[] { "E9F5", "wn3" },   // component store / Windows.old
+            new[] { "E789", "wn4" },   // this window
+        };
+
+        void CheckWhatsNew()
+        {
+            string seen = S.LastSeenVersion ?? "";
+            bool upgraded = seen != AppInfo.Version && (seen.Length > 0 || App.JustUpdated || S.CleanCount > 0 || !string.IsNullOrEmpty(S.LastClean));
+            if (seen != AppInfo.Version) { S.LastSeenVersion = AppInfo.Version; QueueSave(); }
+            if (upgraded) Delay(900, ShowWhatsNew);
+        }
+
+        void ShowWhatsNew()
+        {
+            TB("WnVersion").Text = "v" + AppInfo.Version;
+            TB("WnTitle").Text = string.Format(L.T("wn_title"), AppInfo.Version);
+            TB("WnSub").Text = L.T("wn_sub");
+            var list = E<StackPanel>("WnList");
+            list.Children.Clear();
+            int i = 0;
+            foreach (var it in WhatsNewItems)
+            {
+                var row = new Grid { Margin = new Thickness(0, 12, 0, 0), Opacity = S.ReducedMotion ? 1 : 0 };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Add(new ColumnDefinition());
+                var tile = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), VerticalAlignment = VerticalAlignment.Top };
+                tile.SetResourceReference(Border.BackgroundProperty, "IconTile");
+                tile.Child = new TextBlock { Text = Glyph(it[0]), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                row.Children.Add(tile);
+                var txt = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                var t1 = new TextBlock { Text = L.T(it[1] + "_t"), FontSize = 14.5, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
+                t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+                var t2 = new TextBlock { Text = L.T(it[1] + "_d"), FontSize = 12.5, Margin = new Thickness(0, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
+                t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                txt.Children.Add(t1); txt.Children.Add(t2);
+                Grid.SetColumn(txt, 1); row.Children.Add(txt);
+                list.Children.Add(row);
+                if (!S.ReducedMotion)
+                {
+                    var tt = new TranslateTransform(0, 12); row.RenderTransform = tt;
+                    var fade = Anim(0, 1, 380); fade.BeginTime = TimeSpan.FromMilliseconds(260 + i * 110);
+                    var rise = Anim(12, 0, 460, new QuinticEase { EasingMode = EasingMode.EaseOut }); rise.BeginTime = fade.BeginTime;
+                    row.BeginAnimation(UIElement.OpacityProperty, fade);
+                    tt.BeginAnimation(TranslateTransform.YProperty, rise);
+                }
+                i++;
+            }
+            var layer = E<Grid>("WhatsNewLayer");
+            layer.Visibility = Visibility.Visible;
+            layer.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 200));
+            var sc = (ScaleTransform)E<Border>("WhatsNewCard").RenderTransform;
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.9, 1, 360, new BackEase { Amplitude = 0.35, EasingMode = EasingMode.EaseOut }));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.9, 1, 360, new BackEase { Amplitude = 0.35, EasingMode = EasingMode.EaseOut }));
+            if (!S.ReducedMotion)
+            {
+                var rot = (RotateTransform)TB("WnSpark").RenderTransform;
+                var spin = new DoubleAnimation(0, 360, TimeSpan.FromMilliseconds(900)) { BeginTime = TimeSpan.FromMilliseconds(150), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+                rot.BeginAnimation(RotateTransform.AngleProperty, spin);
+            }
+            BT("BtnWnTry").Focus();
+        }
+
+        void CloseWhatsNew(bool tryDeep)
+        {
+            var layer = E<Grid>("WhatsNewLayer");
+            var a = Anim(1, 0, 180);
+            a.Completed += (s, e) => layer.Visibility = Visibility.Collapsed;
+            layer.BeginAnimation(UIElement.OpacityProperty, a);
+            if (tryDeep) E<RadioButton>("NavClean").IsChecked = true;
         }
 
         void StartClean(List<CleanTarget> sel, bool trim)
@@ -167,7 +278,7 @@ namespace Kemas
                         Ui(() => SetOvItem(tt.Key, ItemState.Skipped, L.T("stopped")));
                         continue;
                     }
-                    Ui(() => { SetOvItem(tt.Key, ItemState.Working, L.T("cleaning")); OvStep(L.T("cleaning") + " " + L.T("t_" + tt.Key)); });
+                    Ui(() => { SetOvItem(tt.Key, ItemState.Working, L.T("cleaning")); OvStep(L.T("cleaning") + " " + L.T("t_" + tt.Key) + (tt.Slow ? "  ·  " + L.T("slow_note") : "")); });
                     CleanResult r;
                     try { r = c.Clean(t); }
                     catch (Exception ex) { r = new CleanResult { Key = t.Key, State = ItemState.Skipped }; r.Notes.Add(Cleaner.Friendly(ex)); }

@@ -214,6 +214,7 @@ namespace Kemas
             if (S.ScanOnStart) StartScan(); else { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
             DownloadAnimationInBackground();
             if (S.AutoUpdate && Updater.Configured) Delay(4000, () => CheckUpdate(false));
+            CheckWhatsNew();
             Delay(1800, OfferInstall);
             Delay(6000, Native.TrimSelf);
         }
@@ -287,10 +288,15 @@ namespace Kemas
             BT("BtnDashScan").Click += (s, e) => StartScan();
             BT("BtnScan").Click += (s, e) => StartScan();
             BT("BtnClean").Click += (s, e) => RequestClean(false);
+            BT("BtnDeep").Click += (s, e) => RequestDeepClean();
+            BT("BtnWnClose").Click += (s, e) => CloseWhatsNew(false);
+            BT("BtnWnTry").Click += (s, e) => CloseWhatsNew(true);
             BT("BtnSelAll").Click += (s, e) =>
             {
-                bool all = targetChecks.Values.All(c => c.IsChecked == true);
-                foreach (var c in targetChecks.Values) c.IsChecked = !all;
+                // standard items only - deep items are picked one by one or through Deep Clean
+                var std = targets.Where(t => !Cleaner.IsDeep(t)).Select(t => targetChecks[t.Key]).ToList();
+                bool all = std.All(c => c.IsChecked == true);
+                foreach (var c in std) c.IsChecked = !all;
             };
 
             BT("BtnPreview").Click += (s, e) => StartPreview(null);
@@ -600,7 +606,7 @@ namespace Kemas
         void SetBusy(bool on)
         {
             busy = on;
-            foreach (var n in new[] { "BtnDashScan", "BtnSmart", "BtnScan", "BtnClean", "BtnSelAll", "BtnPreview", "BtnOrganize", "BtnUndo",
+            foreach (var n in new[] { "BtnDashScan", "BtnSmart", "BtnScan", "BtnClean", "BtnDeep", "BtnSelAll", "BtnPreview", "BtnOrganize", "BtnUndo",
                                       "BtnRamRefresh", "BtnTrim", "BtnKill", "BtnAppsRefresh", "BtnUninstall", "BtnStartupRefresh" })
                 BT(n).IsEnabled = !on;
             if (!on) E<ProgressBar>("MainProgress").Value = 0;

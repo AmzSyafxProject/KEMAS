@@ -12,7 +12,7 @@ namespace Kemas
     public static class AppInfo
     {
         public const string Name = "KEMAS";
-        public const string Version = "3.0.3";
+        public const string Version = "3.1.0";
         public const string Tagline = "Your PC, Kemas.";
         // GitHub repository used for updates: "owner/repo". Empty = updates disabled.
         public const string UpdateRepo = "AmzSyafxProject/KEMAS";
@@ -105,6 +105,7 @@ namespace Kemas
         [DataMember] public double TotalFreed;
         [DataMember] public int CleanCount;
         [DataMember] public bool InstallOffered;
+        [DataMember] public string LastSeenVersion = "";    // drives the "What's new" window after an update
 
         public static Settings Current;
 

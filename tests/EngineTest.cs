@@ -45,7 +45,8 @@ class T {
     Check(!c.ClearFolder("/",false) && !c.ClearFolder(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),false), "refuses to clear protected roots");
     // --- update tags
     Check(Updater.ParseTag("v3.1.0")==new Version(3,1,0) && Updater.ParseTag("3.2")==new Version(3,2) && Updater.ParseTag("v4")==new Version(4,0) && Updater.ParseTag("abc")==null, "release tag parsing");
-    Check(Updater.ParseTag("v3.0.4")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.0.3")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.0.0")>AppInfo.ParsedVersion), "version compare");
+    Check(Updater.ParseTag("v3.1.1")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.1.0")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.0.3")>AppInfo.ParsedVersion), "version compare");
+    { var ts=Cleaner.CreateTargets(); Check(ts.Where(Cleaner.IsDeep).All(x=>!x.Default) && ts.Count(Cleaner.IsDeep)==6 && ts.Select(x=>x.Key).Distinct().Count()==ts.Count, "deep targets off by default, unique keys"); }
     // --- settings + export roundtrip
     var s=new Settings(); s.FillDefaults(); s.OrgRules[0].Name="Foto Kahwin"; 
     var back=Json.Read<Settings>(Json.Write(s)); back.FillDefaults();

@@ -71,6 +71,8 @@ namespace Kemas
         public Action Custom;                             // runs before folder clearing; throw = partial
         public Action Before, After;
         public bool NoFolderClear;
+        public bool MeasureByDrive;                       // freed space = system drive free-space gain (component store)
+        public bool Slow;                                 // can take several minutes
         public long Size;
         public bool IsDns { get { return Key == "dns"; } }
     }
@@ -105,6 +107,9 @@ namespace Kemas
         public static string Win { get { return Environment.GetFolderPath(Environment.SpecialFolder.Windows); } }
         static string Local { get { return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData); } }
         static string ProgData { get { return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData); } }
+        static string Roaming { get { return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); } }
+        static string LocalLow { get { return Path.Combine(Path.GetDirectoryName(Local) ?? Local, "LocalLow"); } }
+        public static string WinOld { get { return Path.Combine(Path.GetPathRoot(Win) ?? "C:\\", "Windows.old"); } }
 
         public static List<CleanTarget> CreateTargets()
         {
@@ -127,8 +132,96 @@ namespace Kemas
                     Folders = () => new[] { Path.Combine(Win, @"SoftwareDistribution\Download") },
                     Before = () => { Service("stop", "wuauserv"); Service("stop", "bits"); },
                     After = () => { Service("start", "wuauserv"); Service("start", "bits"); } },
-                new CleanTarget { Key = "dns", Icon = "E701", Tag = "safe", Custom = () => { Native.DnsFlushResolverCache(); } }
+                new CleanTarget { Key = "dns", Icon = "E701", Tag = "safe", Custom = () => { Native.DnsFlushResolverCache(); } },
+
+                // ---------------- Deep Clean (off by default, run with the Deep Clean button) ----------------
+                new CleanTarget { Key = "gpucache", Icon = "E7F4", Tag = "deep", Default = false, Folders = GpuCaches },
+                new CleanTarget { Key = "appcache", Icon = "E71D", Tag = "deep", Default = false, Folders = AppCaches },
+                new CleanTarget { Key = "inetcache", Icon = "E12B", Tag = "deep", Default = false, Folders = () => new[] {
+                    Path.Combine(Local, @"Microsoft\Windows\INetCache\IE"), Path.Combine(Local, @"Microsoft\Windows\INetCache\Low"),
+                    Path.Combine(Local, @"Microsoft\Windows\INetCache\Content.Word"), Path.Combine(Local, @"Microsoft\Windows\INetCache\Content.Outlook") } },
+                new CleanTarget { Key = "dumps", Icon = "EA39", Tag = "deep", Default = false, Files = MemoryDumps },
+                new CleanTarget { Key = "winsxs", Icon = "E9F5", Tag = "deep", Default = false, Slow = true, NoFolderClear = true, MeasureByDrive = true,
+                    Custom = () => { if (RunTool("dism.exe", "/Online /Cleanup-Image /StartComponentCleanup", 45) != 0) throw new CleanException("err_dism"); } },
+                new CleanTarget { Key = "winold", Icon = "E81C", Tag = "permanent", Default = false, Slow = true, NoFolderClear = true,
+                    Folders = () => new[] { WinOld }, Custom = RemoveWindowsOld }
             };
+        }
+
+        public static bool IsDeep(CleanTarget t) { return t.Tag == "deep" || t.Key == "winold"; }
+
+        static IEnumerable<string> Existing(IEnumerable<string> paths)
+        {
+            foreach (var p in paths) if (!string.IsNullOrEmpty(p) && Directory.Exists(p)) yield return p;
+        }
+
+        // shader caches - every driver rebuilds these automatically
+        static IEnumerable<string> GpuCaches()
+        {
+            return Existing(new[] {
+                Path.Combine(Local, "D3DSCache"),
+                Path.Combine(Local, @"NVIDIA\DXCache"), Path.Combine(Local, @"NVIDIA\GLCache"), Path.Combine(Local, @"NVIDIA Corporation\NV_Cache"),
+                Path.Combine(LocalLow, @"NVIDIA\PerDriverVersion\DXCache"), Path.Combine(LocalLow, @"NVIDIA\PerDriverVersion\GLCache"),
+                Path.Combine(Local, @"AMD\DxCache"), Path.Combine(Local, @"AMD\DxcCache"), Path.Combine(Local, @"AMD\GLCache"), Path.Combine(Local, @"AMD\VkCache"),
+                Path.Combine(LocalLow, @"Intel\ShaderCache"), Path.Combine(Local, @"Intel\ShaderCache") }).ToList();
+        }
+
+        // cache folders only (never settings, logins or downloads) of common desktop apps
+        static IEnumerable<string> AppCaches()
+        {
+            var list = new List<string>();
+            var electron = new[] { Path.Combine(Roaming, "discord"), Path.Combine(Roaming, "Slack"), Path.Combine(Roaming, @"Microsoft\Teams"),
+                Path.Combine(Roaming, "Code"), Path.Combine(Roaming, "WhatsApp"), Path.Combine(Roaming, "Spotify"),
+                Path.Combine(Local, @"Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\Default") };
+            foreach (var root in Existing(electron))
+                foreach (var sub in new[] { "Cache", "Code Cache", "GPUCache", "DawnCache", "DawnGraphiteCache", "DawnWebGPUCache", "CachedData", @"Service Worker\CacheStorage" })
+                    list.Add(Path.Combine(root, sub));
+            list.Add(Path.Combine(Local, @"Spotify\Data"));
+            list.Add(Path.Combine(Local, @"Steam\htmlcache"));
+            list.Add(Path.Combine(Local, @"Microsoft\Office\16.0\OfficeFileCache"));
+            return Existing(list).ToList();
+        }
+
+        static IEnumerable<FileInfo> MemoryDumps()
+        {
+            var list = new List<FileInfo>();
+            try { var m = new FileInfo(Path.Combine(Win, "MEMORY.DMP")); if (m.Exists) list.Add(m); } catch { }
+            var lkr = Path.Combine(Win, "LiveKernelReports");
+            try { if (Directory.Exists(lkr)) list.AddRange(new DirectoryInfo(lkr).GetFiles("*.dmp", SearchOption.AllDirectories)); } catch { }
+            return list;
+        }
+
+        /// Runs a Windows tool hidden and waits; returns its exit code (-1 if it could not run).
+        public static int RunTool(string exe, string args, int timeoutMinutes)
+        {
+            try
+            {
+                string full = Path.Combine(Win, "System32", exe);
+                if (!File.Exists(full)) { var sn = Path.Combine(Win, "Sysnative", exe); if (File.Exists(sn)) full = sn; }
+                var psi = new ProcessStartInfo(full, args) { CreateNoWindow = true, UseShellExecute = false, WindowStyle = ProcessWindowStyle.Hidden };
+                using (var p = Process.Start(psi))
+                {
+                    if (!p.WaitForExit(timeoutMinutes * 60000)) return -2;
+                    return p.ExitCode;
+                }
+            }
+            catch { return -1; }
+        }
+
+        // Windows.old is owned by TrustedInstaller: take ownership, grant admins, then delete
+        static void RemoveWindowsOld()
+        {
+            var dir = WinOld;
+            if (!Directory.Exists(dir)) return;
+            RunTool("takeown.exe", "/F \"" + dir + "\" /R /A /D Y", 30);
+            RunTool("icacls.exe", "\"" + dir + "\" /grant *S-1-5-32-544:F /T /C /Q", 30);
+            RunTool("cmd.exe", "/c rd /s /q \"" + dir + "\"", 30);
+            if (Directory.Exists(dir)) throw new CleanException("err_winold");
+        }
+
+        static long FreeSpace()
+        {
+            try { return new DriveInfo(Path.GetPathRoot(Win)).AvailableFreeSpace; } catch { return 0; }
         }
 
         static void Service(string verb, string name)
@@ -287,6 +380,7 @@ namespace Kemas
             var r = new CleanResult { Key = t.Key, State = ItemState.Done };
             locked = 0;
             long before = Measure(t);
+            long driveBefore = t.MeasureByDrive ? FreeSpace() : 0;
             bool isTemp = t.Key == "usertemp" || t.Key == "wintemp";
             foreach (var step in new[] { t.Before, t.Custom })
             {
@@ -300,6 +394,7 @@ namespace Kemas
             if (t.After != null) { try { t.After(); } catch (Exception ex) { r.Notes.Add(Friendly(ex)); } }
             t.Size = Measure(t);
             r.Freed = Math.Max(0, before - t.Size);
+            if (t.MeasureByDrive) { r.Freed = Math.Max(0, FreeSpace() - driveBefore); t.Size = 0; }
             r.Locked = locked;
             if (isTemp && SkipRecentTemp && t.Size > 0) r.Notes.Add("note_recent");
             return r;

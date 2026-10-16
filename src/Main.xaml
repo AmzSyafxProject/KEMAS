@@ -595,13 +595,19 @@
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid Margin="0,0,0,20">
-              <StackPanel Margin="0,0,300,0">
+              <StackPanel Margin="0,0,440,0">
                 <TextBlock Text="{DynamicResource L_clean_title}" Style="{StaticResource H1}"/>
                 <TextBlock Text="{DynamicResource L_clean_sub}" Style="{StaticResource Sub}"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button x:Name="BtnSelAll" Content="{DynamicResource L_select_all}" Style="{StaticResource Ghost}"/>
                 <Button x:Name="BtnScan" Content="{DynamicResource L_scan_again}" Style="{StaticResource Ghost}" Margin="10,0,0,0"/>
+                <Button x:Name="BtnDeep" Style="{StaticResource Primary}" Margin="10,0,0,0" Padding="18,0" ToolTip="{DynamicResource L_deep_tip}">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="14" Foreground="White" Margin="0,0,8,0"/>
+                    <TextBlock Text="{DynamicResource L_deep_btn}" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Button>
               </StackPanel>
             </Grid>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -1172,6 +1178,44 @@
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
             <Button x:Name="BtnDialogNo" Content="{DynamicResource L_cancel}" Style="{StaticResource Ghost}"/>
             <Button x:Name="BtnDialogYes" Style="{StaticResource Primary}" Margin="10,0,0,0"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- ================= WHAT'S NEW (first launch after an update) ================= -->
+    <Grid x:Name="WhatsNewLayer" Visibility="Collapsed" Background="{DynamicResource OverlayBrush}">
+      <Border x:Name="WhatsNewCard" Width="560" CornerRadius="24" Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+              VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" ClipToBounds="True">
+        <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
+        <StackPanel>
+          <Border CornerRadius="24,24,0,0" Padding="30,28,30,24">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#557B5CFF" Offset="0"/>
+                <GradientStop Color="#2222D3F5" Offset="0.7"/>
+                <GradientStop Color="#0022D3F5" Offset="1"/>
+              </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel>
+              <StackPanel Orientation="Horizontal">
+                <Border Width="52" Height="52" CornerRadius="16" Background="{StaticResource AccentGrad}">
+                  <TextBlock x:Name="WnSpark" Style="{StaticResource Icon}" Text="&#xE945;" FontSize="22" Foreground="White" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                    <TextBlock.RenderTransform><RotateTransform/></TextBlock.RenderTransform>
+                  </TextBlock>
+                </Border>
+                <Border x:Name="WnVersionChip" CornerRadius="999" Padding="12,5" Margin="14,0,0,0" VerticalAlignment="Center" Background="{DynamicResource IconTile}">
+                  <TextBlock x:Name="WnVersion" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource CyanBrush}"/>
+                </Border>
+              </StackPanel>
+              <TextBlock x:Name="WnTitle" FontSize="25" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,18,0,0" TextWrapping="Wrap"/>
+              <TextBlock x:Name="WnSub" FontSize="13.5" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
+          <StackPanel x:Name="WnList" Margin="30,6,30,0"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="30,22,30,26">
+            <Button x:Name="BtnWnClose" Content="{DynamicResource L_wn_close}" Style="{StaticResource Ghost}"/>
+            <Button x:Name="BtnWnTry" Content="{DynamicResource L_wn_try}" Style="{StaticResource Primary}" Margin="10,0,0,0"/>
           </StackPanel>
         </StackPanel>
       </Border>
