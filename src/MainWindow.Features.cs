@@ -119,11 +119,13 @@ namespace Kemas
             int done = 0;
             Run(() =>
             {
-                foreach (var t in targets)
+                // measure several locations at once: most of the time is spent waiting on the disk, not the CPU
+                var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Math.Max(2, Math.Min(4, Environment.ProcessorCount)) };
+                System.Threading.Tasks.Parallel.ForEach(targets, opts, (t, state) =>
                 {
-                    if (cancelFlag) break;
+                    if (cancelFlag) { state.Stop(); return; }
                     long size = c.Measure(t);
-                    var tt = t; int k = ++done;
+                    var tt = t; int k = System.Threading.Interlocked.Increment(ref done);
                     Ui(() =>
                     {
                         tt.Size = size;
@@ -132,7 +134,7 @@ namespace Kemas
                         E<ProgressBar>("MainProgress").Value = k * 100.0 / targets.Count;
                         TB("StatusText").Text = L.T("scanning") + "  " + L.T("t_" + tt.Key);
                     });
-                }
+                });
             }, () =>
             {
                 activeCleaner = null;
@@ -181,18 +183,118 @@ namespace Kemas
         // ================================================================ what's new
         static readonly string[][] WhatsNewItems =
         {
-            new[] { "E945", "wn1" },   // Deep Clean
-            new[] { "E7F4", "wn2" },   // GPU + app caches
-            new[] { "E9F5", "wn3" },   // component store / Windows.old
-            new[] { "E789", "wn4" },   // this window
+            new[] { "E897", "wn1" },   // Help & Support
+            new[] { "E945", "wn2" },   // faster scanning
+            new[] { "E74D", "wn3" },   // cleans more
+            new[] { "E9D9", "wn4" },   // memory booster
         };
 
-        void CheckWhatsNew()
+        /// Returns true when the welcome screen was opened (first run).
+        bool CheckWhatsNew()
         {
             string seen = S.LastSeenVersion ?? "";
-            bool upgraded = seen != AppInfo.Version && (seen.Length > 0 || App.JustUpdated || S.CleanCount > 0 || !string.IsNullOrEmpty(S.LastClean));
+            bool used = S.CleanCount > 0 || !string.IsNullOrEmpty(S.LastClean);
+            bool upgraded = seen != AppInfo.Version && (seen.Length > 0 || App.JustUpdated || used);
             if (seen != AppInfo.Version) { S.LastSeenVersion = AppInfo.Version; QueueSave(); }
+            if (!S.WelcomeDone && !upgraded && !used && seen.Length == 0) { ShowWelcome(); return true; }
+            if (!S.WelcomeDone) { S.WelcomeDone = true; QueueSave(); }     // existing users never see the first-run tour
             if (upgraded) Delay(900, ShowWhatsNew);
+            return false;
+        }
+
+        // ================================================================ welcome (first run)
+        int welcomeStep;
+
+        void ShowWelcome()
+        {
+            loadingUi = true;
+            E<RadioButton>(S.Language == "ms" ? "WLangMs" : "WLangEn").IsChecked = true;
+            E<RadioButton>(S.Theme == "light" ? "WThemeLight" : S.Theme == "system" ? "WThemeSystem" : "WThemeDark").IsChecked = true;
+            E<CheckBox>("WStartup").IsChecked = true;
+            E<CheckBox>("WAuto").IsChecked = false;
+            loadingUi = false;
+            E<Image>("WLogo").Source = Logo.Image();
+            WelcomeTexts();
+            welcomeStep = 0;
+            ShowWelcomeStep(0, 0);
+            var layer = E<Grid>("WelcomeLayer");
+            layer.Visibility = Visibility.Visible;
+            layer.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 260));
+            var sc = (ScaleTransform)E<Border>("WelcomeCard").RenderTransform;
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.92, 1, 420, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.92, 1, 420, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
+            if (!S.ReducedMotion)
+            {
+                var bob = new DoubleAnimation(0, -6, TimeSpan.FromSeconds(1.8)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
+                ((TranslateTransform)E<Image>("WLogo").RenderTransform).BeginAnimation(TranslateTransform.YProperty, bob);
+            }
+            BT("BtnWNext").Focus();
+        }
+
+        void WelcomeTexts()
+        {
+            string name = string.IsNullOrWhiteSpace(S.DisplayName) ? UserName.Detect() : S.DisplayName.Trim();
+            TB("WHello").Text = string.Format(L.T("greet"), name);
+            BT("BtnWNext").Content = welcomeStep == 0 ? L.T("wel_start") : welcomeStep == 1 ? L.T("wel_continue") : L.T("wel_finish");
+        }
+
+        void ShowWelcomeStep(int i, int dir)
+        {
+            welcomeStep = i;
+            for (int k = 0; k < 3; k++)
+            {
+                var p = E<FrameworkElement>("WStep" + k);
+                p.Visibility = k == i ? Visibility.Visible : Visibility.Collapsed;
+                var dot = E<Border>("WDot" + k);
+                dot.Width = k == i ? 22 : 7;
+                if (k == i) dot.Background = (Brush)W.FindResource("AccentGrad"); else dot.SetResourceReference(Border.BackgroundProperty, "LineBrush");
+            }
+            var cur = E<FrameworkElement>("WStep" + i);
+            if (!S.ReducedMotion && dir != 0)
+            {
+                var tt = cur.RenderTransform as TranslateTransform;
+                if (tt == null) { tt = new TranslateTransform(); cur.RenderTransform = tt; }
+                tt.BeginAnimation(TranslateTransform.XProperty, Anim(28 * dir, 0, 360, new QuinticEase { EasingMode = EasingMode.EaseOut }));
+                cur.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 260));
+            }
+            if (i == 2 && !S.ReducedMotion)
+            {
+                var sc = (ScaleTransform)E<Border>("WDoneBadge").RenderTransform;
+                sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.4, 1, 520, new BackEase { Amplitude = 0.5, EasingMode = EasingMode.EaseOut }));
+                sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.4, 1, 520, new BackEase { Amplitude = 0.5, EasingMode = EasingMode.EaseOut }));
+            }
+            BT("BtnWBack").Visibility = i == 0 ? Visibility.Collapsed : Visibility.Visible;
+            BT("BtnWSkip").Visibility = i == 0 ? Visibility.Visible : Visibility.Collapsed;
+            WelcomeTexts();
+        }
+
+        void WelcomeNext()
+        {
+            if (welcomeStep < 2) { ShowWelcomeStep(welcomeStep + 1, 1); return; }
+            FinishWelcome(true);
+        }
+
+        void FinishWelcome(bool applyChoices)
+        {
+            if (applyChoices)
+            {
+                bool startup = E<CheckBox>("WStartup").IsChecked == true;
+                if (startup != S.StartWithWindows && Tasks.SetStartup(startup)) S.StartWithWindows = startup;
+                if (E<CheckBox>("WAuto").IsChecked == true && S.AutoClean == "off" && Tasks.SetAutoClean("weekly")) S.AutoClean = "weekly";
+            }
+            S.WelcomeDone = true;
+            SaveNow();
+            LoadSettingsIntoUi();
+            var layer = E<Grid>("WelcomeLayer");
+            var a = Anim(1, 0, 240);
+            a.Completed += (s, e) =>
+            {
+                layer.Visibility = Visibility.Collapsed;
+                ((TranslateTransform)E<Image>("WLogo").RenderTransform).BeginAnimation(TranslateTransform.YProperty, null);
+            };
+            layer.BeginAnimation(UIElement.OpacityProperty, a);
+            Delay(350, () => { if (!scanned && !busy) StartScan(); });
+            Delay(1600, OfferInstall);
         }
 
         void ShowWhatsNew()
@@ -251,7 +353,60 @@ namespace Kemas
             var a = Anim(1, 0, 180);
             a.Completed += (s, e) => layer.Visibility = Visibility.Collapsed;
             layer.BeginAnimation(UIElement.OpacityProperty, a);
-            if (tryDeep) E<RadioButton>("NavClean").IsChecked = true;
+            if (tryDeep) { E<RadioButton>("NavClean").IsChecked = true; if (!busy) StartScan(); }
+        }
+
+        // ================================================================ help & support
+        void ShowSupport()
+        {
+            TB("RepEmailLine").Text = string.Format(L.T("help_email_line"), Support.Email);
+            var layer = E<Grid>("SupportLayer");
+            layer.Visibility = Visibility.Visible;
+            layer.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 180));
+            var sc = (ScaleTransform)E<Border>("SupportCard").RenderTransform;
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.94, 1, 280, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.94, 1, 280, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
+            E<TextBox>("RepMessage").Focus();
+        }
+
+        void CloseSupport()
+        {
+            var layer = E<Grid>("SupportLayer");
+            var a = Anim(1, 0, 160);
+            a.Completed += (s, e) => layer.Visibility = Visibility.Collapsed;
+            layer.BeginAnimation(UIElement.OpacityProperty, a);
+        }
+
+        string RepCategory
+        {
+            get { return E<RadioButton>("RepIdea").IsChecked == true ? "Suggestion" : E<RadioButton>("RepQuestion").IsChecked == true ? "Question" : "Problem report"; }
+        }
+
+        void SendReport(bool gmail)
+        {
+            string msg = E<TextBox>("RepMessage").Text;
+            bool diag = E<CheckBox>("RepDiag").IsChecked == true;
+            if (string.IsNullOrWhiteSpace(msg)) { Toast(L.T("help_empty"), "E7BA"); E<TextBox>("RepMessage").Focus(); return; }
+            string url = gmail ? Support.GmailUrl(RepCategory, msg, diag) : Support.MailtoUrl(RepCategory, msg, diag);
+            if (Support.Open(url))
+            {
+                Toast(gmail ? L.T("help_opened_gmail") : L.T("help_opened_mail"), "E73E");
+                E<TextBox>("RepMessage").Clear();
+                CloseSupport();
+            }
+            else
+            {
+                CopyReport();
+                Toast(L.T("help_no_mail"), "E7BA");
+            }
+        }
+
+        void CopyReport()
+        {
+            string text = "To: " + Support.Email + "\r\nSubject: " + Support.Subject(RepCategory) + "\r\n\r\n" +
+                          Support.Body(RepCategory, E<TextBox>("RepMessage").Text, E<CheckBox>("RepDiag").IsChecked == true, 2500).Replace("\n", "\r\n");
+            try { Clipboard.SetText(text); Toast(L.T("help_copied"), "E8C8"); }
+            catch (Exception ex) { global::Kemas.Log.Error("Clipboard", ex); }
         }
 
         void StartClean(List<CleanTarget> sel, bool trim)
@@ -259,7 +414,7 @@ namespace Kemas
             var items = sel.Select(t => Tuple.Create(t.Key, L.T("t_" + t.Key))).ToList();
             if (trim) items.Add(Tuple.Create("ram", L.T("free_ram_item")));
             ShowOverlay(L.T("ov_clean"), L.T("ov_clean_d"), items);
-            var c = new Cleaner { SkipRecentTemp = S.SkipRecentTemp };
+            var c = new Cleaner { SkipRecentTemp = S.SkipRecentTemp, RemoveLockedAtRestart = S.RemoveLockedAtRestart };
             activeCleaner = c;
             var results = new List<CleanResult>();
             long ram = -1;
@@ -295,6 +450,7 @@ namespace Kemas
                         SetTargetSize(tt);
                         string line = "  " + L.T("t_" + tt.Key) + ": " + detail;
                         if (rr.Locked > 0) line += "  (" + string.Format(L.T("note_locked"), rr.Locked) + ")";
+                        if (rr.Scheduled > 0) line += "  (" + string.Format(L.T("note_restart"), rr.Scheduled) + ")";
                         Log(line);
                     });
                 }
@@ -326,6 +482,7 @@ namespace Kemas
                     string name = L.T("t_" + r.Key);
                     var parts = r.Notes.Select(NoteText).ToList();
                     if (r.Locked > 0) parts.Insert(0, string.Format(L.T("note_locked"), r.Locked));
+                    if (r.Scheduled > 0) parts.Insert(0, string.Format(L.T("note_restart"), r.Scheduled));
                     if (parts.Count == 0) continue;
                     bool warn = r.State != ItemState.Done;
                     string head = r.State == ItemState.Skipped ? L.T("was_skipped") : r.State == ItemState.Partial ? L.T("partly") : "";

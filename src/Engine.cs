@@ -20,6 +20,56 @@ namespace Kemas
         [DllImport("secur32.dll", CharSet = CharSet.Unicode)] public static extern bool GetUserNameEx(int format, StringBuilder name, ref uint size);
         [DllImport("kernel32.dll")] public static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX m);
         [DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern bool MoveFileEx(string existing, string newName, int flags);
+
+        // ---- fast directory walk (FindFirstFileEx + large fetch: several times faster than DirectoryInfo on big trees)
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct WIN32_FIND_DATA
+        {
+            public uint dwFileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime, ftLastAccessTime, ftLastWriteTime;
+            public uint nFileSizeHigh, nFileSizeLow, dwReserved0, dwReserved1;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string cFileName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string cAlternateFileName;
+        }
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern IntPtr FindFirstFileExW(string name, int infoLevel, out WIN32_FIND_DATA data, int searchOp, IntPtr filter, int flags);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool FindNextFileW(IntPtr h, out WIN32_FIND_DATA data);
+        [DllImport("kernel32.dll")] static extern bool FindClose(IntPtr h);
+
+        public static readonly bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
+
+        /// Total size of a folder tree without following links. Returns -1 when the native walk is unavailable.
+        public static long FastTreeSize(string dir, Func<bool> cancel)
+        {
+            if (!IsWindows) return -1;
+            long total = 0;
+            var stack = new Stack<string>();
+            stack.Push(dir);
+            while (stack.Count > 0)
+            {
+                if (cancel != null && cancel()) break;
+                string cur = stack.Pop();
+                string q = cur.StartsWith(@"\\", StringComparison.Ordinal) ? cur : @"\\?\" + cur;
+                WIN32_FIND_DATA d;
+                IntPtr h = FindFirstFileExW(q.TrimEnd('\\') + @"\*", 1 /* FindExInfoBasic */, out d, 0, IntPtr.Zero, 2 /* FIND_FIRST_EX_LARGE_FETCH */);
+                if (h == new IntPtr(-1)) continue;
+                try
+                {
+                    do
+                    {
+                        if (d.cFileName == "." || d.cFileName == "..") continue;
+                        if ((d.dwFileAttributes & 0x10) != 0)
+                        {
+                            if ((d.dwFileAttributes & 0x400) == 0) stack.Push(Path.Combine(cur, d.cFileName));   // skip junctions / symlinks
+                        }
+                        else total += ((long)d.nFileSizeHigh << 32) | d.nFileSizeLow;
+                    } while (FindNextFileW(h, out d));
+                }
+                finally { FindClose(h); }
+            }
+            return total;
+        }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct SHQUERYRBINFO { public int cbSize; public long i64Size; public long i64NumItems; }
@@ -79,14 +129,15 @@ namespace Kemas
 
     public class CleanResult
     {
-        public string Key; public ItemState State; public long Freed; public int Locked; public List<string> Notes = new List<string>();
+        public string Key; public ItemState State; public long Freed; public int Locked, Scheduled; public List<string> Notes = new List<string>();
     }
 
     public class Cleaner
     {
         public volatile bool Cancel;
         public bool SkipRecentTemp = true;
-        int locked;
+        public bool RemoveLockedAtRestart = true;   // old temp files that are in use go at the next restart
+        int locked, scheduled;
         static readonly string[] NeverClean;
 
         static Cleaner()
@@ -257,8 +308,10 @@ namespace Kemas
             // Windows setup / CBS logs older than 7 days
             var list = new List<FileInfo>();
             var cutoff = DateTime.Now.AddDays(-7);
-            foreach (var d in new[] { Path.Combine(Win, @"Logs\CBS"), Path.Combine(Win, @"Logs\DISM"), Path.Combine(Win, @"Panther") })
+            foreach (var d in new[] { Path.Combine(Win, @"Logs\CBS"), Path.Combine(Win, @"Logs\DISM"), Path.Combine(Win, @"Panther"), Path.Combine(Win, @"Logs\MoSetup"), Path.Combine(Win, @"Logs\NetSetup") })
                 foreach (var f in SafeFiles(d, "*.log")) if (f.LastWriteTime < cutoff) list.Add(f);
+            foreach (var f in SafeFiles(Path.Combine(Win, @"Logs\CBS"), "CbsPersist_*.cab")) if (f.LastWriteTime < cutoff) list.Add(f);     // compressed old CBS logs, often hundreds of MB
+            foreach (var f in SafeFiles(Path.Combine(Win, @"Logs\WindowsUpdate"), "*.etl")) if (f.LastWriteTime < cutoff) list.Add(f);
             return list;
         }
 
@@ -308,6 +361,13 @@ namespace Kemas
             if (Cancel) return 0;
             try
             {
+                if (!Directory.Exists(path)) return 0;
+                long fast = Native.FastTreeSize(Path.GetFullPath(path), () => Cancel);
+                if (fast >= 0) return fast;
+            }
+            catch { }
+            try
+            {
                 var di = new DirectoryInfo(path);
                 if (!di.Exists) return 0;
                 foreach (var f in di.EnumerateFiles()) total += f.Length;
@@ -346,12 +406,24 @@ namespace Kemas
                 foreach (var f in di.GetFiles())
                 {
                     if (TooRecent(f, isTemp)) { continue; }
-                    try { f.Attributes = FileAttributes.Normal; f.Delete(); } catch { locked++; }
+                    DeleteFile(f, isTemp);
                 }
                 foreach (var d in di.GetDirectories()) RemoveTree(d, isTemp);
                 if (di.GetFileSystemInfos().Length == 0) di.Delete();
             }
             catch { }
+        }
+
+        void DeleteFile(FileInfo f, bool isTemp)
+        {
+            try { f.Attributes = FileAttributes.Normal; f.Delete(); return; }
+            catch { }
+            // in use right now: for temp files older than a day, let Windows remove them during the next restart
+            if (isTemp && RemoveLockedAtRestart && Native.IsWindows && f.LastWriteTime < DateTime.Now.AddHours(-24))
+            {
+                try { if (Native.MoveFileEx(f.FullName, null, 4 /* MOVEFILE_DELAY_UNTIL_REBOOT */)) { scheduled++; return; } } catch { }
+            }
+            locked++;
         }
 
         public bool ClearFolder(string path, bool isTemp)
@@ -367,7 +439,7 @@ namespace Kemas
                 {
                     if (Cancel) return true;
                     if (TooRecent(f, isTemp)) continue;
-                    try { f.Attributes = FileAttributes.Normal; f.Delete(); } catch { locked++; }
+                    DeleteFile(f, isTemp);
                 }
             }
             catch { }
@@ -378,7 +450,7 @@ namespace Kemas
         public CleanResult Clean(CleanTarget t)
         {
             var r = new CleanResult { Key = t.Key, State = ItemState.Done };
-            locked = 0;
+            locked = 0; scheduled = 0;
             long before = Measure(t);
             long driveBefore = t.MeasureByDrive ? FreeSpace() : 0;
             bool isTemp = t.Key == "usertemp" || t.Key == "wintemp";
@@ -396,6 +468,7 @@ namespace Kemas
             r.Freed = Math.Max(0, before - t.Size);
             if (t.MeasureByDrive) { r.Freed = Math.Max(0, FreeSpace() - driveBefore); t.Size = 0; }
             r.Locked = locked;
+            r.Scheduled = scheduled;
             if (isTemp && SkipRecentTemp && t.Size > 0) r.Notes.Add("note_recent");
             return r;
         }
@@ -625,18 +698,23 @@ namespace Kemas
             var rows = new List<ProcRow>();
             Process[] all;
             try { all = Process.GetProcesses(); } catch { return rows; }
+            int me = Process.GetCurrentProcess().Id;
+            var firstOf = new Dictionary<ProcRow, Process>();
             foreach (var g in all.Where(p => p.Id > 4).GroupBy(p => SafeName(p), StringComparer.OrdinalIgnoreCase))
             {
                 long sum = 0;
                 foreach (var p in g) { try { sum += p.WorkingSet64; } catch { } }
-                string desc = "";
-                try { var first = g.First(); desc = first.MainModule.FileVersionInfo.FileDescription ?? ""; } catch { }
-                bool prot = Protected.Contains(g.Key) || g.Any(p => p.Id == Process.GetCurrentProcess().Id);
-                rows.Add(new ProcRow { App = g.Key, Procs = g.Count(), RamMB = Math.Round(sum / 1048576.0, 1), RAM = Fmt.Size(sum), Description = desc, Protected = prot,
-                    Status = prot ? "protected" : "canclose" });
+                bool prot = Protected.Contains(g.Key) || g.Any(p => p.Id == me);
+                var row = new ProcRow { App = g.Key, Procs = g.Count(), RamMB = Math.Round(sum / 1048576.0, 1), RAM = Fmt.Size(sum), Description = "", Protected = prot,
+                    Status = prot ? "protected" : "canclose" };
+                rows.Add(row);
+                firstOf[row] = g.First();
             }
+            var top = rows.OrderByDescending(r => r.RamMB).Take(60).ToList();
+            // reading the file description opens each module, so only do it for the rows that are shown
+            foreach (var r in top) { try { r.Description = firstOf[r].MainModule.FileVersionInfo.FileDescription ?? ""; } catch { } }
             foreach (var p in all) { try { p.Dispose(); } catch { } }
-            return rows.OrderByDescending(r => r.RamMB).Take(60).ToList();
+            return top;
         }
 
         static string SafeName(Process p) { try { return p.ProcessName; } catch { return "?"; } }

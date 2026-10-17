@@ -16,8 +16,8 @@ using System.Windows.Threading;
 [assembly: AssemblyCompany("Amzar Syafiq")]
 [assembly: AssemblyProduct("KEMAS")]
 [assembly: AssemblyCopyright("(c) 2026 Amzar Syafiq")]
-[assembly: AssemblyVersion("3.1.0.0")]
-[assembly: AssemblyFileVersion("3.1.0.0")]
+[assembly: AssemblyVersion("3.2.0.0")]
+[assembly: AssemblyFileVersion("3.2.0.0")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName = ".NET Framework 4.8")]
 
 namespace Kemas
@@ -246,7 +246,7 @@ namespace Kemas
             try
             {
                 var s = Settings.Current;
-                var c = new Cleaner { SkipRecentTemp = s.SkipRecentTemp };
+                var c = new Cleaner { SkipRecentTemp = s.SkipRecentTemp, RemoveLockedAtRestart = s.RemoveLockedAtRestart };
                 var sel = s.CleanSelection;
                 foreach (var t in Cleaner.CreateTargets())
                 {

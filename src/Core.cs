@@ -12,7 +12,7 @@ namespace Kemas
     public static class AppInfo
     {
         public const string Name = "KEMAS";
-        public const string Version = "3.1.0";
+        public const string Version = "3.2.0";
         public const string Tagline = "Your PC, Kemas.";
         // GitHub repository used for updates: "owner/repo". Empty = updates disabled.
         public const string UpdateRepo = "AmzSyafxProject/KEMAS";
@@ -101,6 +101,8 @@ namespace Kemas
         [DataMember] public bool ScanOnStart = true;
         [DataMember] public bool ConfirmClean = true;
         [DataMember] public bool SkipRecentTemp = true;     // keep temp files newer than 24 h
+        [DataMember] public bool RemoveLockedAtRestart = true;  // old temp files in use are removed at the next restart
+        [DataMember] public bool WelcomeDone;               // first-run welcome finished
         [DataMember] public bool TrimRamOnSmart = true;
         [DataMember] public string AutoClean = "off";       // off | daily | weekly
         [DataMember] public bool AutoUpdate = true;
@@ -124,7 +126,7 @@ namespace Kemas
         void Defaults(StreamingContext c)
         {
             Theme = "dark"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
-            CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = true; AutoUpdate = true;
+            CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = true; AutoUpdate = true; RemoveLockedAtRestart = true;
         }
 
         public void FillDefaults()

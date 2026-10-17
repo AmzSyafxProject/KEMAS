@@ -272,3 +272,90 @@ namespace Kemas
         }
     }
 }
+
+namespace Kemas
+{
+    // ===================================================================== HELP & SUPPORT (report by email)
+    public static class Support
+    {
+        public const string Email = "amzarsyaf2002@gmail.com";
+
+        public static string Edition { get { return AppInfo.IsStore ? "Microsoft Store" : Installer.IsInstalledCopy ? "Installed (GitHub)" : "Portable (GitHub)"; } }
+
+        public static string WindowsVersion()
+        {
+            try
+            {
+                using (var k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                {
+                    string name = Convert.ToString(k.GetValue("ProductName")), disp = Convert.ToString(k.GetValue("DisplayVersion")), build = Convert.ToString(k.GetValue("CurrentBuild"));
+                    int b; int.TryParse(build, out b);
+                    if (b >= 22000 && name.Contains("Windows 10")) name = name.Replace("Windows 10", "Windows 11");   // the registry still says 10 on 11
+                    object ubr = k.GetValue("UBR");
+                    return (name + " " + disp).Trim() + " (build " + build + (ubr != null ? "." + ubr : "") + ", " + (Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit") + ")";
+                }
+            }
+            catch { return Environment.OSVersion.VersionString; }
+        }
+
+        /// Recent error.log lines with the user's profile path masked.
+        public static string RecentErrors(int maxChars)
+        {
+            try
+            {
+                if (!File.Exists(AppInfo.ErrorLog)) return "(none)";
+                var lines = File.ReadAllLines(AppInfo.ErrorLog);
+                var text = string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 25)));
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (!string.IsNullOrEmpty(home)) text = text.Replace(home, "%USERPROFILE%");
+                if ((Environment.UserName ?? "").Length >= 3) text = text.Replace(Environment.UserName, "<user>");
+                if (text.Length > maxChars) text = "..." + text.Substring(text.Length - maxChars);
+                return text.Trim().Length == 0 ? "(none)" : text;
+            }
+            catch { return "(unreadable)"; }
+        }
+
+        public static string Subject(string category) { return "KEMAS " + AppInfo.Version + " - " + category; }
+
+        public static string Body(string category, string message, bool diagnostics, int errorChars)
+        {
+            var sb = new StringBuilder();
+            sb.Append("Type: ").Append(category).Append("\n\n");
+            sb.Append(string.IsNullOrWhiteSpace(message) ? "(no message)" : message.Trim()).Append("\n");
+            if (diagnostics)
+            {
+                double total, free; int pct;
+                try { Memory.Info(out total, out free, out pct); } catch { total = 0; pct = 0; }
+                sb.Append("\n---- Diagnostics ----\n");
+                sb.Append("KEMAS: ").Append(AppInfo.Version).Append(" · ").Append(Edition).Append("\n");
+                sb.Append("Windows: ").Append(WindowsVersion()).Append("\n");
+                sb.Append("Memory: ").Append(Fmt.Size(total)).Append(" (").Append(pct).Append("% used)\n");
+                sb.Append("Language: ").Append(Settings.Current != null ? Settings.Current.Language : "?").Append("\n");
+                sb.Append("Recent errors:\n").Append(RecentErrors(errorChars)).Append("\n");
+            }
+            return sb.ToString();
+        }
+
+        static string Enc(string s) { return Uri.EscapeDataString(s ?? "").Replace("%0A", "%0D%0A"); }
+
+        public static string MailtoUrl(string category, string message, bool diag)
+        {
+            // mail apps cap the whole link at about 2000 characters
+            var body = Body(category, message, diag, 500);
+            if (body.Length > 1500) body = body.Substring(0, 1500) + "\n...";
+            return "mailto:" + Email + "?subject=" + Enc(Subject(category)) + "&body=" + Enc(body);
+        }
+
+        public static string GmailUrl(string category, string message, bool diag)
+        {
+            var body = Body(category, message, diag, 2500);
+            return "https://mail.google.com/mail/?view=cm&fs=1&to=" + Uri.EscapeDataString(Email) + "&su=" + Uri.EscapeDataString(Subject(category)) + "&body=" + Uri.EscapeDataString(body);
+        }
+
+        public static bool Open(string url)
+        {
+            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); return true; }
+            catch (Exception ex) { Log.Error("Support open", ex); return false; }
+        }
+    }
+}

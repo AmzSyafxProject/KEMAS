@@ -99,7 +99,7 @@ namespace Kemas
 
             var chrome = new WindowChrome { CaptionHeight = 42, ResizeBorderThickness = new Thickness(6), GlassFrameThickness = new Thickness(0, 0, 0, 1), CornerRadius = new CornerRadius(0), UseAeroCaptionButtons = false };
             WindowChrome.SetWindowChrome(W, chrome);
-            foreach (var n in new[] { "BtnMin", "BtnMax", "BtnClose", "Brand" })
+            foreach (var n in new[] { "BtnHelp", "BtnMin", "BtnMax", "BtnClose", "Brand" })
                 WindowChrome.SetIsHitTestVisibleInChrome(E<IInputElement>(n), n != "Brand");
 
             E<Image>("SideLogo").Source = Logo.Image();
@@ -211,11 +211,12 @@ namespace Kemas
             statTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
             statTimer.Tick += (s, a) => { if (!busy && W.IsVisible && W.WindowState != WindowState.Minimized) UpdateStats(); };
             statTimer.Start();
-            if (S.ScanOnStart) StartScan(); else { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
+            bool welcome = CheckWhatsNew();
+            if (welcome) { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }   // the first scan starts when the tour ends
+            else if (S.ScanOnStart) StartScan(); else { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
             DownloadAnimationInBackground();
             if (S.AutoUpdate && Updater.Configured) Delay(4000, () => CheckUpdate(false));
-            CheckWhatsNew();
-            Delay(1800, OfferInstall);
+            if (!welcome) Delay(1800, OfferInstall);
             Delay(6000, Native.TrimSelf);
         }
 
@@ -289,6 +290,23 @@ namespace Kemas
             BT("BtnScan").Click += (s, e) => StartScan();
             BT("BtnClean").Click += (s, e) => RequestClean(false);
             BT("BtnDeep").Click += (s, e) => RequestDeepClean();
+            BT("BtnHelp").Click += (s, e) => ShowSupport();
+            BT("BtnWNext").Click += (s, e) => WelcomeNext();
+            BT("BtnWBack").Click += (s, e) => { if (welcomeStep > 0) ShowWelcomeStep(welcomeStep - 1, -1); };
+            BT("BtnWSkip").Click += (s, e) => FinishWelcome(false);
+            Action<string, Action> wradio = (name, act) => E<RadioButton>(name).Checked += (s, e) => { if (!loadingUi) { act(); ApplyThemeAndLanguage(); WelcomeTexts(); QueueSave(); } };
+            wradio("WLangEn", () => S.Language = "en");
+            wradio("WLangMs", () => S.Language = "ms");
+            wradio("WThemeDark", () => S.Theme = "dark");
+            wradio("WThemeLight", () => S.Theme = "light");
+            wradio("WThemeSystem", () => S.Theme = "system");
+            BT("BtnReport").Click += (s, e) => ShowSupport();
+            BT("BtnAboutReport").Click += (s, e) => ShowSupport();
+            BT("BtnSupportClose").Click += (s, e) => CloseSupport();
+            BT("BtnRepMail").Click += (s, e) => SendReport(false);
+            BT("BtnRepGmail").Click += (s, e) => SendReport(true);
+            BT("BtnRepCopy").Click += (s, e) => CopyReport();
+            E<TextBox>("RepMessage").TextChanged += (s, e) => TB("RepHint").Visibility = E<TextBox>("RepMessage").Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
             BT("BtnWnClose").Click += (s, e) => CloseWhatsNew(false);
             BT("BtnWnTry").Click += (s, e) => CloseWhatsNew(true);
             BT("BtnSelAll").Click += (s, e) =>
@@ -395,6 +413,7 @@ namespace Kemas
             sw("SetScanStart", v => { S.ScanOnStart = v; QueueSave(); });
             sw("SetConfirm", v => { S.ConfirmClean = v; QueueSave(); });
             sw("SetRecent", v => { S.SkipRecentTemp = v; QueueSave(); });
+            sw("SetRestartDel", v => { S.RemoveLockedAtRestart = v; QueueSave(); });
             sw("SetSmartRam", v => { S.TrimRamOnSmart = v; QueueSave(); });
             sw("SetAutoUpdate", v => { S.AutoUpdate = v; QueueSave(); });
             E<TextBox>("SetName").TextChanged += (s, e) =>
@@ -409,6 +428,8 @@ namespace Kemas
             W.PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape && E<Grid>("DialogLayer").Visibility == Visibility.Visible) { CloseDialog(false); e.Handled = true; }
+                else if (e.Key == Key.Escape && E<Grid>("SupportLayer").Visibility == Visibility.Visible) { CloseSupport(); e.Handled = true; }
+                else if (e.Key == Key.Escape && E<Grid>("WhatsNewLayer").Visibility == Visibility.Visible) { CloseWhatsNew(false); e.Handled = true; }
             };
         }
 
@@ -439,6 +460,7 @@ namespace Kemas
             E<CheckBox>("SetScanStart").IsChecked = S.ScanOnStart;
             E<CheckBox>("SetConfirm").IsChecked = S.ConfirmClean;
             E<CheckBox>("SetRecent").IsChecked = S.SkipRecentTemp;
+            E<CheckBox>("SetRestartDel").IsChecked = S.RemoveLockedAtRestart;
             E<CheckBox>("SetSmartRam").IsChecked = S.TrimRamOnSmart;
             E<CheckBox>("SetAutoUpdate").IsChecked = S.AutoUpdate;
             E<TextBox>("SetName").Text = S.DisplayName ?? "";
