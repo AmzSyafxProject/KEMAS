@@ -114,7 +114,7 @@ namespace Kemas
             TB("JunkSub").Text = L.T("scanning");
             foreach (var t in targets) targetSizes[t.Key].Text = L.T("scanning_short");
             Log(L.T("scan_start"));
-            var c = new Cleaner();
+            var c = new Cleaner { SkipRecentTemp = S.SkipRecentTemp };
             activeCleaner = c;
             int done = 0;
             Run(() =>
@@ -183,10 +183,10 @@ namespace Kemas
         // ================================================================ what's new
         static readonly string[][] WhatsNewItems =
         {
+            new[] { "E9D2", "wn0" },   // Road to 100
             new[] { "E897", "wn1" },   // Help & Support
             new[] { "E945", "wn2" },   // faster scanning
             new[] { "E74D", "wn3" },   // cleans more
-            new[] { "E9D9", "wn4" },   // memory booster
         };
 
         /// Returns true when the welcome screen was opened (first run).
@@ -354,6 +354,71 @@ namespace Kemas
             a.Completed += (s, e) => layer.Visibility = Visibility.Collapsed;
             layer.BeginAnimation(UIElement.OpacityProperty, a);
             if (tryDeep) { E<RadioButton>("NavClean").IsChecked = true; if (!busy) StartScan(); }
+        }
+
+        // ================================================================ road to 100
+        string roadSig;
+
+        void UpdateRoad(int score)
+        {
+            string sig = score + "|" + penJunkStd + "|" + penJunkDeep + "|" + penDisk + "|" + penRam + "|" + Fmt.Size(junkStd) + "|" + Fmt.Size(junkDeep) + "|" + busy + "|" + S.Language;
+            if (sig == roadSig) return;
+            roadSig = sig;
+            int toGo = 100 - score;
+            TB("RoadToGo").Text = toGo <= 0 ? L.T("road_perfect_chip") : string.Format(L.T("road_togo"), toGo);
+            var list = E<StackPanel>("RoadList");
+            list.Children.Clear();
+            if (!scanned)
+            {
+                list.Children.Add(RoadRow("E721", L.T("road_scan"), L.T("road_scan_d"), 0, L.T("scan_again"), () => StartScan(), false));
+                return;
+            }
+            list.Children.Add(RoadRow("E74D", L.T("road_junk"), penJunkStd > 0 ? string.Format(L.T("road_junk_d"), Fmt.Size(junkStd)) : L.T("road_junk_ok"),
+                penJunkStd, L.T("smart"), () => RequestClean(true), penJunkStd == 0));
+            list.Children.Add(RoadRow("E945", L.T("road_deep"), penJunkDeep > 0 ? string.Format(L.T("road_deep_d"), Fmt.Size(junkDeep)) : L.T("road_deep_ok"),
+                penJunkDeep, L.T("deep_btn"), () => { E<RadioButton>("NavClean").IsChecked = true; RequestDeepClean(); }, penJunkDeep == 0));
+            list.Children.Add(RoadRow("EDA2", L.T("road_disk"), penDisk > 0 ? string.Format(L.T("road_disk_d"), diskPct) : string.Format(L.T("road_disk_ok"), diskPct),
+                penDisk, L.T("road_disk_btn"), () => E<RadioButton>("NavApps").IsChecked = true, penDisk == 0));
+            list.Children.Add(RoadRow("E9D9", L.T("road_ram"), penRam > 0 ? string.Format(L.T("road_ram_d"), ramPct) : string.Format(L.T("road_ram_ok"), ramPct),
+                penRam, L.T("road_ram_btn"), () => E<RadioButton>("NavRam").IsChecked = true, penRam == 0));
+            if (toGo <= 0)
+            {
+                var done = new TextBlock { Text = L.T("road_perfect"), FontSize = 12.5, Margin = new Thickness(2, 10, 0, 0), TextWrapping = TextWrapping.Wrap };
+                done.Foreground = (Brush)W.FindResource("GoodBrush");
+                list.Children.Add(done);
+            }
+        }
+
+        FrameworkElement RoadRow(string icon, string title, string desc, int points, string action, Action onClick, bool ok)
+        {
+            var g = new Grid { Margin = new Thickness(0, 6, 0, 6) };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(17), VerticalAlignment = VerticalAlignment.Center };
+            if (ok) tile.Background = Hex("#2621C98A"); else tile.SetResourceReference(Border.BackgroundProperty, "IconTile");
+            tile.Child = new TextBlock { Text = Glyph(ok ? "E73E" : icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 14,
+                Foreground = ok ? (Brush)W.FindResource("GoodBrush") : Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            g.Children.Add(tile);
+            var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+            var t1 = new TextBlock { Text = title, FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+            t1.SetResourceReference(TextBlock.ForegroundProperty, ok ? "MutedBrush" : "TextBrush");
+            var t2 = new TextBlock { Text = desc, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 0) };
+            t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            mid.Children.Add(t1); mid.Children.Add(t2);
+            Grid.SetColumn(mid, 1); g.Children.Add(mid);
+            if (!ok)
+            {
+                var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+                if (points > 0)
+                    right.Children.Add(new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 3, 9, 3), Margin = new Thickness(0, 0, 10, 0), Background = Hex("#2622C4F0"), VerticalAlignment = VerticalAlignment.Center,
+                        Child = new TextBlock { Text = "+" + points, FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush") } });
+                var b = new Button { Content = action, Style = (Style)W.FindResource("Ghost"), Height = 32, Padding = new Thickness(14, 0, 14, 0), FontSize = 12.5, IsEnabled = !busy };
+                b.Click += (s, e) => onClick();
+                right.Children.Add(b);
+                Grid.SetColumn(right, 2); g.Children.Add(right);
+            }
+            return g;
         }
 
         // ================================================================ help & support

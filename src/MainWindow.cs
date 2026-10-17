@@ -638,6 +638,7 @@ namespace Kemas
                                       "BtnRamRefresh", "BtnTrim", "BtnKill", "BtnAppsRefresh", "BtnUninstall", "BtnStartupRefresh" })
                 BT(n).IsEnabled = !on;
             if (!on) E<ProgressBar>("MainProgress").Value = 0;
+            if (junkTotal >= 0) UpdateHealth();
         }
 
         void Ui(Action a) { W.Dispatcher.BeginInvoke(a); }
@@ -691,15 +692,35 @@ namespace Kemas
             catch { }
         }
 
+        // Health score: 100 minus whole-point penalties. Each penalty is one step on the dashboard's "Road to 100".
+        const long JunkGrace = 32L * 1024 * 1024;     // a little leftover junk (files in use) never costs points
+        int penDisk, penRam, penJunkStd, penJunkDeep;
+        long junkStd, junkDeep;
+
+        void ComputePenalties()
+        {
+            junkStd = 0; junkDeep = 0;
+            if (targets != null && scanned)
+                foreach (var t in targets)
+                {
+                    if (t.Key == "winupdate" || t.Size <= 0) continue;            // optional item, never counted against the score
+                    if (Cleaner.IsDeep(t)) junkDeep += t.Size; else junkStd += t.Size;
+                }
+            double junkPen = Math.Min(35, Math.Max(0, junkStd + junkDeep - JunkGrace) / 1073741824.0 * 8);
+            double share = junkStd + junkDeep > 0 ? (double)junkStd / (junkStd + junkDeep) : 0;
+            penJunkStd = (int)Math.Round(junkPen * share);
+            penJunkDeep = (int)Math.Round(junkPen) - penJunkStd;
+            penDisk = diskPct > 70 ? (int)Math.Round((diskPct - 70) * 1.2) : 0;
+            penRam = ramPct > 70 ? (int)Math.Round((ramPct - 70) * 0.5) : 0;
+        }
+
         void UpdateHealth()
         {
             if (junkTotal < 0) return;
-            double score = 100;
-            if (diskPct > 70) score -= (diskPct - 70) * 1.2;
-            if (ramPct > 70) score -= (ramPct - 70) * 0.5;
-            score -= Math.Min(35, junkTotal / 1073741824.0 * 8);
-            score = Math.Round(Math.Max(5, Math.Min(100, score)));
+            ComputePenalties();
+            double score = Math.Max(5, Math.Min(100, 100 - penDisk - penRam - penJunkStd - penJunkDeep));
             AnimateRing(score);
+            UpdateRoad((int)score);
             TB("ScoreTitle").Text = score >= 85 ? L.T("score_great") : score >= 60 ? L.T("score_ok") : L.T("score_bad");
             TB("ScoreDesc").Text = string.Format(L.T("score_desc"), Fmt.Size(junkTotal), diskPct, ramPct);
         }

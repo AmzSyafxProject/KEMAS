@@ -578,14 +578,34 @@
               </Border>
             </Grid>
 
-            <Border Grid.Row="3" Style="{StaticResource Card}" Padding="22,14">
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="{DynamicResource L_activity}" Style="{StaticResource Label}" Margin="0,0,0,6"/>
-                <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0" Height="Auto"
-                         FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
-              </DockPanel>
-            </Border>
+            <Grid Grid.Row="3">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+
+              <!-- Road to 100: what is holding the score back, and the fix for each -->
+              <Border Style="{StaticResource Card}" Padding="22,16">
+                <DockPanel>
+                  <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Style="{StaticResource Icon}" Text="&#xE9D2;" FontSize="14" Foreground="#9C8BFF" Margin="0,0,8,0"/>
+                      <TextBlock Text="{DynamicResource L_road_title}" Style="{StaticResource Label}"/>
+                    </StackPanel>
+                    <TextBlock x:Name="RoadToGo" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Right"/>
+                  </Grid>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="RoadList"/>
+                  </ScrollViewer>
+                </DockPanel>
+              </Border>
+
+              <Border Grid.Column="2" Style="{StaticResource Card}" Padding="22,14">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Top" Text="{DynamicResource L_activity}" Style="{StaticResource Label}" Margin="0,0,0,6"/>
+                  <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0" Height="Auto"
+                           FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"
+                           VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+                </DockPanel>
+              </Border>
+            </Grid>
           </Grid>
 
           <!-- ================= CLEANER ================= -->

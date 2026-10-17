@@ -40,8 +40,9 @@ namespace Kemas
         public static readonly bool IsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
         /// Total size of a folder tree without following links. Returns -1 when the native walk is unavailable.
-        public static long FastTreeSize(string dir, Func<bool> cancel)
+        public static long FastTreeSize(string dir, Func<bool> cancel, DateTime olderThan = default(DateTime))
         {
+            long cutoff = olderThan == default(DateTime) ? long.MaxValue : olderThan.ToFileTimeUtc();
             if (!IsWindows) return -1;
             long total = 0;
             var stack = new Stack<string>();
@@ -63,7 +64,11 @@ namespace Kemas
                         {
                             if ((d.dwFileAttributes & 0x400) == 0) stack.Push(Path.Combine(cur, d.cFileName));   // skip junctions / symlinks
                         }
-                        else total += ((long)d.nFileSizeHigh << 32) | d.nFileSizeLow;
+                        else
+                        {
+                            long written = ((long)(uint)d.ftLastWriteTime.dwHighDateTime << 32) | (uint)d.ftLastWriteTime.dwLowDateTime;
+                            if (written < cutoff) total += ((long)d.nFileSizeHigh << 32) | d.nFileSizeLow;
+                        }
                     } while (FindNextFileW(h, out d));
                 }
                 finally { FindClose(h); }
@@ -355,14 +360,17 @@ namespace Kemas
         }
 
         // ---- measuring ----
-        public long TreeSize(string path)
+        public long TreeSize(string path) { return TreeSize(path, default(DateTime)); }
+
+        /// olderThan: only count files last written before this time (what a clean will really remove).
+        public long TreeSize(string path, DateTime olderThan)
         {
             long total = 0;
             if (Cancel) return 0;
             try
             {
                 if (!Directory.Exists(path)) return 0;
-                long fast = Native.FastTreeSize(Path.GetFullPath(path), () => Cancel);
+                long fast = Native.FastTreeSize(Path.GetFullPath(path), () => Cancel, olderThan);
                 if (fast >= 0) return fast;
             }
             catch { }
@@ -370,9 +378,9 @@ namespace Kemas
             {
                 var di = new DirectoryInfo(path);
                 if (!di.Exists) return 0;
-                foreach (var f in di.EnumerateFiles()) total += f.Length;
+                foreach (var f in di.EnumerateFiles()) if (olderThan == default(DateTime) || f.LastWriteTime < olderThan) total += f.Length;
                 foreach (var d in di.EnumerateDirectories())
-                    if ((d.Attributes & FileAttributes.ReparsePoint) == 0) total += TreeSize(d.FullName);
+                    if ((d.Attributes & FileAttributes.ReparsePoint) == 0) total += TreeSize(d.FullName, olderThan);
             }
             catch { }
             return total;
@@ -384,7 +392,9 @@ namespace Kemas
             try
             {
                 if (t.CustomSize != null) total += t.CustomSize();
-                if (t.Folders != null) foreach (var p in t.Folders()) if (!string.IsNullOrEmpty(p)) total += TreeSize(p);
+                // temp folders: files from the last 24 h are kept by the clean, so they are not counted as junk either
+                var cutoff = SkipRecentTemp && (t.Key == "usertemp" || t.Key == "wintemp") ? DateTime.Now.AddHours(-24) : default(DateTime);
+                if (t.Folders != null) foreach (var p in t.Folders()) if (!string.IsNullOrEmpty(p)) total += TreeSize(p, cutoff);
                 if (t.Files != null) foreach (var f in t.Files()) total += f.Length;
             }
             catch { }
