@@ -746,7 +746,8 @@ namespace Kemas
             var procs = Process.GetProcesses();
             for (int i = 0; i < procs.Length; i++)
             {
-                try { Native.EmptyWorkingSet(procs[i].Handle); } catch { }
+                // never trim the desktop shell, window manager or system processes: doing so makes the wallpaper and taskbar go black until they reload
+                try { if (!Protected.Contains(SafeName(procs[i]))) Native.EmptyWorkingSet(procs[i].Handle); } catch { }
                 try { procs[i].Dispose(); } catch { }
                 if (progress != null && i % 8 == 0) progress((double)i / procs.Length);
             }

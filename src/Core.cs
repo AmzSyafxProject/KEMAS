@@ -12,11 +12,12 @@ namespace Kemas
     public static class AppInfo
     {
         public const string Name = "KEMAS";
-        public const string Version = "3.2.2";
+        public const string Version = "3.3.2";
         public const string Tagline = "Your PC, Kemas.";
         // GitHub repository used for updates: "owner/repo". Empty = updates disabled.
         public const string UpdateRepo = "AmzSyafxProject/KEMAS";
-        public const string AnimUrl = "https://d8j0ntlcm91z4.cloudfront.net/user_3Gdmzt2Km8EBed3bD8133Balbi0/hf_20261016_110826_16e4630d-b91b-414a-a34c-7439f61d0ba0.mp4";
+        public const string FeedbackUrl = "https://tally.so/r/4aXGXo";
+        public const string Channel = "Beta";
 
         public static readonly string DataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KEMAS");
         public static string SettingsFile { get { return Path.Combine(DataDir, "settings.json"); } }

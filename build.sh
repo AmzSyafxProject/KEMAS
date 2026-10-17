@@ -17,3 +17,14 @@ rm -f kemas.ico
 cd ..
 sha256sum out/KEMAS.exe | cut -d' ' -f1 > out/KEMAS.exe.sha256
 echo "Built out/KEMAS.exe  sha256=$(cat out/KEMAS.exe.sha256)"
+
+# ---- Setup installer (wizard) embedding the freshly built KEMAS.exe
+cd installer
+x86_64-w64-mingw32-windres --preprocessor="$(pwd)/../tools/catpp.sh" -i setup.rc -O res -o ../out/setup.res
+mcs -sdk:4.8 -langversion:7 -target:winexe -platform:anycpu -optimize+ -out:../out/KEMAS-Setup.exe \
+  -win32res:../out/setup.res \
+  -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Core.dll \
+  -resource:logo.png,logo.png -resource:../out/KEMAS.exe,KEMAS.exe -resource:../out/KEMAS.exe.sha256,KEMAS.exe.sha256 Setup.cs
+cd ..
+sha256sum out/KEMAS-Setup.exe | cut -d' ' -f1 > out/KEMAS-Setup.exe.sha256
+echo "Built out/KEMAS-Setup.exe  sha256=$(cat out/KEMAS-Setup.exe.sha256)"

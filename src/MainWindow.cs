@@ -214,7 +214,8 @@ namespace Kemas
             bool welcome = CheckWhatsNew();
             if (welcome) { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }   // the first scan starts when the tour ends
             else if (S.ScanOnStart) StartScan(); else { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
-            DownloadAnimationInBackground();
+            RemoveLegacyAnimation();
+            StartBetaCountdown();
             if (S.AutoUpdate && Updater.Configured) Delay(4000, () => CheckUpdate(false));
             if (!welcome) Delay(1800, OfferInstall);
             Delay(6000, Native.TrimSelf);
@@ -306,6 +307,7 @@ namespace Kemas
             BT("BtnRepMail").Click += (s, e) => SendReport(false);
             BT("BtnRepGmail").Click += (s, e) => SendReport(true);
             BT("BtnRepCopy").Click += (s, e) => CopyReport();
+            BT("BtnRepForm").Click += (s, e) => { if (!Support.Open(AppInfo.FeedbackUrl)) Toast(L.T("help_no_mail"), "E7BA"); };
             E<TextBox>("RepMessage").TextChanged += (s, e) => TB("RepHint").Visibility = E<TextBox>("RepMessage").Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
             BT("BtnWnClose").Click += (s, e) => CloseWhatsNew(false);
             BT("BtnWnTry").Click += (s, e) => CloseWhatsNew(true);

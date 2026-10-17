@@ -183,10 +183,11 @@ namespace Kemas
         // ================================================================ what's new
         static readonly string[][] WhatsNewItems =
         {
-            new[] { "E9D2", "wn0" },   // Road to 100
-            new[] { "E897", "wn1" },   // Help & Support
-            new[] { "E945", "wn2" },   // faster scanning
-            new[] { "E74D", "wn3" },   // cleans more
+            new[] { "E9D2", "wn0" },   // calmer cleaning screen
+            new[] { "E7F4", "wn1" },   // desktop stays intact
+            new[] { "E72E", "wn2" },   // update security
+            new[] { "E7C3", "wn3" },   // public beta
+            new[] { "E897", "wn4" },   // help form
         };
 
         /// Returns true when the welcome screen was opened (first run).
@@ -725,10 +726,7 @@ namespace Kemas
             ov.BeginAnimation(UIElement.OpacityProperty, a);
         }
 
-        // ---- the maintenance animation: Higgsfield video when available, vector scene otherwise
-        string AnimFile { get { return System.IO.Path.Combine(AppInfo.DataDir, "kemas_anim.mp4"); } }
-        bool videoFailed;
-
+        // ---- the maintenance animation: a self-contained vector scene (no downloads, seamless loops)
         void StartScene()
         {
             var host = E<ContentControl>("SceneHost");
@@ -738,42 +736,33 @@ namespace Kemas
                     host.Content = XamlReader.Load(s);
             }
             catch (Exception ex) { global::Kemas.Log.Error("Scene", ex); }
-            var v = E<MediaElement>("AnimVideo");
-            if (!videoFailed && File.Exists(AnimFile) && new FileInfo(AnimFile).Length > 50000)
-            {
-                try
-                {
-                    var tl = new MediaTimeline(new Uri(AnimFile)) { RepeatBehavior = RepeatBehavior.Forever };
-                    v.MediaFailed -= VideoFail; v.MediaFailed += VideoFail;
-                    v.Clock = tl.CreateClock();
-                    v.Visibility = Visibility.Visible;
-                }
-                catch { videoFailed = true; v.Visibility = Visibility.Collapsed; }
-            }
         }
-        void VideoFail(object s, ExceptionRoutedEventArgs e) { videoFailed = true; E<MediaElement>("AnimVideo").Visibility = Visibility.Collapsed; }
 
         void StopScene()
         {
-            try { var v = E<MediaElement>("AnimVideo"); v.Clock = null; v.Close(); v.Source = null; v.Visibility = Visibility.Collapsed; } catch { }
             E<ContentControl>("SceneHost").Content = null;   // drops the scene and its animations from memory
         }
 
-        void DownloadAnimationInBackground()
+        /// Removes the video that older versions downloaded; KEMAS no longer fetches anything for its animation.
+        // Beta badge + live countdown to the official public release (25 Oct 2026, 00:00 Malaysia time).
+        void StartBetaCountdown()
         {
-            if (File.Exists(AnimFile)) return;
-            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+            var target = new DateTimeOffset(2026, 10, 25, 0, 0, 0, TimeSpan.FromHours(8));
+            var tb = E<TextBlock>("BetaCountdown"); var pill = E<FrameworkElement>("BetaPill");
+            Action tick = null;
+            var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            tick = () =>
             {
-                try
-                {
-                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-                    Directory.CreateDirectory(AppInfo.DataDir);
-                    string tmp = AnimFile + ".part";
-                    using (var wc = new WebClient()) wc.DownloadFile(AppInfo.AnimUrl, tmp);
-                    if (new FileInfo(tmp).Length > 50000) File.Move(tmp, AnimFile); else File.Delete(tmp);
-                }
-                catch { }
-            });
+                var left = target - DateTimeOffset.Now;
+                if (left <= TimeSpan.Zero) { tb.Text = "Official release"; t.Stop(); return; }
+                tb.Text = string.Format("{0}d {1:00}:{2:00}:{3:00}", left.Days, left.Hours, left.Minutes, left.Seconds);
+            };
+            t.Tick += (s, a) => tick(); tick(); t.Start();
+        }
+
+        void RemoveLegacyAnimation()
+        {
+            try { var f = System.IO.Path.Combine(AppInfo.DataDir, "kemas_anim.mp4"); if (File.Exists(f)) File.Delete(f); } catch { }
         }
 
         // ================================================================ dialog

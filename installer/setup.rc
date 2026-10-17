@@ -1,0 +1,27 @@
+1 ICON "kemas.ico"
+1 24 "app.manifest"
+1 VERSIONINFO
+FILEVERSION 3,3,2,0
+PRODUCTVERSION 3,3,2,0
+FILEOS 0x40004
+FILETYPE 0x1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Amzar Syafiq"
+      VALUE "FileDescription", "KEMAS Setup"
+      VALUE "FileVersion", "3.3.2.0"
+      VALUE "InternalName", "KEMAS-Setup"
+      VALUE "LegalCopyright", "(c) 2026 Amzar Syafiq. All rights reserved."
+      VALUE "OriginalFilename", "KEMAS-Setup.exe"
+      VALUE "ProductName", "KEMAS Setup"
+      VALUE "ProductVersion", "3.3.2"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

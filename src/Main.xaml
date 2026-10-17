@@ -493,6 +493,12 @@
 
         <Grid x:Name="TitleBar" Background="Transparent">
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Border x:Name="BetaPill" CornerRadius="11" Height="22" Margin="0,9,10,0" Padding="2,0,10,0" Background="#26FFFFFF" VerticalAlignment="Top" ToolTip="Beta Test - official public release 25 Oct 2026">
+              <StackPanel Orientation="Horizontal">
+                <Border CornerRadius="9" Height="18" Padding="8,0" Background="{StaticResource AccentGrad}" VerticalAlignment="Center"><TextBlock Text="BETA" FontSize="10" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/></Border>
+                <TextBlock x:Name="BetaCountdown" Margin="8,0,0,0" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Border>
             <Button x:Name="BtnHelp" Style="{StaticResource WinBtn}" Content="&#xE897;" FontSize="13" Tag="{DynamicResource HoverBrush}" ToolTip="{DynamicResource L_help_tip}"/>
             <Button x:Name="BtnMin" Style="{StaticResource WinBtn}" Content="&#xE921;" Tag="{DynamicResource HoverBrush}"/>
             <Button x:Name="BtnMax" Style="{StaticResource WinBtn}" Content="&#xE922;" Tag="{DynamicResource HoverBrush}"/>
@@ -1153,9 +1159,6 @@
           <Grid x:Name="Stage" Width="350" Height="350" VerticalAlignment="Center">
             <Border CornerRadius="24" Background="#0D1020" BorderBrush="#1FFFFFFF" BorderThickness="1"/>
             <ContentControl x:Name="SceneHost"/>
-            <MediaElement x:Name="AnimVideo" Width="350" Height="350" Stretch="UniformToFill" LoadedBehavior="Manual" UnloadedBehavior="Close" IsMuted="True" Visibility="Collapsed">
-              <MediaElement.Clip><RectangleGeometry Rect="0,0,350,350" RadiusX="24" RadiusY="24"/></MediaElement.Clip>
-            </MediaElement>
           </Grid>
 
           <Grid x:Name="WorkView" Grid.Column="2">
@@ -1271,6 +1274,7 @@
               <Button x:Name="BtnRepMail" Style="{StaticResource Primary}" Content="{DynamicResource L_help_send}" Margin="10,0,0,0"/>
             </StackPanel>
           </Grid>
+          <Button x:Name="BtnRepForm" Style="{StaticResource Ghost}" Content="{DynamicResource L_help_form}" HorizontalAlignment="Left" Margin="0,14,0,0"/>
           <TextBlock x:Name="RepEmailLine" FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="2,16,0,0" TextWrapping="Wrap"/>
         </StackPanel>
       </Border>

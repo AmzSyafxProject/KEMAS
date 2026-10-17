@@ -186,6 +186,7 @@ namespace Kemas
             A("help_diag_d", "App version, Windows version, memory and recent error messages. No personal files are included.", "Versi apps, versi Windows, memori dan mesej ralat terkini. Tiada fail peribadi disertakan.");
             A("help_copy", "Copy report", "Salin laporan");
             A("help_gmail", "Send with Gmail", "Hantar guna Gmail");
+            A("help_form", "Open the feedback form", "Buka borang maklum balas");
             A("help_send", "Send with email app", "Hantar guna apps email");
             A("help_email_line", "Or write to us directly at {0}", "Atau terus email kami di {0}");
             A("help_empty", "Write a short message first.", "Tulis mesej pendek dulu.");
@@ -243,16 +244,16 @@ namespace Kemas
             A("wn_sub", "Your update is installed. Here is what changed.", "Kemas kini sudah dipasang. Ini yang berubah.");
             A("wn_close", "Got it", "Faham");
             A("wn_try", "Open System Cleaner", "Buka Pembersih Sistem");
-            A("wn0_t", "Smoother waiting", "Menunggu lebih lancar");
-            A("wn0_d", "Deep Clean now shows a live timer, a progress bar that keeps moving, and Stop really stops long Windows tasks. The looping animation is smooth.", "Deep Clean kini papar pemasa langsung, bar kemajuan yang terus bergerak, dan Stop benar-benar hentikan tugas Windows yang lama. Animasi gelung lebih lancar.");
-            A("wn1_t", "Help & Support", "Bantuan & Sokongan");
-            A("wn1_d", "Report a problem or send an idea from the ? button at the top. It goes straight to the developer.", "Laporkan masalah atau hantar idea dari butang ? di atas. Ia terus sampai kepada pembangun.");
-            A("wn2_t", "Faster scanning", "Imbasan lebih pantas");
-            A("wn2_d", "A new file engine measures several locations at once, so scans finish in a fraction of the time.", "Enjin fail baharu mengukur beberapa lokasi serentak, jadi imbasan siap jauh lebih cepat.");
-            A("wn3_t", "Cleans more", "Bersih lebih banyak");
-            A("wn3_d", "Old temp files that are in use are removed at the next restart, plus old Windows Update and setup logs.", "Fail temp lama yang sedang digunakan dibuang semasa restart, termasuk log lama Windows Update dan setup.");
-            A("wn4_t", "Snappier Memory Booster", "Penggalak Memori lebih pantas");
-            A("wn4_d", "The list of running apps now loads noticeably faster.", "Senarai apps yang sedang berjalan kini dimuatkan dengan lebih pantas.");
+            A("wn0_t", "A new, calmer cleaning screen", "Skrin pembersihan baharu yang lebih tenang");
+            A("wn0_d", "The waiting animation was redesigned. It loops seamlessly, runs smoothly and no longer downloads anything.", "Animasi menunggu direka semula. Ia berulang dengan lancar, berjalan licin dan tidak lagi memuat turun apa-apa.");
+            A("wn1_t", "Your desktop stays intact", "Desktop anda kekal elok");
+            A("wn1_d", "Cleaning with the recommended options no longer turns the wallpaper black. KEMAS now leaves Windows shell processes alone.", "Pembersihan dengan pilihan disyorkan tidak lagi menghitamkan wallpaper. KEMAS kini tidak mengusik proses shell Windows.");
+            A("wn2_t", "Stronger update security", "Keselamatan kemas kini lebih kukuh");
+            A("wn2_d", "Updates are accepted only from the official KEMAS release on GitHub and must match their published SHA-256 fingerprint.", "Kemas kini hanya diterima daripada keluaran rasmi KEMAS di GitHub dan mesti sepadan dengan cap jari SHA-256 yang diterbitkan.");
+            A("wn3_t", "Public Beta Test", "Ujian Beta awam");
+            A("wn3_d", "KEMAS is now in public Beta. The official release is on 25 October 2026. Thank you to every beta tester!", "KEMAS kini dalam Beta awam. Pelancaran rasmi pada 25 Oktober 2026. Terima kasih kepada semua penguji beta!");
+            A("wn4_t", "Help & Support form", "Borang Bantuan & Sokongan");
+            A("wn4_d", "Open the new feedback form from the ? button to report an issue or suggest an improvement.", "Buka borang maklum balas baharu daripada butang ? untuk melapor isu atau mencadangkan penambahbaikan.");
             A("err_access", "Windows blocked access to it", "Windows menyekat akses");
             A("err_gone", "It could not be found (already gone)", "Tidak dijumpai (sudah tiada)");
             A("err_inuse", "It is being used by another app", "Sedang digunakan oleh app lain");
@@ -434,7 +435,7 @@ namespace Kemas
             A("set_autoupdate", "Check for updates automatically", "Semak kemas kini secara automatik");
             A("set_autoupdate_d", "KEMAS tells you when a new version is ready.", "KEMAS memberitahu bila versi baharu tersedia.");
             A("check_now", "Check for updates", "Semak kemas kini");
-            A("version_line", "KEMAS {0}", "KEMAS {0}");
+            A("version_line", "KEMAS {0} · Beta", "KEMAS {0} · Beta");
             A("set_data", "DATA", "DATA");
             A("open_data", "Open data folder", "Buka folder data");
             A("error_log", "Error log", "Log ralat");
@@ -492,7 +493,7 @@ namespace Kemas
             A("uninstalled", "KEMAS has been removed. Thank you for using it!", "KEMAS telah dibuang. Terima kasih kerana menggunakannya!");
 
             // ---- about
-            A("about_version", "Version {0}  ·  Native Windows app  ·  Rendering at {1} Hz", "Versi {0}  ·  Apps Windows asli  ·  Paparan pada {1} Hz");
+            A("about_version", "Version {0} Beta  ·  Native Windows app  ·  Rendering at {1} Hz", "Versi {0} Beta  ·  Apps Windows asli  ·  Paparan pada {1} Hz");
             A("credits", "CREDITS", "KREDIT");
             A("cr_headline", "Crafted for people who care about the details.", "Dihasilkan untuk mereka yang menghargai setiap perincian.");
             A("cr_story1", "KEMAS began with a simple belief: a computer should feel as clean and calm as the day it was first switched on. Every screen, every animation and every safeguard in this app was designed with that feeling in mind - fast where it matters, careful where it counts, and never in your way.", "KEMAS bermula dengan satu keyakinan mudah: sebuah komputer sepatutnya terasa sebersih dan setenang hari pertama ia dihidupkan. Setiap skrin, setiap animasi dan setiap perlindungan dalam aplikasi ini direka dengan perasaan itu - pantas di tempat yang penting, berhati-hati di tempat yang perlu, dan tidak pernah mengganggu anda.");

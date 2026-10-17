@@ -190,6 +190,20 @@ namespace Kemas
     {
         public static bool Configured { get { return !AppInfo.IsStore && !string.IsNullOrEmpty(AppInfo.UpdateRepo); } }
 
+        // only the official KEMAS releases on GitHub are trusted as an update source
+        static bool IsTrustedUrl(Uri u)
+        {
+            if (u == null || u.Scheme != Uri.UriSchemeHttps) return false;
+            string h = u.Host.ToLowerInvariant();
+            return h == "github.com" || h == "api.github.com" || h == "objects.githubusercontent.com" || h == "release-assets.githubusercontent.com" || h.EndsWith(".githubusercontent.com");
+        }
+        static bool IsOfficialAsset(string url)
+        {
+            Uri u;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out u) || !IsTrustedUrl(u) || u.Host.ToLowerInvariant() != "github.com") return false;
+            return u.AbsolutePath.StartsWith("/" + AppInfo.UpdateRepo + "/releases/download/", StringComparison.OrdinalIgnoreCase);
+        }
+
         static string Get(string url)
         {
             var req = (HttpWebRequest)WebRequest.Create(url);
@@ -197,7 +211,10 @@ namespace Kemas
             req.Accept = "application/vnd.github+json";
             req.Timeout = 15000;
             using (var resp = req.GetResponse())
-            using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8)) return sr.ReadToEnd();
+            {
+                if (!IsTrustedUrl(resp.ResponseUri)) throw new InvalidDataException("Update server was not trusted.");
+                using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8)) return sr.ReadToEnd();
+            }
         }
 
         public static Version ParseTag(string tag)
@@ -222,10 +239,12 @@ namespace Kemas
             if (rel.Assets != null)
                 foreach (var a in rel.Assets)
                 {
+                    if (!IsOfficialAsset(a.Url)) continue;
                     if (a.Name.Equals("KEMAS.exe", StringComparison.OrdinalIgnoreCase)) { info.ExeUrl = a.Url; info.Size = a.Size; }
                     else if (a.Name.Equals("KEMAS.exe.sha256", StringComparison.OrdinalIgnoreCase)) info.HashUrl = a.Url;
                 }
-            return info.ExeUrl == null ? null : info;
+            // an update without its published SHA-256 fingerprint is never offered
+            return info.ExeUrl == null || info.HashUrl == null ? null : info;
         }
 
         /// Downloads the new exe, verifies it, swaps it in place and returns the path to restart.
@@ -235,6 +254,8 @@ namespace Kemas
             string dir = Path.Combine(AppInfo.DataDir, "update");
             Directory.CreateDirectory(dir);
             string tmp = Path.Combine(dir, "KEMAS.new.exe");
+            if (!IsOfficialAsset(info.ExeUrl) || !IsOfficialAsset(info.HashUrl)) throw new InvalidDataException("Update source is not the official KEMAS release.");
+            if (File.Exists(tmp)) File.Delete(tmp);
             var req = (HttpWebRequest)WebRequest.Create(info.ExeUrl);
             req.UserAgent = "KEMAS-Updater/" + AppInfo.Version;
             req.Timeout = 30000;
@@ -242,6 +263,7 @@ namespace Kemas
             using (var src = resp.GetResponseStream())
             using (var dst = File.Create(tmp))
             {
+                if (!IsTrustedUrl(resp.ResponseUri)) throw new InvalidDataException("Update server was not trusted.");
                 long total = resp.ContentLength > 0 ? resp.ContentLength : info.Size, done = 0;
                 var buf = new byte[81920]; int n;
                 while ((n = src.Read(buf, 0, buf.Length)) > 0)
@@ -250,18 +272,25 @@ namespace Kemas
                     if (progress != null && total > 0) progress((double)done / total);
                 }
             }
-            // integrity: must be a Windows program, and match the published SHA-256 when one is provided
+            // integrity: right size, a real 64-bit/32-bit Windows program, and the published SHA-256 must match (mandatory)
+            long len = new FileInfo(tmp).Length;
+            if (len < 200000 || len > 200L * 1024 * 1024 || (info.Size > 0 && len != info.Size)) { File.Delete(tmp); throw new InvalidDataException("Downloaded file has an unexpected size."); }
             var head = new byte[2];
             using (var f = File.OpenRead(tmp)) f.Read(head, 0, 2);
-            if (head[0] != 'M' || head[1] != 'Z') throw new InvalidDataException("Downloaded file is not a valid program.");
-            if (info.HashUrl != null)
+            if (head[0] != 'M' || head[1] != 'Z') { File.Delete(tmp); throw new InvalidDataException("Downloaded file is not a valid program."); }
+            string expected = Get(info.HashUrl).Trim().Split(' ', '\t', '\n', '\r')[0].ToLowerInvariant();
+            if (expected.Length != 64 || !expected.All(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) { File.Delete(tmp); throw new InvalidDataException("The published fingerprint is invalid."); }
+            string actual;
+            using (var sha = SHA256.Create()) using (var f = File.OpenRead(tmp))
+                actual = BitConverter.ToString(sha.ComputeHash(f)).Replace("-", "").ToLowerInvariant();
+            if (expected != actual) { File.Delete(tmp); throw new InvalidDataException("Update file failed the security check (SHA-256 mismatch)."); }
+            try
             {
-                string expected = Get(info.HashUrl).Trim().Split(' ', '\t', '\n', '\r')[0].ToLowerInvariant();
-                string actual;
-                using (var sha = SHA256.Create()) using (var f = File.OpenRead(tmp))
-                    actual = BitConverter.ToString(sha.ComputeHash(f)).Replace("-", "").ToLowerInvariant();
-                if (expected != actual) { File.Delete(tmp); throw new InvalidDataException("Update file failed the security check (SHA-256 mismatch)."); }
+                var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(tmp);
+                if (vi.ProductName == null || !vi.ProductName.StartsWith("KEMAS", StringComparison.OrdinalIgnoreCase)) { File.Delete(tmp); throw new InvalidDataException("Downloaded file is not KEMAS."); }
             }
+            catch (InvalidDataException) { throw; }
+            catch { File.Delete(tmp); throw new InvalidDataException("Downloaded file could not be verified."); }
             // a running exe can be renamed (not overwritten) on Windows
             string exe = Installer.ExePath, old = exe + ".old";
             if (File.Exists(old)) File.Delete(old);

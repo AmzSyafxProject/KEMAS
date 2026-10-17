@@ -1,145 +1,64 @@
 <Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Width="350" Height="350">
 <Canvas Width="320" Height="320" ClipToBounds="True">
-                  <Ellipse Width="270" Height="270" Canvas.Left="25" Canvas.Top="20">
-                    <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#4D7B5CFF" Offset="0"/><GradientStop Color="#007B5CFF" Offset="1"/></RadialGradientBrush></Ellipse.Fill>
-                  </Ellipse>
-                  <Rectangle Canvas.Left="20" Canvas.Top="250" Width="280" Height="10" RadiusX="5" RadiusY="5" Fill="#2A3050"/>
-                  <!-- monitor -->
-                  <Rectangle Canvas.Left="186" Canvas.Top="208" Width="16" Height="42" Fill="#2A3050"/>
-                  <Rectangle Canvas.Left="163" Canvas.Top="244" Width="62" Height="7" RadiusX="3" RadiusY="3" Fill="#3B4470"/>
-                  <Rectangle Canvas.Left="112" Canvas.Top="86" Width="170" Height="126" RadiusX="14" RadiusY="14" Fill="#232842" Stroke="#3B4470" StrokeThickness="2"/>
-                  <Canvas Canvas.Left="122" Canvas.Top="96" Width="150" Height="104" ClipToBounds="True">
-                    <Rectangle Width="150" Height="104" RadiusX="8" RadiusY="8">
-                      <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#1E2550" Offset="0"/><GradientStop Color="#0F2236" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
-                    </Rectangle>
-                    <Rectangle Canvas.Left="28" Canvas.Top="46" Width="16" Height="20" RadiusX="3" RadiusY="3" Fill="#7B5CFF">
-                      <Rectangle.RenderTransform><TranslateTransform/></Rectangle.RenderTransform>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" Duration="0:0:2.4">
-                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-48" Duration="0:0:1.6"/>
-                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:1.6"/>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle Canvas.Left="67" Canvas.Top="46" Width="16" Height="20" RadiusX="3" RadiusY="3" Fill="#2FD4FF">
-                      <Rectangle.RenderTransform><TranslateTransform/></Rectangle.RenderTransform>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" Duration="0:0:2.4" BeginTime="0:0:0.8">
-                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-48" Duration="0:0:1.6"/>
-                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:1.6"/>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle Canvas.Left="106" Canvas.Top="46" Width="16" Height="20" RadiusX="3" RadiusY="3" Fill="#FF7AC6">
-                      <Rectangle.RenderTransform><TranslateTransform/></Rectangle.RenderTransform>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" Duration="0:0:2.4" BeginTime="0:0:1.6">
-                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-48" Duration="0:0:1.6"/>
-                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:1.6"/>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle Width="150" Height="2" Fill="#2FD4FF" Opacity="0.7">
-                      <Rectangle.RenderTransform><TranslateTransform/></Rectangle.RenderTransform>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="102" Duration="0:0:1.8"/>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle Canvas.Left="17" Canvas.Top="82" Width="116" Height="7" RadiusX="3.5" RadiusY="3.5" Fill="#2E3558"/>
-                    <Rectangle Canvas.Left="17" Canvas.Top="82" Width="0" Height="7" RadiusX="3.5" RadiusY="3.5" ><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#7B5CFF" Offset="0"/><GradientStop Color="#2FD4FF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" Duration="0:0:2.8">
-                        <DoubleAnimation Storyboard.TargetProperty="Width" From="0" To="116" Duration="0:0:2.4"/>
-                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"><LinearDoubleKeyFrame KeyTime="0:0:0" Value="0"/><LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1"/><LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="1"/><LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0"/><LinearDoubleKeyFrame KeyTime="0:0:2.8" Value="0"/></DoubleAnimationUsingKeyFrames>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                  </Canvas>
-                  <!-- gears -->
-                  <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="40" Foreground="#2FD4FF" Opacity="0.85" Canvas.Left="252" Canvas.Top="190" RenderTransformOrigin="0.5,0.5">
-                    <TextBlock.RenderTransform><RotateTransform/></TextBlock.RenderTransform>
-                    <TextBlock.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:6"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></TextBlock.Triggers>
-                  </TextBlock>
-                  <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="24" Foreground="#9C8BFF" Canvas.Left="286" Canvas.Top="176" RenderTransformOrigin="0.5,0.5">
-                    <TextBlock.RenderTransform><RotateTransform/></TextBlock.RenderTransform>
-                    <TextBlock.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="360" To="0" Duration="0:0:4"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></TextBlock.Triggers>
-                  </TextBlock>
-                  <!-- chair -->
-                  <Rectangle Canvas.Left="30" Canvas.Top="168" Width="12" Height="76" RadiusX="6" RadiusY="6" Fill="#2A3050"/>
-                  <Rectangle Canvas.Left="30" Canvas.Top="214" Width="78" Height="12" RadiusX="6" RadiusY="6" Fill="#2A3050"/>
-                  <Rectangle Canvas.Left="64" Canvas.Top="226" Width="8" Height="24" Fill="#2A3050"/>
-                  <!-- legs -->
-                  <Rectangle Canvas.Left="60" Canvas.Top="200" Width="66" Height="16" RadiusX="8" RadiusY="8" Fill="#2B2F4A"/>
-                  <Rectangle Canvas.Left="112" Canvas.Top="202" Width="15" Height="44" RadiusX="7" RadiusY="7" Fill="#2B2F4A"/>
-                  <Rectangle Canvas.Left="106" Canvas.Top="240" Width="28" Height="9" RadiusX="4" RadiusY="4" Fill="#E9ECF8"/>
-                  <!-- torso -->
-                  <Rectangle Canvas.Left="46" Canvas.Top="138" Width="54" Height="78" RadiusX="22" RadiusY="22" Fill="#7B5CFF"/>
-                  <!-- head (gentle nod) -->
-                  <Canvas>
-                    <Canvas.RenderTransform><TranslateTransform/></Canvas.RenderTransform>
-                    <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="2.5" Duration="0:0:0.9"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
-                    <Rectangle Canvas.Left="70" Canvas.Top="124" Width="14" Height="18" Fill="#E8B48C"/>
-                    <Ellipse Canvas.Left="54" Canvas.Top="88" Width="44" Height="44" Fill="#2B2140"/>
-                    <Ellipse Canvas.Left="66" Canvas.Top="96" Width="38" Height="40" Fill="#F2C29B"/>
-                    <Ellipse Canvas.Left="56" Canvas.Top="86" Width="46" Height="24" Fill="#2B2140"/>
-                    <Ellipse Canvas.Left="94" Canvas.Top="112" Width="4" Height="5" Fill="#2B2140"/>
-                    <Path Data="M 60,110 A 22,22 0 0 1 100,98" Stroke="#2FD4FF" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                    <Ellipse Canvas.Left="56" Canvas.Top="104" Width="12" Height="17" Fill="#2FD4FF"/>
-                    <Path Data="M 64,120 Q 74,134 92,128" Stroke="#2FD4FF" StrokeThickness="2.5" StrokeEndLineCap="Round"/>
-                  </Canvas>
-                  <!-- keyboard -->
-                  <Rectangle Canvas.Left="130" Canvas.Top="242" Width="80" Height="8" RadiusX="3" RadiusY="3" Fill="#4A5585"/>
-                  <!-- typing arm -->
-                  <Canvas Canvas.Left="86" Canvas.Top="148">
-                    <Canvas.RenderTransform><RotateTransform CenterX="8" CenterY="8" Angle="60"/></Canvas.RenderTransform>
-                    <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="57" To="63" Duration="0:0:0.16"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
-                    <Rectangle Width="84" Height="16" RadiusX="8" RadiusY="8" Fill="#6A50F0"/>
-                    <Ellipse Canvas.Left="76" Canvas.Top="0" Width="16" Height="16" Fill="#F2C29B"/>
-                  </Canvas>
-                  <!-- cleaning drone -->
-                  <Canvas Canvas.Left="226" Canvas.Top="36">
-                    <Canvas.RenderTransform><TranslateTransform/></Canvas.RenderTransform>
-                    <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-10" Duration="0:0:1.3">
-                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                      </DoubleAnimation>
-                    </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
-                    <Rectangle Canvas.Left="2" Canvas.Top="0" Width="40" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#B7BEDA" RenderTransformOrigin="0.5,0.5">
-                      <Rectangle.RenderTransform><ScaleTransform/></Rectangle.RenderTransform>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="0.25" Duration="0:0:0.07"/>
-                      </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle Canvas.Left="20" Canvas.Top="2" Width="4" Height="8" Fill="#B7BEDA"/>
-                    <Ellipse Canvas.Left="6" Canvas.Top="8" Width="32" Height="18" Fill="#E9ECF8"/>
-                    <Ellipse Canvas.Left="23" Canvas.Top="13" Width="8" Height="8" Fill="#2FD4FF"/>
-                    <Rectangle Canvas.Left="20" Canvas.Top="24" Width="3" Height="14" Fill="#B7BEDA"/>
-                    <Rectangle Canvas.Left="14" Canvas.Top="36" Width="15" Height="7" RadiusX="2" RadiusY="2" Fill="#FFB547"/>
-                  </Canvas>
-                  <!-- sparkles -->
-                  <Path Canvas.Left="52" Canvas.Top="40" Width="16" Height="16" Stretch="Fill" Fill="#FFFFFF" RenderTransformOrigin="0.5,0.5"
-                        Data="M 8,0 Q 8,8 16,8 Q 8,8 8,16 Q 8,8 0,8 Q 8,8 8,0 Z">
-                    <Path.RenderTransform><ScaleTransform/></Path.RenderTransform>
-                    <Path.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.3" To="1" Duration="0:0:0.9"/>
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.3" To="1" Duration="0:0:0.9"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></Path.Triggers>
-                  </Path>
-                  <Path Canvas.Left="292" Canvas.Top="110" Width="12" Height="12" Stretch="Fill" Fill="#2FD4FF" RenderTransformOrigin="0.5,0.5"
-                        Data="M 8,0 Q 8,8 16,8 Q 8,8 8,16 Q 8,8 0,8 Q 8,8 8,0 Z">
-                    <Path.RenderTransform><ScaleTransform/></Path.RenderTransform>
-                    <Path.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.4">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.2" To="1" Duration="0:0:0.7"/>
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.2" To="1" Duration="0:0:0.7"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></Path.Triggers>
-                  </Path>
-                  <Path Canvas.Left="160" Canvas.Top="44" Width="10" Height="10" Stretch="Fill" Fill="#A99BFF" RenderTransformOrigin="0.5,0.5"
-                        Data="M 8,0 Q 8,8 16,8 Q 8,8 8,16 Q 8,8 0,8 Q 8,8 8,0 Z">
-                    <Path.RenderTransform><ScaleTransform/></Path.RenderTransform>
-                    <Path.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.8">
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.2" To="1" Duration="0:0:1.1"/>
-                      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.2" To="1" Duration="0:0:1.1"/>
-                    </Storyboard></BeginStoryboard></EventTrigger></Path.Triggers>
-                  </Path>
-                </Canvas>
+  <!-- soft breathing glow -->
+  <Ellipse Width="300" Height="300" Canvas.Left="10" Canvas.Top="10">
+    <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#557B5CFF" Offset="0"/><GradientStop Color="#007B5CFF" Offset="1"/></RadialGradientBrush></Ellipse.Fill>
+    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
+      <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.45" To="1" Duration="0:0:2.2"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+  </Ellipse>
+  <!-- faint guide rings -->
+  <Ellipse Width="240" Height="240" Canvas.Left="40" Canvas.Top="40" Stroke="#1AFFFFFF" StrokeThickness="1"/>
+  <Ellipse Width="184" Height="184" Canvas.Left="68" Canvas.Top="68" Stroke="#14FFFFFF" StrokeThickness="1"/>
+  <Ellipse Width="128" Height="128" Canvas.Left="96" Canvas.Top="96" Stroke="#10FFFFFF" StrokeThickness="1"/>
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+      <Canvas.RenderTransform><RotateTransform Angle="0"/></Canvas.RenderTransform>
+      <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:5.2"/>
+      </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+      <Path Data="M 160,40 A 120,120 0 1 1 40,160" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"><Path.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#7B5CFF" Offset="0"/><GradientStop Color="#22D3F5" Offset="1"/></LinearGradientBrush></Path.Stroke></Path><Ellipse Canvas.Left="155" Canvas.Top="35" Width="10" Height="10" Fill="#FFFFFF" Opacity="1"/>
+    </Canvas>
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+      <Canvas.RenderTransform><RotateTransform Angle="0"/></Canvas.RenderTransform>
+      <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="360" To="0" Duration="0:0:3.6"/>
+      </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+      <Path Data="M 160,68 A 92,92 0 1 1 68,160" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"><Path.Stroke><LinearGradientBrush StartPoint="0,1" EndPoint="1,0"><GradientStop Color="#22D3F5" Offset="0"/><GradientStop Color="#A99BFF" Offset="1"/></LinearGradientBrush></Path.Stroke></Path><Ellipse Canvas.Left="64" Canvas.Top="156" Width="8" Height="8" Fill="#FFFFFF" Opacity="1"/>
+    </Canvas>
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+      <Canvas.RenderTransform><RotateTransform Angle="0"/></Canvas.RenderTransform>
+      <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:2.6"/>
+      </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+      <Path Data="M 160,96 A 64,64 0 1 1 96,160" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"><Path.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#7B5CFF" Offset="0"/><GradientStop Color="#22D3F5" Offset="1"/></LinearGradientBrush></Path.Stroke></Path><Ellipse Canvas.Left="156.5" Canvas.Top="92.5" Width="7.0" Height="7.0" Fill="#FFFFFF" Opacity="1"/>
+    </Canvas>
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+      <Canvas.RenderTransform><RotateTransform Angle="0"/></Canvas.RenderTransform>
+      <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:9"/>
+      </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+      <Ellipse Canvas.Left="157" Canvas.Top="49" Width="6" Height="6" Fill="#A99BFF" Opacity="0.9"/><Ellipse Canvas.Left="157" Canvas.Top="265" Width="6" Height="6" Fill="#22D3F5" Opacity="0.9"/><Ellipse Canvas.Left="49.5" Canvas.Top="157.5" Width="5.0" Height="5.0" Fill="#FFFFFF" Opacity="0.7"/>
+    </Canvas>
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+      <Canvas.RenderTransform><RotateTransform Angle="0"/></Canvas.RenderTransform>
+      <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="360" To="0" Duration="0:0:7"/>
+      </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+      <Ellipse Canvas.Left="157.5" Canvas.Top="75.5" Width="5.0" Height="5.0" Fill="#22D3F5" Opacity="0.8"/><Ellipse Canvas.Left="157.5" Canvas.Top="239.5" Width="5.0" Height="5.0" Fill="#A99BFF" Opacity="0.8"/><Ellipse Canvas.Left="240" Canvas.Top="158" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.6"/>
+    </Canvas>
+  <!-- core: breathing app badge -->
+  <Canvas Width="320" Height="320" RenderTransformOrigin="0.5,0.5">
+    <Canvas.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Canvas.RenderTransform>
+    <Canvas.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True">
+      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="0.94" To="1.05" Duration="0:0:1.6"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+      <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="0.94" To="1.05" Duration="0:0:1.6"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+    </Storyboard></BeginStoryboard></EventTrigger></Canvas.Triggers>
+    <Rectangle Canvas.Left="118" Canvas.Top="118" Width="84" Height="84" RadiusX="24" RadiusY="24"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#7B5CFF" Offset="0"/><GradientStop Color="#22D3F5" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+      <Rectangle.Effect><DropShadowEffect Color="#7B5CFF" BlurRadius="28" ShadowDepth="0" Opacity="0.8"/></Rectangle.Effect></Rectangle>
+    <Rectangle Canvas.Left="140" Canvas.Top="138" Width="10" Height="44" RadiusX="5" RadiusY="5" Fill="#FFFFFF"/>
+    <Path Data="M 154,164 C 160,158 168,150 176,142" Stroke="#FFFFFF" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+    <Path Data="M 158,162 C 166,168 174,174 180,180" Stroke="#D0FFFFFF" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+    <Path Canvas.Left="178" Canvas.Top="124" Width="14" Height="14" Stretch="Fill" Fill="#FFFFFF" Data="M 8,0 Q 8,8 16,8 Q 8,8 8,16 Q 8,8 0,8 Q 8,8 8,0 Z"/>
+  </Canvas>
+</Canvas>
 </Viewbox>

@@ -16,8 +16,8 @@ using System.Windows.Threading;
 [assembly: AssemblyCompany("Amzar Syafiq")]
 [assembly: AssemblyProduct("KEMAS")]
 [assembly: AssemblyCopyright("(c) 2026 Amzar Syafiq")]
-[assembly: AssemblyVersion("3.2.2.0")]
-[assembly: AssemblyFileVersion("3.2.2.0")]
+[assembly: AssemblyVersion("3.3.2.0")]
+[assembly: AssemblyFileVersion("3.3.2.0")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName = ".NET Framework 4.8")]
 
 namespace Kemas
