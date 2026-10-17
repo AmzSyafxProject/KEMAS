@@ -139,7 +139,9 @@ namespace Kemas
 
     public class Cleaner
     {
-        public volatile bool Cancel;
+        static volatile bool toolCancel;
+        volatile bool cancel;
+        public bool Cancel { get { return cancel; } set { cancel = value; toolCancel = value; } }
         public bool SkipRecentTemp = true;
         public bool RemoveLockedAtRestart = true;   // old temp files that are in use go at the next restart
         int locked, scheduled;
@@ -198,7 +200,7 @@ namespace Kemas
                     Path.Combine(Local, @"Microsoft\Windows\INetCache\Content.Word"), Path.Combine(Local, @"Microsoft\Windows\INetCache\Content.Outlook") } },
                 new CleanTarget { Key = "dumps", Icon = "EA39", Tag = "deep", Default = false, Files = MemoryDumps },
                 new CleanTarget { Key = "winsxs", Icon = "E9F5", Tag = "deep", Default = false, Slow = true, NoFolderClear = true, MeasureByDrive = true,
-                    Custom = () => { if (RunTool("dism.exe", "/Online /Cleanup-Image /StartComponentCleanup", 45) != 0) throw new CleanException("err_dism"); } },
+                    Custom = () => { { int rc = RunTool("dism.exe", "/Online /Cleanup-Image /StartComponentCleanup", 45); if (rc != 0 && rc != -3) throw new CleanException("err_dism"); } } },
                 new CleanTarget { Key = "winold", Icon = "E81C", Tag = "permanent", Default = false, Slow = true, NoFolderClear = true,
                     Folders = () => new[] { WinOld }, Custom = RemoveWindowsOld }
             };
@@ -257,7 +259,15 @@ namespace Kemas
                 var psi = new ProcessStartInfo(full, args) { CreateNoWindow = true, UseShellExecute = false, WindowStyle = ProcessWindowStyle.Hidden };
                 using (var p = Process.Start(psi))
                 {
-                    if (!p.WaitForExit(timeoutMinutes * 60000)) return -2;
+                    var end = DateTime.UtcNow.AddMinutes(timeoutMinutes);
+                    while (!p.WaitForExit(500))
+                    {
+                        if (toolCancel || DateTime.UtcNow > end)
+                        {
+                            try { Process.Start(new ProcessStartInfo("taskkill.exe", "/PID " + p.Id + " /T /F") { CreateNoWindow = true, UseShellExecute = false }).WaitForExit(5000); } catch { }
+                            return toolCancel ? -3 : -2;
+                        }
+                    }
                     return p.ExitCode;
                 }
             }
@@ -460,7 +470,7 @@ namespace Kemas
         public CleanResult Clean(CleanTarget t)
         {
             var r = new CleanResult { Key = t.Key, State = ItemState.Done };
-            locked = 0; scheduled = 0;
+            locked = 0; scheduled = 0; toolCancel = Cancel;
             long before = Measure(t);
             long driveBefore = t.MeasureByDrive ? FreeSpace() : 0;
             bool isTemp = t.Key == "usertemp" || t.Key == "wintemp";

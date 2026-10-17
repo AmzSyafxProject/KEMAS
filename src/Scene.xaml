@@ -41,8 +41,9 @@
                     </Rectangle>
                     <Rectangle Canvas.Left="17" Canvas.Top="82" Width="116" Height="7" RadiusX="3.5" RadiusY="3.5" Fill="#2E3558"/>
                     <Rectangle Canvas.Left="17" Canvas.Top="82" Width="0" Height="7" RadiusX="3.5" RadiusY="3.5" ><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#7B5CFF" Offset="0"/><GradientStop Color="#2FD4FF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
-                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
-                        <DoubleAnimation Storyboard.TargetProperty="Width" From="0" To="116" Duration="0:0:2.6"/>
+                      <Rectangle.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" Duration="0:0:2.8">
+                        <DoubleAnimation Storyboard.TargetProperty="Width" From="0" To="116" Duration="0:0:2.4"/>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"><LinearDoubleKeyFrame KeyTime="0:0:0" Value="0"/><LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="1"/><LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="1"/><LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0"/><LinearDoubleKeyFrame KeyTime="0:0:2.8" Value="0"/></DoubleAnimationUsingKeyFrames>
                       </Storyboard></BeginStoryboard></EventTrigger></Rectangle.Triggers>
                     </Rectangle>
                   </Canvas>

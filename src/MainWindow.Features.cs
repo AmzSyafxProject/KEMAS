@@ -498,7 +498,7 @@ namespace Kemas
                         Ui(() => SetOvItem(tt.Key, ItemState.Skipped, L.T("stopped")));
                         continue;
                     }
-                    Ui(() => { SetOvItem(tt.Key, ItemState.Working, L.T("cleaning")); OvStep(L.T("cleaning") + " " + L.T("t_" + tt.Key) + (tt.Slow ? "  ·  " + L.T("slow_note") : "")); });
+                    Ui(() => { SetOvItem(tt.Key, ItemState.Working, L.T("cleaning")); OvTrack(tt.Key, i * 100.0 / total, 100.0 / total, tt.Slow); OvStep(L.T("cleaning") + " " + L.T("t_" + tt.Key) + (tt.Slow ? "  ·  " + L.T("slow_note") : "")); });
                     CleanResult r;
                     try { r = c.Clean(t); }
                     catch (Exception ex) { r = new CleanResult { Key = t.Key, State = ItemState.Skipped }; r.Notes.Add(Cleaner.Friendly(ex)); }
@@ -628,6 +628,22 @@ namespace Kemas
             TB("OvPct").Text = p.ToString("0") + "%";
             E<ProgressBar>("MainProgress").Value = p;
         }
+        DispatcherTimer ovTimer; string ovKey; DateTime ovStart; double ovBase, ovSpan, ovExpect = 8;
+        void OvTrack(string key, double baseP, double span, bool slow)
+        {
+            ovKey = key; ovStart = DateTime.UtcNow; ovBase = baseP; ovSpan = span; ovExpect = slow ? 600 : 8;
+            if (ovTimer == null) { ovTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) }; ovTimer.Tick += OvTick; }
+            ovTimer.Start();
+        }
+        void OvUntrack() { ovKey = null; if (ovTimer != null) ovTimer.Stop(); }
+        void OvTick(object s, EventArgs e)
+        {
+            if (ovKey == null) return;
+            var el = DateTime.UtcNow - ovStart;
+            Tuple<TextBlock, TextBlock> r;
+            if (ovRows.TryGetValue(ovKey, out r)) r.Item2.Text = L.T("cleaning") + " " + ((int)el.TotalMinutes) + ":" + el.Seconds.ToString("00");
+            if (ovSpan > 0) { double f = 1 - Math.Exp(-el.TotalSeconds / ovExpect); OvProgress(ovBase + ovSpan * 0.92 * f); }
+        }
         void OvStep(string s) { TB("OvStep").Text = s; TB("StatusText").Text = s; }
 
         void SetOvItem(string key, ItemState state, string detail)
@@ -637,6 +653,7 @@ namespace Kemas
             var ic = r.Item1;
             var rot = (RotateTransform)ic.RenderTransform;
             rot.BeginAnimation(RotateTransform.AngleProperty, null);
+            if (state != ItemState.Working && key == ovKey) OvUntrack();
             ic.FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets");
             switch (state)
             {
@@ -700,6 +717,7 @@ namespace Kemas
 
         void HideOverlay()
         {
+            OvUntrack();
             StopScene();
             var ov = E<Grid>("Overlay");
             var a = Anim(1, 0, 180);
@@ -725,21 +743,19 @@ namespace Kemas
             {
                 try
                 {
-                    v.Source = new Uri(AnimFile);
-                    v.Visibility = Visibility.Visible;
-                    v.MediaEnded -= VideoLoop; v.MediaEnded += VideoLoop;
+                    var tl = new MediaTimeline(new Uri(AnimFile)) { RepeatBehavior = RepeatBehavior.Forever };
                     v.MediaFailed -= VideoFail; v.MediaFailed += VideoFail;
-                    v.Play();
+                    v.Clock = tl.CreateClock();
+                    v.Visibility = Visibility.Visible;
                 }
                 catch { videoFailed = true; v.Visibility = Visibility.Collapsed; }
             }
         }
-        void VideoLoop(object s, RoutedEventArgs e) { var v = E<MediaElement>("AnimVideo"); v.Position = TimeSpan.Zero; v.Play(); }
         void VideoFail(object s, ExceptionRoutedEventArgs e) { videoFailed = true; E<MediaElement>("AnimVideo").Visibility = Visibility.Collapsed; }
 
         void StopScene()
         {
-            try { var v = E<MediaElement>("AnimVideo"); v.Stop(); v.Close(); v.Source = null; v.Visibility = Visibility.Collapsed; } catch { }
+            try { var v = E<MediaElement>("AnimVideo"); v.Clock = null; v.Close(); v.Source = null; v.Visibility = Visibility.Collapsed; } catch { }
             E<ContentControl>("SceneHost").Content = null;   // drops the scene and its animations from memory
         }
 

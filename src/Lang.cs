@@ -161,7 +161,7 @@ namespace Kemas
             A("t_winold", "Previous Windows installation", "Pemasangan Windows sebelum ini");
             A("t_winold_d", "The Windows.old folder from a major upgrade. Removing it means you can no longer roll back to the old version.", "Folder Windows.old daripada naik taraf besar. Bila dibuang, anda tak boleh kembali ke versi lama.");
             A("varies_word", "Varies", "Berbeza");
-            A("slow_note", "Deep items can take a few minutes. Keep KEMAS open.", "Item mendalam boleh ambil beberapa minit. Biarkan KEMAS terbuka.");
+            A("slow_note", "Windows component cleanup usually takes 5–15 min. Keep KEMAS open.", "Pembersihan komponen Windows biasanya 5–15 minit. Biarkan KEMAS terbuka.");
             A("deep_btn", "Deep Clean", "Bersih Mendalam");
             A("deep_tip", "Clean everything, including the deep items", "Bersihkan semuanya, termasuk item mendalam");
             A("deep_head", "Deep Clean", "Bersih Mendalam");
@@ -243,8 +243,8 @@ namespace Kemas
             A("wn_sub", "Your update is installed. Here is what changed.", "Kemas kini sudah dipasang. Ini yang berubah.");
             A("wn_close", "Got it", "Faham");
             A("wn_try", "Open System Cleaner", "Buka Pembersih Sistem");
-            A("wn0_t", "Road to 100", "Jalan ke 100");
-            A("wn0_d", "The dashboard now shows exactly what lowers your health score, how many points each fix is worth, and a button to fix it.", "Papan pemuka kini tunjuk apa yang menurunkan skor kesihatan, berapa mata setiap pembetulan, dan butang untuk membetulkannya.");
+            A("wn0_t", "Smoother waiting", "Menunggu lebih lancar");
+            A("wn0_d", "Deep Clean now shows a live timer, a progress bar that keeps moving, and Stop really stops long Windows tasks. The looping animation is smooth.", "Deep Clean kini papar pemasa langsung, bar kemajuan yang terus bergerak, dan Stop benar-benar hentikan tugas Windows yang lama. Animasi gelung lebih lancar.");
             A("wn1_t", "Help & Support", "Bantuan & Sokongan");
             A("wn1_d", "Report a problem or send an idea from the ? button at the top. It goes straight to the developer.", "Laporkan masalah atau hantar idea dari butang ? di atas. Ia terus sampai kepada pembangun.");
             A("wn2_t", "Faster scanning", "Imbasan lebih pantas");
