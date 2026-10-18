@@ -159,6 +159,7 @@ namespace Kemas
             string names = string.Join(", ", sel.Select(t => L.T("t_" + t.Key)));
             string msg = string.Format(L.T("confirm_clean_d"), names);
             if (trim) msg += " " + L.T("confirm_trim");
+            if (trim || sel.Any(t => Cleaner.IsDeep(t))) msg += "\n\n" + L.T("known_wall");
             if (sel.Any(t => t.Key == "recycle")) msg += "\n\n" + L.T("confirm_recycle");
             if (sel.Any(t => t.Key == "winold") && System.IO.Directory.Exists(Cleaner.WinOld)) msg += "\n\n" + L.T("deep_confirm_winold");
             if (sel.Any(t => t.Slow)) msg += "\n\n" + L.T("slow_note");
@@ -176,6 +177,7 @@ namespace Kemas
             string msg = L.T("deep_confirm_d");
             if (System.IO.Directory.Exists(Cleaner.WinOld)) msg += "\n\n" + L.T("deep_confirm_winold");
             if (Cleaner.BrowserRunning()) msg += "\n\n" + L.T("confirm_browser");
+            msg += "\n\n" + L.T("known_wall");
             msg += "\n\n" + L.T("confirm_safe");
             Ask(L.T("deep_confirm"), msg, L.T("deep_go"), "E945", false, () => StartClean(sel, S.TrimRamOnSmart));
         }
@@ -184,7 +186,7 @@ namespace Kemas
         static readonly string[][] WhatsNewItems =
         {
             new[] { "E9D2", "wn0" },   // calmer cleaning screen
-            new[] { "E7F4", "wn1" },   // desktop stays intact
+            new[] { "E7BA", "wn1" },   // known issue: black wallpaper
             new[] { "E72E", "wn2" },   // update security
             new[] { "E7C3", "wn3" },   // public beta
             new[] { "E897", "wn4" },   // help form

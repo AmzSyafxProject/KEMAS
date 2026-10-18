@@ -1276,6 +1276,10 @@
           </Grid>
           <Button x:Name="BtnRepForm" Style="{StaticResource Ghost}" Content="{DynamicResource L_help_form}" HorizontalAlignment="Left" Margin="0,14,0,0"/>
           <TextBlock x:Name="RepEmailLine" FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="2,16,0,0" TextWrapping="Wrap"/>
+          <Border Margin="0,14,0,0" Padding="12,10" CornerRadius="10" Background="#1AFFB020" BorderBrush="#55FFB020" BorderThickness="1">
+            <StackPanel><TextBlock Text="{DynamicResource L_known_wall_h}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource TextBrush}"/>
+              <TextBlock Text="{DynamicResource L_known_wall_d}" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel>
+          </Border>
         </StackPanel>
       </Border>
     </Grid>

@@ -86,6 +86,15 @@ namespace Kemas
             public ulong ullTotalPageFile; public ulong ullAvailPageFile; public ulong ullTotalVirtual; public ulong ullAvailVirtual; public ulong ullAvailExtendedVirtual;
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool SystemParametersInfo(int action, int param, string value, int flags);
+        [DllImport("user32.dll", SetLastError = true)] static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg, IntPtr wp, string lp, uint flags, uint timeout, out IntPtr result);
+        // asks Windows to reload the current wallpaper from its own settings (nothing is changed); a no-op when the wallpaper is already fine
+        public static void RefreshDesktop()
+        {
+            try { SystemParametersInfo(0x0014, 0, null, 0x02); } catch { }
+            try { IntPtr r; SendMessageTimeout((IntPtr)0xFFFF, 0x001A, IntPtr.Zero, "ImmersiveColorSet", 0x2, 1500, out r); } catch { }
+        }
+
         public static void TrimSelf()
         {
             try { GC.Collect(); GC.WaitForPendingFinalizers(); EmptyWorkingSet(GetCurrentProcess()); } catch { }
@@ -744,14 +753,23 @@ namespace Kemas
             double t, before, after; int pct;
             Info(out t, out before, out pct);
             var procs = Process.GetProcesses();
+            int mySession = 0; try { mySession = Process.GetCurrentProcess().SessionId; } catch { }
             for (int i = 0; i < procs.Length; i++)
             {
-                // never trim the desktop shell, window manager or system processes: doing so makes the wallpaper and taskbar go black until they reload
-                try { if (!Protected.Contains(SafeName(procs[i]))) Native.EmptyWorkingSet(procs[i].Handle); } catch { }
+                // Gentle trim: only ordinary apps the user can see (a window, in this desktop session, using real memory).
+                // Never the desktop shell, window manager, services, drivers or anything without a window - trimming those can blank the wallpaper.
+                try
+                {
+                    var p = procs[i];
+                    if (!Protected.Contains(SafeName(p)) && p.SessionId == mySession && p.SessionId != 0 && p.MainWindowHandle != IntPtr.Zero && p.WorkingSet64 > 80L * 1048576)
+                        Native.EmptyWorkingSet(p.Handle);
+                }
+                catch { }
                 try { procs[i].Dispose(); } catch { }
                 if (progress != null && i % 8 == 0) progress((double)i / procs.Length);
             }
             System.Threading.Thread.Sleep(600);
+            Native.RefreshDesktop();
             Info(out t, out after, out pct);
             return (long)Math.Max(0, after - before);
         }

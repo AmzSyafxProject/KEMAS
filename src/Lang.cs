@@ -110,6 +110,9 @@ namespace Kemas
             A("confirm_trim", "Then it frees up memory from running apps.", "Kemudian ia membebaskan memori daripada apps yang sedang berjalan.");
             A("confirm_recycle", "The Recycle Bin will be emptied permanently.", "Tong Kitar Semula akan dikosongkan secara kekal.");
             A("confirm_browser", "A browser is open. Close it first for a deeper clean.", "Pelayar sedang dibuka. Tutup dulu untuk pembersihan lebih mendalam.");
+            A("known_wall", "Known issue: on some PCs the wallpaper can turn black after freeing RAM or a Deep Clean. Don't panic, just restart your laptop and it returns. This is identified and a fix is in progress.", "Isu diketahui: pada sesetengah PC, wallpaper boleh jadi hitam selepas bebaskan RAM atau Bersih Mendalam. Jangan panik, restart laptop dan ia pulih. Isu ini sudah dikenal pasti dan pembaikan sedang dijalankan.");
+            A("known_wall_h", "Known issue", "Isu diketahui");
+            A("known_wall_d", "Cause: Windows keeps the wallpaper in memory that the desktop shell and graphics service own. Aggressive memory trimming, or clearing graphics (shader) caches, can make them drop it and show black until they reload. KEMAS now trims only visible apps and asks Windows to reload the wallpaper afterwards. If it still happens, restart the laptop (or sign out and in).", "Punca: Windows simpan wallpaper dalam memori yang dimiliki shell desktop dan perkhidmatan grafik. Pemangkasan memori agresif, atau pembersihan cache grafik (shader), boleh buat ia terlepas dan skrin hitam sehingga dimuat semula. KEMAS kini hanya memangkas apps yang kelihatan dan meminta Windows muat semula wallpaper selepas itu. Jika masih berlaku, restart laptop (atau sign out dan masuk semula).");
             A("confirm_safe", "Files that are in use are skipped safely.", "Fail yang sedang digunakan akan dilangkau dengan selamat.");
             A("clean_now", "Clean now", "Bersihkan sekarang");
             A("clean_start", "Cleaning started...", "Pembersihan bermula...");
@@ -246,8 +249,8 @@ namespace Kemas
             A("wn_try", "Open System Cleaner", "Buka Pembersih Sistem");
             A("wn0_t", "A new, calmer cleaning screen", "Skrin pembersihan baharu yang lebih tenang");
             A("wn0_d", "The waiting animation was redesigned. It loops seamlessly, runs smoothly and no longer downloads anything.", "Animasi menunggu direka semula. Ia berulang dengan lancar, berjalan licin dan tidak lagi memuat turun apa-apa.");
-            A("wn1_t", "Your desktop stays intact", "Desktop anda kekal elok");
-            A("wn1_d", "Cleaning with the recommended options no longer turns the wallpaper black. KEMAS now leaves Windows shell processes alone.", "Pembersihan dengan pilihan disyorkan tidak lagi menghitamkan wallpaper. KEMAS kini tidak mengusik proses shell Windows.");
+            A("wn1_t", "Known issue: black wallpaper", "Isu diketahui: wallpaper hitam");
+            A("wn1_d", "On some PCs the desktop wallpaper can turn black after cleaning RAM or running Deep Clean. Don't panic: just restart the laptop and it comes back. The issue is identified and a fix is in progress. This version already trims memory much more gently and reloads the wallpaper afterwards.", "Pada sesetengah PC, wallpaper boleh bertukar hitam selepas bersihkan RAM atau Bersih Mendalam. Jangan panik: restart laptop dan ia akan pulih. Isu ini sudah dikenal pasti dan sedang dalam proses pembaikan. Versi ini sudah memangkas memori dengan lebih lembut dan memuat semula wallpaper selepas itu.");
             A("wn2_t", "Stronger update security", "Keselamatan kemas kini lebih kukuh");
             A("wn2_d", "Updates are accepted only from the official KEMAS release on GitHub and must match their published SHA-256 fingerprint.", "Kemas kini hanya diterima daripada keluaran rasmi KEMAS di GitHub dan mesti sepadan dengan cap jari SHA-256 yang diterbitkan.");
             A("wn3_t", "Public Beta Test", "Ujian Beta awam");
@@ -357,7 +360,7 @@ namespace Kemas
             A("ram_sub", "See which apps eat your RAM, free memory, or close heavy apps.", "Lihat apps yang guna RAM, bebaskan memori, atau tutup apps berat.");
             A("free_ram", "Free up RAM", "Bebaskan RAM");
             A("end_selected", "End selected", "Tamatkan pilihan");
-            A("ram_tip", "Tip: hold Ctrl to select several apps. Windows system processes are protected. Save your work before ending an app.", "Tip: tekan Ctrl untuk pilih beberapa apps. Proses sistem Windows dilindungi. Simpan kerja anda sebelum menamatkan app.");
+            A("ram_tip", "Tip: hold Ctrl to select several apps. Windows system processes are protected. Save your work before ending an app. Known issue: on some PCs the wallpaper may turn black after freeing RAM. Don't panic, restart the laptop. A fix is in progress.", "Tip: tekan Ctrl untuk pilih beberapa apps. Proses sistem Windows dilindungi. Simpan kerja anda sebelum menamatkan app. Isu diketahui: pada sesetengah PC wallpaper boleh jadi hitam selepas bebaskan RAM. Jangan panik, restart laptop. Pembaikan sedang dijalankan.");
             A("st_protected", "Protected", "Dilindungi");
             A("st_canclose", "Can close", "Boleh tutup");
             A("ram_done", "Memory refreshed", "Memori disegarkan");
