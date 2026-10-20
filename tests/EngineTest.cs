@@ -49,11 +49,12 @@ class T {
       Check(File.Exists(Path.Combine(th,"TranscodedWallpaper")) && !File.Exists(Path.Combine(junk,"old2.tmp")), "wallpaper cache survives, other old temp removed"); }
     { var g=new CleanTarget{Key="g",Folders=()=>new[]{junk},Guard=()=>"note_wu_pending"}; var gr=c.Clean(g); Check(gr.State==ItemState.Skipped && gr.Notes.Contains("note_wu_pending") && gr.Freed==0, "guard skips item"); }
     { var d=CleanTargetsDefaults(); Check(!d.Contains("prefetch") && !d.Contains("recycle") && d.Contains("usertemp"), "prefetch+recycle off by default"); Check(!new Settings().TrimRamOnSmart, "RAM trim off by default"); }
+    Check(Memory.IsShell("explorer") && Memory.IsShell("Explorer.exe") && Memory.IsShell("dwm") && !Memory.IsShell("notepad") && Memory.Kill("explorer")==0, "explorer is never trimmed or ended");
     Check(!c.ClearFolder("/",false) && !c.ClearFolder(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),false), "refuses to clear protected roots");
     // --- update tags
     Check(Updater.ParseTag("v3.1.0")==new Version(3,1,0) && Updater.ParseTag("3.2")==new Version(3,2) && Updater.ParseTag("v4")==new Version(4,0) && Updater.ParseTag("abc")==null, "release tag parsing");
-    Check(Updater.ParseTag("v3.4.1")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.4.0")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.2.0")>AppInfo.ParsedVersion), "version compare");
-    { var b=Support.Body("Problem report","It crashed",true,300); Check(b.Contains("It crashed") && b.Contains("KEMAS: 3.4.0") && Support.MailtoUrl("Question","hi",true).StartsWith("mailto:amzarsyaf2002@gmail.com?subject=") && Support.MailtoUrl("Question",new string('x',5000),true).Length < 2100 && Support.GmailUrl("Suggestion","hi",false).Contains("su=KEMAS"), "support report builder"); }
+    Check(Updater.ParseTag("v3.4.2")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.4.1")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.2.0")>AppInfo.ParsedVersion), "version compare");
+    { var b=Support.Body("Problem report","It crashed",true,300); Check(b.Contains("It crashed") && b.Contains("KEMAS: 3.4.1") && Support.MailtoUrl("Question","hi",true).StartsWith("mailto:amzarsyaf2002@gmail.com?subject=") && Support.MailtoUrl("Question",new string('x',5000),true).Length < 2100 && Support.GmailUrl("Suggestion","hi",false).Contains("su=KEMAS"), "support report builder"); }
     { var st=Json.Read<Settings>("{\"Theme\":\"light\"}"); Check(st.RemoveLockedAtRestart && !st.WelcomeDone, "new settings defaults"); }
     { var ts=Cleaner.CreateTargets(); Check(ts.Where(Cleaner.IsDeep).All(x=>!x.Default) && ts.Count(Cleaner.IsDeep)==6 && ts.Select(x=>x.Key).Distinct().Count()==ts.Count, "deep targets off by default, unique keys"); }
     // --- settings + export roundtrip

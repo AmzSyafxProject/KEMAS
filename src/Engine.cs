@@ -755,6 +755,24 @@ namespace Kemas
             "smartscreen", "lsm", "wmiprvse", "applicationframehost", "vmmem", "vmmemwsl", "msedgewebview2", "kemas"
         };
 
+        // Windows Explorer and the other desktop-shell processes: never trimmed and never ended by KEMAS, whatever the list above says
+        static readonly HashSet<string> Shell = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { "explorer", "dwm", "sihost", "shellexperiencehost", "startmenuexperiencehost", "searchhost", "searchapp", "textinputhost", "ctfmon", "taskhostw", "applicationframehost", "runtimebroker", "winlogon", "csrss", "fontdrvhost" };
+        public static bool IsShell(string name) { return !string.IsNullOrEmpty(name) && Shell.Contains(name.Replace(".exe", "")); }
+
+        // only ordinary user apps are ever trimmed: not shell processes, and nothing that lives in the Windows folder (or whose path cannot be read)
+        static bool SafeToTrim(Process p)
+        {
+            try
+            {
+                if (IsShell(SafeName(p)) || Protected.Contains(SafeName(p))) return false;
+                string path = p.MainModule.FileName;
+                string win = Cleaner.Win.TrimEnd('\\') + "\\";
+                return !string.IsNullOrEmpty(path) && !path.StartsWith(win, StringComparison.OrdinalIgnoreCase);
+            }
+            catch { return false; }
+        }
+
         public static void Info(out double total, out double free, out int pct)
         {
             var m = new Native.MEMORYSTATUSEX { dwLength = (uint)Marshal.SizeOf(typeof(Native.MEMORYSTATUSEX)) };
@@ -801,7 +819,7 @@ namespace Kemas
                 try
                 {
                     var p = procs[i];
-                    if (!Protected.Contains(SafeName(p)) && p.SessionId == mySession && p.SessionId != 0 && p.MainWindowHandle != IntPtr.Zero && p.WorkingSet64 > 80L * 1048576)
+                    if (SafeToTrim(p) && p.SessionId == mySession && p.SessionId != 0 && p.MainWindowHandle != IntPtr.Zero && p.WorkingSet64 > 80L * 1048576)
                         Native.EmptyWorkingSet(p.Handle);
                 }
                 catch { }
@@ -817,6 +835,7 @@ namespace Kemas
         public static int Kill(string name)
         {
             int killed = 0, me = Process.GetCurrentProcess().Id;
+            if (IsShell(name) || Protected.Contains(name)) return 0;
             foreach (var p in Process.GetProcessesByName(name))
             {
                 try { if (p.Id != me) { p.Kill(); killed++; } } catch { }
