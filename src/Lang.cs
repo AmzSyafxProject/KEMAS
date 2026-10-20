@@ -264,6 +264,7 @@ namespace Kemas
             A("err_recycle", "Windows could not empty the Recycle Bin", "Windows tidak dapat mengosongkan Tong Kitar Semula");
             A("err_dism", "Windows DISM did not finish (another update may be running)", "DISM Windows tidak selesai (mungkin kemas kini lain sedang berjalan)");
             A("err_winold", "Some Windows.old files could not be removed", "Sebahagian fail Windows.old tidak dapat dibuang");
+            A("note_wu_pending", "skipped: a Windows update is waiting for a restart", "dilangkau: kemas kini Windows sedang menunggu restart");
             A("note_recent", "temp files newer than 24 hours were kept (see Settings)", "fail temp lebih baharu dari 24 jam disimpan (lihat Tetapan)");
             A("note_browser", "a browser is open - close it for a deeper clean", "pelayar sedang dibuka - tutup untuk pembersihan lebih mendalam");
             A("note_stopped", "stopped before it started", "dihentikan sebelum bermula");
@@ -360,7 +361,7 @@ namespace Kemas
             A("ram_sub", "See which apps eat your RAM, free memory, or close heavy apps.", "Lihat apps yang guna RAM, bebaskan memori, atau tutup apps berat.");
             A("free_ram", "Free up RAM", "Bebaskan RAM");
             A("end_selected", "End selected", "Tamatkan pilihan");
-            A("ram_tip", "Tip: hold Ctrl to select several apps. Windows system processes are protected. Save your work before ending an app. Known issue: on some PCs the wallpaper may turn black after freeing RAM. Don't panic, restart the laptop. A fix is in progress.", "Tip: tekan Ctrl untuk pilih beberapa apps. Proses sistem Windows dilindungi. Simpan kerja anda sebelum menamatkan app. Isu diketahui: pada sesetengah PC wallpaper boleh jadi hitam selepas bebaskan RAM. Jangan panik, restart laptop. Pembaikan sedang dijalankan.");
+            A("ram_tip", "Tip: hold Ctrl to select several apps. Windows system processes are protected. Save your work before ending an app. Windows already manages memory by itself, so freeing RAM is only useful in special cases (for example before a heavy game on a small-RAM PC) and apps may feel slower for a moment afterwards. Known issue: on some PCs the wallpaper may turn black afterwards. Restart the laptop; a fix is in progress.", "Tip: tekan Ctrl untuk pilih beberapa apps. Proses sistem Windows dilindungi. Simpan kerja anda sebelum menamatkan app. Windows sudah mengurus memori sendiri, jadi bebaskan RAM hanya berguna dalam kes tertentu (contoh: sebelum game berat pada PC RAM kecil) dan apps mungkin perlahan sekejap selepas itu. Isu diketahui: pada sesetengah PC wallpaper boleh jadi hitam selepas itu. Restart laptop; pembaikan sedang dijalankan.");
             A("st_protected", "Protected", "Dilindungi");
             A("st_canclose", "Can close", "Boleh tutup");
             A("ram_done", "Memory refreshed", "Memori disegarkan");

@@ -91,8 +91,16 @@ namespace Kemas
         // asks Windows to reload the current wallpaper from its own settings (nothing is changed); a no-op when the wallpaper is already fine
         public static void RefreshDesktop()
         {
-            try { SystemParametersInfo(0x0014, 0, null, 0x02); } catch { }
+            try { SystemParametersInfo(0x0014, 0, (string)null, 0x02); } catch { }
             try { IntPtr r; SendMessageTimeout((IntPtr)0xFFFF, 0x001A, IntPtr.Zero, "ImmersiveColorSet", 0x2, 1500, out r); } catch { }
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool SystemParametersInfo(int action, int param, StringBuilder value, int flags);
+        /// full path of the wallpaper Windows is showing right now ("" if unknown)
+        public static string WallpaperPath()
+        {
+            try { var sb = new StringBuilder(520); if (SystemParametersInfo(0x0073, sb.Capacity, sb, 0)) return sb.ToString(); } catch { }
+            return "";
         }
 
         public static void TrimSelf()
@@ -134,6 +142,7 @@ namespace Kemas
         public Func<long> CustomSize;
         public Action Custom;                             // runs before folder clearing; throw = partial
         public Action Before, After;
+        public Func<string> Guard;                        // returns a note key when this item must be skipped right now
         public bool NoFolderClear;
         public bool MeasureByDrive;                       // freed space = system drive free-space gain (component store)
         public bool Slow;                                 // can take several minutes
@@ -169,6 +178,30 @@ namespace Kemas
             NeverClean = list.ToArray();
         }
 
+        // the current wallpaper (and Windows' own wallpaper cache) must survive even when it lives in a temp folder
+        static string wallPath = "";
+        public static void RefreshProtected() { try { wallPath = Native.WallpaperPath() ?? ""; } catch { wallPath = ""; } }
+        static bool IsProtectedFile(string full)
+        {
+            if (string.IsNullOrEmpty(full)) return false;
+            if (wallPath.Length > 0 && string.Equals(full, wallPath, StringComparison.OrdinalIgnoreCase)) return true;
+            var n = full.ToLowerInvariant();
+            return n.Contains(@"\microsoft\windows\themes\") || n.EndsWith("transcodedwallpaper");
+        }
+
+        static bool IsPending(string hklmKey)
+        {
+            try { using (var k = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(hklmKey)) return k != null; } catch { return false; }
+        }
+        // never empty the Windows Update download cache while an update is waiting for a restart
+        static string UpdatePendingGuard()
+        {
+            if (IsPending(@"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired") ||
+                IsPending(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending") ||
+                IsPending(@"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending")) return "note_wu_pending";
+            return null;
+        }
+
         static string Norm(string p) { try { return Path.GetFullPath(p).TrimEnd('\\', '/').ToLowerInvariant(); } catch { return p.ToLowerInvariant(); } }
 
         public static string Win { get { return Environment.GetFolderPath(Environment.SpecialFolder.Windows); } }
@@ -184,8 +217,8 @@ namespace Kemas
             {
                 new CleanTarget { Key = "usertemp", Icon = "E8B7", Tag = "safe", Folders = () => new[] { Path.GetTempPath() } },
                 new CleanTarget { Key = "wintemp", Icon = "E770", Tag = "safe", Folders = () => new[] { Path.Combine(Win, "Temp") } },
-                new CleanTarget { Key = "prefetch", Icon = "E945", Tag = "rebuild", Folders = () => new[] { Path.Combine(Win, "Prefetch") } },
-                new CleanTarget { Key = "recycle", Icon = "E74D", Tag = "permanent", NoFolderClear = true, CustomSize = RecycleBinSize,
+                new CleanTarget { Key = "prefetch", Icon = "E945", Tag = "rebuild", Default = false, Folders = () => new[] { Path.Combine(Win, "Prefetch") } },
+                new CleanTarget { Key = "recycle", Icon = "E74D", Tag = "permanent", Default = false, NoFolderClear = true, CustomSize = RecycleBinSize,
                     Custom = () => { int r = Native.SHEmptyRecycleBin(IntPtr.Zero, null, 7); if (r != 0 && r != unchecked((int)0x8000FFFF)) throw new CleanException("err_recycle"); } },
                 new CleanTarget { Key = "browser", Icon = "E774", Tag = "browser", Folders = BrowserCaches },
                 new CleanTarget { Key = "thumbs", Icon = "E8B9", Tag = "safe", Files = () => SafeFiles(Path.Combine(Local, @"Microsoft\Windows\Explorer"), "thumbcache_*.db") },
@@ -195,7 +228,7 @@ namespace Kemas
                 new CleanTarget { Key = "delivery", Icon = "E896", Tag = "safe", Folders = () => new[] {
                     Path.Combine(Win, @"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache") } },
                 new CleanTarget { Key = "logs", Icon = "E9F9", Tag = "safe", Files = OldLogs },
-                new CleanTarget { Key = "winupdate", Icon = "E777", Tag = "optional", Default = false,
+                new CleanTarget { Key = "winupdate", Icon = "E777", Tag = "optional", Default = false, Guard = UpdatePendingGuard,
                     Folders = () => new[] { Path.Combine(Win, @"SoftwareDistribution\Download") },
                     Before = () => { Service("stop", "wuauserv"); Service("stop", "bits"); },
                     After = () => { Service("start", "wuauserv"); Service("start", "bits"); } },
@@ -445,6 +478,7 @@ namespace Kemas
 
         void DeleteFile(FileInfo f, bool isTemp)
         {
+            if (IsProtectedFile(f.FullName)) return;
             try { f.Attributes = FileAttributes.Normal; f.Delete(); return; }
             catch { }
             // in use right now: for temp files older than a day, let Windows remove them during the next restart
@@ -480,6 +514,12 @@ namespace Kemas
         {
             var r = new CleanResult { Key = t.Key, State = ItemState.Done };
             locked = 0; scheduled = 0; toolCancel = Cancel;
+            RefreshProtected();
+            if (t.Guard != null)
+            {
+                string why = null; try { why = t.Guard(); } catch { }
+                if (why != null) { r.State = ItemState.Skipped; r.Notes.Add(why); return r; }
+            }
             long before = Measure(t);
             long driveBefore = t.MeasureByDrive ? FreeSpace() : 0;
             bool isTemp = t.Key == "usertemp" || t.Key == "wintemp";
@@ -491,7 +531,7 @@ namespace Kemas
                 catch (Exception ex) { r.State = ItemState.Partial; r.Notes.Add(Friendly(ex)); }
             }
             if (t.Folders != null && !t.NoFolderClear) foreach (var p in t.Folders()) ClearFolder(p, isTemp);
-            if (t.Files != null) foreach (var f in t.Files()) { try { f.Delete(); } catch { locked++; } }
+            if (t.Files != null) foreach (var f in t.Files()) { if (IsProtectedFile(f.FullName)) continue; try { f.Delete(); } catch { locked++; } }
             if (t.After != null) { try { t.After(); } catch (Exception ex) { r.Notes.Add(Friendly(ex)); } }
             t.Size = Measure(t);
             r.Freed = Math.Max(0, before - t.Size);

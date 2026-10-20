@@ -104,7 +104,8 @@ namespace Kemas
         [DataMember] public bool SkipRecentTemp = true;     // keep temp files newer than 24 h
         [DataMember] public bool RemoveLockedAtRestart = true;  // old temp files in use are removed at the next restart
         [DataMember] public bool WelcomeDone;               // first-run welcome finished
-        [DataMember] public bool TrimRamOnSmart = true;
+        [DataMember] public bool TrimRamOnSmart = false;     // memory trim is manual only (Windows manages RAM itself)
+        [DataMember] public int SettingsRev;
         [DataMember] public string AutoClean = "off";       // off | daily | weekly
         [DataMember] public bool AutoUpdate = true;
         [DataMember] public string SkippedVersion = "";
@@ -127,7 +128,7 @@ namespace Kemas
         void Defaults(StreamingContext c)
         {
             Theme = "dark"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
-            CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = true; AutoUpdate = true; RemoveLockedAtRestart = true;
+            CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = false; AutoUpdate = true; RemoveLockedAtRestart = true;
         }
 
         public void FillDefaults()
@@ -138,6 +139,12 @@ namespace Kemas
             if (string.IsNullOrEmpty(OrgOthersName)) OrgOthersName = "Others";
             if (OrgRules == null || OrgRules.Count == 0) OrgRules = DefaultRules();
             if (OrgFolders == null || OrgFolders.Count == 0) OrgFolders = DefaultFolders();
+            if (SettingsRev < 1)    // 3.4.0: safer defaults for existing users too
+            {
+                TrimRamOnSmart = false;
+                if (CleanSelection != null) CleanSelection.RemoveAll(k => k == "prefetch" || k == "recycle");
+                SettingsRev = 1;
+            }
         }
 
         public static List<OrgRule> DefaultRules()
