@@ -16,6 +16,8 @@ mcs -sdk:4.8 -langversion:7 -target:winexe -platform:anycpu -optimize+ -out:../o
 rm -f kemas.ico
 cd ..
 sha256sum out/KEMAS.exe | cut -d' ' -f1 > out/KEMAS.exe.sha256
+# release signature (private key stays OFF GitHub): KEMAS_SIGN_KEY=/path/to/kemas-update-private.pem
+if [ -n "$KEMAS_SIGN_KEY" ] && [ -f "$KEMAS_SIGN_KEY" ]; then openssl dgst -sha256 -sign "$KEMAS_SIGN_KEY" -out out/KEMAS.exe.sig out/KEMAS.exe && echo "Signed out/KEMAS.exe.sig"; else echo "WARNING: no KEMAS_SIGN_KEY - updater will reject this build"; fi
 echo "Built out/KEMAS.exe  sha256=$(cat out/KEMAS.exe.sha256)"
 
 # ---- Setup installer (wizard) embedding the freshly built KEMAS.exe

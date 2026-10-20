@@ -183,7 +183,7 @@ namespace Kemas
 
     public class UpdateInfo
     {
-        public Version Version; public string Tag, Notes, Page, ExeUrl, HashUrl; public long Size;
+        public Version Version; public string Tag, Notes, Page, ExeUrl, HashUrl, SigUrl; public long Size;
     }
 
     public static class Updater
@@ -202,6 +202,32 @@ namespace Kemas
             Uri u;
             if (!Uri.TryCreate(url, UriKind.Absolute, out u) || !IsTrustedUrl(u) || u.Host.ToLowerInvariant() != "github.com") return false;
             return u.AbsolutePath.StartsWith("/" + AppInfo.UpdateRepo + "/releases/download/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Release signing: every update must carry an RSA-3072 signature made with a key that is NOT on GitHub.
+        // Even if the GitHub account were taken over, a swapped exe without a valid signature is rejected.
+        const string SigKeyModulus = "z/AakAKE2xSSlIsHdfR38DsIDhkprc9i2yZmq4JjG5MQ6xwjSah7z1glhrDCCCY5f7rNy4vrr9PRHevbf8Ksb4zq8v04ejmJhi1cpjJcJZFkdRfxPSjfVBQIrn5Ck/8MC8TvCsvJmNf43qAWLCTZ0TStdgWzpoEtG2MXlmHld1Zvq5jNOK7PilpEaNBCCLpN7KHUNHPJa4qADuttj5pOG5Ct0zcsGKwP5BWKx03+/8edHFvIk+xL0n0zH5etB5UynJNg20r89BRPSt/QUyFHOpgdgWaJ8VwCEqzot0P1QvI1KAtpfbG8fPVgmjmSRRZYexY4AKVwpommiAHbnSAtfI8roH3q3m8XSs7znlZOGgNrf08HC0nrR6AnBI4o1QXMwv+5wP9Ab4yuriiJJnYdXOAF80kLz2cQ3Nuc0SmZow7jhHmu6YS9VNaa53V+sUCk1CLzHwkoO2KOv7zASo68QZMG3rFGQhxC/VSRKLZyXr78iMVY+VHxee1wSRRXFNXx";
+        public static bool VerifySignature(string file, byte[] sig)
+        {
+            try
+            {
+                var prm = new RSAParameters { Modulus = Convert.FromBase64String(SigKeyModulus), Exponent = new byte[] { 1, 0, 1 } };
+                byte[] hash;
+                using (var sha = SHA256.Create()) using (var f = File.OpenRead(file)) hash = sha.ComputeHash(f);
+                using (var rsa = new RSACryptoServiceProvider()) { rsa.ImportParameters(prm); return rsa.VerifyHash(hash, CryptoConfig.MapNameToOID("SHA256"), sig); }
+            }
+            catch { return false; }
+        }
+        static byte[] GetBytes(string url)
+        {
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.UserAgent = "KEMAS-Updater/" + AppInfo.Version;
+            req.Timeout = 15000;
+            using (var resp = req.GetResponse())
+            {
+                if (!IsTrustedUrl(resp.ResponseUri)) throw new InvalidDataException("Update server was not trusted.");
+                using (var s = resp.GetResponseStream()) using (var ms = new MemoryStream()) { s.CopyTo(ms); if (ms.Length > 4096) throw new InvalidDataException("Signature file is too large."); return ms.ToArray(); }
+            }
         }
 
         static string Get(string url)
@@ -242,9 +268,10 @@ namespace Kemas
                     if (!IsOfficialAsset(a.Url)) continue;
                     if (a.Name.Equals("KEMAS.exe", StringComparison.OrdinalIgnoreCase)) { info.ExeUrl = a.Url; info.Size = a.Size; }
                     else if (a.Name.Equals("KEMAS.exe.sha256", StringComparison.OrdinalIgnoreCase)) info.HashUrl = a.Url;
+                    else if (a.Name.Equals("KEMAS.exe.sig", StringComparison.OrdinalIgnoreCase)) info.SigUrl = a.Url;
                 }
             // an update without its published SHA-256 fingerprint is never offered
-            return info.ExeUrl == null || info.HashUrl == null ? null : info;
+            return info.ExeUrl == null || info.HashUrl == null || info.SigUrl == null ? null : info;
         }
 
         /// Downloads the new exe, verifies it, swaps it in place and returns the path to restart.
@@ -254,7 +281,7 @@ namespace Kemas
             string dir = Path.Combine(AppInfo.DataDir, "update");
             Directory.CreateDirectory(dir);
             string tmp = Path.Combine(dir, "KEMAS.new.exe");
-            if (!IsOfficialAsset(info.ExeUrl) || !IsOfficialAsset(info.HashUrl)) throw new InvalidDataException("Update source is not the official KEMAS release.");
+            if (!IsOfficialAsset(info.ExeUrl) || !IsOfficialAsset(info.HashUrl) || !IsOfficialAsset(info.SigUrl)) throw new InvalidDataException("Update source is not the official KEMAS release.");
             if (File.Exists(tmp)) File.Delete(tmp);
             var req = (HttpWebRequest)WebRequest.Create(info.ExeUrl);
             req.UserAgent = "KEMAS-Updater/" + AppInfo.Version;
@@ -284,6 +311,9 @@ namespace Kemas
             using (var sha = SHA256.Create()) using (var f = File.OpenRead(tmp))
                 actual = BitConverter.ToString(sha.ComputeHash(f)).Replace("-", "").ToLowerInvariant();
             if (expected != actual) { File.Delete(tmp); throw new InvalidDataException("Update file failed the security check (SHA-256 mismatch)."); }
+            byte[] sig = null;
+            try { sig = GetBytes(info.SigUrl); } catch { }
+            if (sig == null || !VerifySignature(tmp, sig)) { File.Delete(tmp); throw new InvalidDataException("Update file failed the security check (invalid release signature)."); }
             try
             {
                 var vi = System.Diagnostics.FileVersionInfo.GetVersionInfo(tmp);

@@ -12,7 +12,7 @@ using Microsoft.Win32;
 [assembly: AssemblyTitle("KEMAS Setup")]
 [assembly: AssemblyProduct("KEMAS - Your PC, Kemas.")]
 [assembly: AssemblyCompany("Amzar Syafiq")]
-[assembly: AssemblyVersion("3.3.3.0")]
+[assembly: AssemblyVersion("3.4.0.0")]
 
 namespace KemasSetup
 {
@@ -71,8 +71,18 @@ namespace KemasSetup
             Directory.CreateDirectory(Dir);
             string tmp = Exe + ".new";
             File.WriteAllBytes(tmp, exe);
-            if (File.Exists(Exe)) { try { File.Delete(Exe); } catch { File.Move(Exe, Exe + ".old"); } }
-            File.Move(tmp, Exe);
+            // the old exe can stay locked for a moment after it closes (antivirus scan, slow disk), so retry before giving up
+            Exception last = null;
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    if (File.Exists(Exe)) { try { File.Delete(Exe); } catch { var old = Exe + ".old"; if (File.Exists(old)) File.Delete(old); File.Move(Exe, old); } }
+                    File.Move(tmp, Exe); last = null; break;
+                }
+                catch (Exception ex) { last = ex; Thread.Sleep(500 + i * 300); }
+            }
+            if (last != null) throw new InvalidOperationException("KEMAS could not be replaced because it is still in use or blocked by your security software. Close KEMAS, wait a moment and run the setup again.");
 
             p(60, "Creating shortcuts");
             Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "KEMAS.lnk"), Exe);
@@ -83,7 +93,7 @@ namespace KemasSetup
             using (var k = Registry.LocalMachine.CreateSubKey(UninstallKey))
             {
                 k.SetValue("DisplayName", "KEMAS");
-                k.SetValue("DisplayVersion", "3.3.3");
+                k.SetValue("DisplayVersion", "3.4.0");
                 k.SetValue("Publisher", "Amzar Syafiq");
                 k.SetValue("DisplayIcon", Exe + ",0");
                 k.SetValue("InstallLocation", Dir);
@@ -139,7 +149,7 @@ namespace KemasSetup
             catch { mark = new Label { Text = "K", Left = 45, Top = 50, Width = 80, Height = 80 }; }
             var brand = new Label { Text = "KEMAS", Font = new Font("Segoe UI", 16f, FontStyle.Bold), ForeColor = Fg, Left = 0, Top = 145, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 32 };
             var tag = new Label { Text = "Your PC, Kemas.", ForeColor = Dim, Left = 0, Top = 176, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
-            var ver = new Label { Text = "v3.3.3 Beta", ForeColor = Dim, Left = 0, Top = 340, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
+            var ver = new Label { Text = "v3.4.0 Beta", ForeColor = Dim, Left = 0, Top = 340, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
             side.Controls.AddRange(new Control[] { mark, brand, tag, ver });
             Controls.Add(side);
 
