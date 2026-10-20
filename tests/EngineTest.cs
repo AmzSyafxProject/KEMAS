@@ -1,5 +1,6 @@
 using System; using System.IO; using System.Linq; using System.Collections.Generic; using Kemas;
 class T {
+  static List<string> CleanTargetsDefaults(){ return Cleaner.CreateTargets().Where(x=>x.Default).Select(x=>x.Key).ToList(); }
   static int fails=0;
   static void Check(bool ok, string what){ Console.WriteLine((ok?"PASS ":"FAIL ")+what); if(!ok) fails++; }
   static void Main(){
@@ -42,6 +43,12 @@ class T {
     var t=new CleanTarget{Key="x",Folders=()=>new[]{junk},Custom=()=>{throw new CleanException("err_recycle");}};
     var r=c.Clean(t);
     Check(r.State==ItemState.Partial && r.Notes.Contains("err_recycle") && r.Freed==500, "failed step -> partial, rest still cleaned ("+r.State+","+r.Freed+")");
+    { var th=Path.Combine(junk,"Microsoft","Windows","Themes"); Directory.CreateDirectory(th); File.WriteAllText(Path.Combine(th,"TranscodedWallpaper"),"w"); File.SetLastWriteTime(Path.Combine(th,"TranscodedWallpaper"),DateTime.Now.AddDays(-9));
+      File.WriteAllText(Path.Combine(junk,"old2.tmp"),"x"); File.SetLastWriteTime(Path.Combine(junk,"old2.tmp"),DateTime.Now.AddDays(-9));
+      c.ClearFolder(junk,true);
+      Check(File.Exists(Path.Combine(th,"TranscodedWallpaper")) && !File.Exists(Path.Combine(junk,"old2.tmp")), "wallpaper cache survives, other old temp removed"); }
+    { var g=new CleanTarget{Key="g",Folders=()=>new[]{junk},Guard=()=>"note_wu_pending"}; var gr=c.Clean(g); Check(gr.State==ItemState.Skipped && gr.Notes.Contains("note_wu_pending") && gr.Freed==0, "guard skips item"); }
+    { var d=CleanTargetsDefaults(); Check(!d.Contains("prefetch") && !d.Contains("recycle") && d.Contains("usertemp"), "prefetch+recycle off by default"); Check(!new Settings().TrimRamOnSmart, "RAM trim off by default"); }
     Check(!c.ClearFolder("/",false) && !c.ClearFolder(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),false), "refuses to clear protected roots");
     // --- update tags
     Check(Updater.ParseTag("v3.1.0")==new Version(3,1,0) && Updater.ParseTag("3.2")==new Version(3,2) && Updater.ParseTag("v4")==new Version(4,0) && Updater.ParseTag("abc")==null, "release tag parsing");
