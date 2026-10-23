@@ -206,6 +206,7 @@ namespace Kemas
         void OnFirstRender(object sender, EventArgs e)
         {
             W.ContentRendered -= OnFirstRender;
+            ShowIntro();
             UpdateStats();
             E<TextBox>("LogBox").Clear();
             statTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };

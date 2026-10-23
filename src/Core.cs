@@ -12,7 +12,7 @@ namespace Kemas
     public static class AppInfo
     {
         public const string Name = "KEMAS";
-        public const string Version = "3.4.4";
+        public const string Version = "3.4.5";
         public const string Tagline = "Your PC, Kemas.";
         // GitHub repository used for updates: "owner/repo". Empty = updates disabled.
         public const string UpdateRepo = "AmzSyafxProject/KEMAS";
@@ -103,6 +103,7 @@ namespace Kemas
         [DataMember] public bool ConfirmClean = true;
         [DataMember] public bool SkipRecentTemp = true;     // keep temp files newer than 24 h
         [DataMember] public bool RemoveLockedAtRestart = true;  // old temp files in use are removed at the next restart
+        [DataMember] public bool IntroSeen;                 // launch film shown once
         [DataMember] public bool WelcomeDone;               // first-run welcome finished
         [DataMember] public bool TrimRamOnSmart = false;     // memory trim is manual only (Windows manages RAM itself)
         [DataMember] public int SettingsRev;
