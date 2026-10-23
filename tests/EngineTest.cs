@@ -53,8 +53,8 @@ class T {
     Check(!c.ClearFolder("/",false) && !c.ClearFolder(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),false), "refuses to clear protected roots");
     // --- update tags
     Check(Updater.ParseTag("v3.1.0")==new Version(3,1,0) && Updater.ParseTag("3.2")==new Version(3,2) && Updater.ParseTag("v4")==new Version(4,0) && Updater.ParseTag("abc")==null, "release tag parsing");
-    Check(Updater.ParseTag("v3.4.6")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.4.5")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.2.0")>AppInfo.ParsedVersion), "version compare");
-    { var b=Support.Body("Problem report","It crashed",true,300); Check(b.Contains("It crashed") && b.Contains("KEMAS: 3.4.5") && Support.MailtoUrl("Question","hi",true).StartsWith("mailto:amzarsyaf2002@gmail.com?subject=") && Support.MailtoUrl("Question",new string('x',5000),true).Length < 2100 && Support.GmailUrl("Suggestion","hi",false).Contains("su=KEMAS"), "support report builder"); }
+    Check(Updater.ParseTag("v3.4.7")>AppInfo.ParsedVersion && !(Updater.ParseTag("v3.4.6")>AppInfo.ParsedVersion) && !(Updater.ParseTag("v3.2.0")>AppInfo.ParsedVersion), "version compare");
+    { var b=Support.Body("Problem report","It crashed",true,300); Check(b.Contains("It crashed") && b.Contains("KEMAS: 3.4.6") && Support.MailtoUrl("Question","hi",true).StartsWith("mailto:amzarsyaf2002@gmail.com?subject=") && Support.MailtoUrl("Question",new string('x',5000),true).Length < 2100 && Support.GmailUrl("Suggestion","hi",false).Contains("su=KEMAS"), "support report builder"); }
     { var st=Json.Read<Settings>("{\"Theme\":\"light\"}"); Check(st.RemoveLockedAtRestart && !st.WelcomeDone, "new settings defaults"); }
     { var ts=Cleaner.CreateTargets(); Check(ts.Where(Cleaner.IsDeep).All(x=>!x.Default) && ts.Count(Cleaner.IsDeep)==6 && ts.Select(x=>x.Key).Distinct().Count()==ts.Count, "deep targets off by default, unique keys"); }
     // --- settings + export roundtrip

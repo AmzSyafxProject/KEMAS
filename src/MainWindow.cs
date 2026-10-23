@@ -393,7 +393,7 @@ namespace Kemas
                 ApplyThemeAndLanguage();
                 BuildOrganizer();
                 LoadSettingsIntoUi();
-                foreach (var t in targets) targetChecks[t.Key].IsChecked = t.Default;
+                foreach (var t in targets) targetChecks[t.Key].IsChecked = t.Default && !Cleaner.StoreLocked(t.Key);
                 SaveNow();
                 Toast(L.T("settings_reset"), "E73E");
             });

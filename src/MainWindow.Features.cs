@@ -64,6 +64,7 @@ namespace Kemas
                 var mid = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 var cb = new CheckBox { FontSize = 14.5, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
                 cb.IsChecked = sel != null ? sel.Contains(t.Key) : t.Default;
+                if (Cleaner.StoreLocked(t.Key)) { cb.IsChecked = false; cb.IsEnabled = false; cb.ToolTip = L.T("note_admin_needed"); }
                 cb.Checked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 cb.Unchecked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 var desc = new TextBlock { FontSize = 12.5, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
@@ -172,7 +173,7 @@ namespace Kemas
         {
             if (busy) { Toast(L.T("please_wait"), "E916"); return; }
             // everything except the Windows Update download cache (it can break an update that is installing)
-            foreach (var t in targets) targetChecks[t.Key].IsChecked = t.Key != "winupdate";
+            foreach (var t in targets) targetChecks[t.Key].IsChecked = t.Key != "winupdate" && !Cleaner.StoreLocked(t.Key);
             var sel = targets.Where(t => targetChecks[t.Key].IsChecked == true).ToList();
             string msg = L.T("deep_confirm_d");
             if (System.IO.Directory.Exists(Cleaner.WinOld)) msg += "\n\n" + L.T("deep_confirm_winold");
