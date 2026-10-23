@@ -73,16 +73,16 @@ namespace Kemas
             A("no_errors", "No errors recorded. KEMAS is running smoothly.", "Tiada ralat direkodkan. KEMAS berjalan lancar.");
 
             // ---- dashboard
-            A("health", "HEALTH SCORE", "SKOR KESIHATAN");
+            A("health", "TIDINESS", "KEMASAN");
             A("checking", "Checking your PC...", "Menyemak PC anda...");
             A("checking_desc", "KEMAS is looking for junk, cache and leftovers.", "KEMAS sedang mencari sampah, cache dan sisa fail.");
             A("smart", "Smart Clean", "Bersih Pintar");
             A("scan_again", "Scan again", "Imbas semula");
             A("ram_card", "MEMORY (RAM)", "MEMORI (RAM)");
             A("junk_card", "JUNK FOUND", "SAMPAH DITEMUI");
-            A("score_great", "Your PC is in great shape", "PC anda dalam keadaan terbaik");
+            A("score_great", "Your PC is nice and tidy", "PC anda sudah kemas");
             A("score_ok", "Your PC could use a tidy-up", "PC anda perlu dikemaskan");
-            A("score_bad", "Your PC needs some care", "PC anda perlukan penjagaan");
+            A("score_bad", "Your PC needs a tidy-up", "PC anda perlu dikemaskan");
             A("score_desc", "{0} of junk  ·  Disk {1}% full  ·  RAM {2}% used", "{0} sampah  ·  Cakera {1}% penuh  ·  RAM {2}% digunakan");
             A("last_clean", "Last clean: {0} ({1})", "Pembersihan terakhir: {0} ({1})");
             A("not_scanned", "Press Scan to check", "Tekan Imbas untuk semak");
@@ -223,12 +223,12 @@ namespace Kemas
             A("wel_start", "Get started", "Mula");
             A("wel_continue", "Continue", "Teruskan");
             A("wel_finish", "Start first scan", "Mula imbasan pertama");
-            A("road_title", "Road to 100", "Jalan ke 100");
+            A("road_title", "What to tidy", "Apa yang boleh dikemaskan");
             A("road_togo", "{0} points to go", "{0} mata lagi");
-            A("road_perfect_chip", "Perfect score", "Skor sempurna");
-            A("road_perfect", "Everything is at full marks. Run a scan now and then to keep it there.", "Semuanya penuh markah. Imbas sekali-sekala untuk kekalkannya.");
+            A("road_perfect_chip", "All tidy", "Semua kemas");
+            A("road_perfect", "Nothing to tidy right now. Scan now and then to keep it that way.", "Tiada yang perlu dikemaskan sekarang. Imbas sekali-sekala untuk kekalkannya.");
             A("road_scan", "Scan your PC", "Imbas PC anda");
-            A("road_scan_d", "See what is holding your score back.", "Lihat apa yang menurunkan skor anda.");
+            A("road_scan_d", "See what can be tidied.", "Lihat apa yang boleh dikemaskan.");
             A("road_junk", "Clean everyday junk", "Bersihkan sampah harian");
             A("road_junk_d", "{0} in temp files, caches and the Recycle Bin.", "{0} dalam fail temp, cache dan Tong Kitar Semula.");
             A("road_junk_ok", "Temp files and caches are clean.", "Fail temp dan cache sudah bersih.");

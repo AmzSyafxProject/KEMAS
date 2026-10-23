@@ -12,7 +12,7 @@ using Microsoft.Win32;
 [assembly: AssemblyTitle("KEMAS Setup")]
 [assembly: AssemblyProduct("KEMAS - Your PC, Kemas.")]
 [assembly: AssemblyCompany("Amzar Syafiq")]
-[assembly: AssemblyVersion("3.4.1.0")]
+[assembly: AssemblyVersion("3.4.2.0")]
 
 namespace KemasSetup
 {
@@ -93,7 +93,7 @@ namespace KemasSetup
             using (var k = Registry.LocalMachine.CreateSubKey(UninstallKey))
             {
                 k.SetValue("DisplayName", "KEMAS");
-                k.SetValue("DisplayVersion", "3.4.1");
+                k.SetValue("DisplayVersion", "3.4.2");
                 k.SetValue("Publisher", "Amzar Syafiq");
                 k.SetValue("DisplayIcon", Exe + ",0");
                 k.SetValue("InstallLocation", Dir);
@@ -149,7 +149,7 @@ namespace KemasSetup
             catch { mark = new Label { Text = "K", Left = 45, Top = 50, Width = 80, Height = 80 }; }
             var brand = new Label { Text = "KEMAS", Font = new Font("Segoe UI", 16f, FontStyle.Bold), ForeColor = Fg, Left = 0, Top = 145, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 32 };
             var tag = new Label { Text = "Your PC, Kemas.", ForeColor = Dim, Left = 0, Top = 176, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
-            var ver = new Label { Text = "v3.4.1 Beta", ForeColor = Dim, Left = 0, Top = 340, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
+            var ver = new Label { Text = "v3.4.2 Beta", ForeColor = Dim, Left = 0, Top = 340, Width = 170, TextAlign = ContentAlignment.MiddleCenter, Height = 22 };
             side.Controls.AddRange(new Control[] { mark, brand, tag, ver });
             Controls.Add(side);
 

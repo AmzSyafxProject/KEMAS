@@ -533,7 +533,7 @@ namespace Kemas
             string name = string.IsNullOrWhiteSpace(S.DisplayName) ? UserName.Detect() : S.DisplayName.Trim();
             int h = DateTime.Now.Hour;
             string part = h < 12 ? L.T("greet_morning") : h < 18 ? L.T("greet_afternoon") : L.T("greet_evening");
-            TB("Greeting").Text = string.Format(L.T("greet"), name) + "  " + part;
+            TB("Greeting").Text = part.Replace(" \u2600", "") + ", " + name;
         }
 
         // ================================================================ save
@@ -584,6 +584,7 @@ namespace Kemas
                 if (tt == null) { tt = new TranslateTransform(); nw.RenderTransform = tt; }
                 tt.BeginAnimation(TranslateTransform.YProperty, Anim(14, 0, 320, new QuinticEase { EasingMode = EasingMode.EaseOut }));
             }
+            if (!busy) TB("StatusText").Text = "";      // an old message from another page must not linger
             if (page == "PageRam" && !busy) LoadRam();
             if (page == "PageApps" && !appsLoaded && !busy) LoadApps();
             if (page == "PageStartup" && !startupLoaded && !busy) LoadStartup();
