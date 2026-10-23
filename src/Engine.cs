@@ -510,9 +510,18 @@ namespace Kemas
             return true;
         }
 
+        static readonly HashSet<string> AdminOnly = new HashSet<string> { "wintemp", "prefetch", "delivery", "logs", "winupdate", "dumps", "winsxs", "winold" };
+        static bool IsAdmin()
+        {
+            try { using (var id = System.Security.Principal.WindowsIdentity.GetCurrent()) return new System.Security.Principal.WindowsPrincipal(id).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator); }
+            catch { return true; }
+        }
+
         public CleanResult Clean(CleanTarget t)
         {
             var r = new CleanResult { Key = t.Key, State = ItemState.Done };
+            // the Microsoft Store edition runs without administrator rights, so system-wide items are skipped there (the installer/portable edition cleans them)
+            if (AppInfo.IsStore && AdminOnly.Contains(t.Key) && !IsAdmin()) { r.State = ItemState.Skipped; r.Notes.Add("note_admin_needed"); return r; }
             locked = 0; scheduled = 0; toolCancel = Cancel;
             RefreshProtected();
             if (t.Guard != null)
