@@ -50,7 +50,7 @@ namespace Kemas
             if (dark)
             {
                 r["BgBrush"] = B("#0B0D14"); r["SideBrush"] = B("#CC0F1119"); r["CardBrush"] = B("#B3151926"); r["LineBrush"] = B("#1FFFFFFF");
-                r["TextBrush"] = B("#EEF0F7"); r["MutedBrush"] = B("#8C93AB"); r["HoverBrush"] = B("#14FFFFFF"); r["SelectBrush"] = B("#1FFFFFFF");
+                r["TextBrush"] = B("#EEF0F7"); r["MutedBrush"] = B("#9EA6BF"); r["HoverBrush"] = B("#14FFFFFF"); r["SelectBrush"] = B("#1FFFFFFF");
                 r["GhostBrush"] = B("#12FFFFFF"); r["TrackBrush"] = B("#1FFFFFFF"); r["BoxBrush"] = B("#3D4566"); r["InputBrush"] = B("#12FFFFFF");
                 r["ThumbBrush"] = B("#3A4260"); r["AltRowBrush"] = B("#0AFFFFFF"); r["DialogBrush"] = B("#F2141826"); r["OverlayBrush"] = B("#D90A0C13");
                 r["IconTile"] = B("#267B5CFF"); r["HeroText"] = B("#FFFFFF"); r["HeroMuted"] = B("#C3CAE3");

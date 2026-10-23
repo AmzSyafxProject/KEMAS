@@ -180,7 +180,7 @@
       <Setter Property="Height" Value="34"/>
       <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
       <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
-      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
@@ -500,9 +500,9 @@
               </StackPanel>
             </Border>
             <Button x:Name="BtnHelp" Style="{StaticResource WinBtn}" Content="&#xE897;" FontSize="13" Tag="{DynamicResource HoverBrush}" ToolTip="{DynamicResource L_help_tip}"/>
-            <Button x:Name="BtnMin" Style="{StaticResource WinBtn}" Content="&#xE921;" Tag="{DynamicResource HoverBrush}"/>
-            <Button x:Name="BtnMax" Style="{StaticResource WinBtn}" Content="&#xE922;" Tag="{DynamicResource HoverBrush}"/>
-            <Button x:Name="BtnClose" Style="{StaticResource WinBtn}" Content="&#xE8BB;" Tag="#E5484D"/>
+            <Button x:Name="BtnMin" ToolTip="Minimize" Style="{StaticResource WinBtn}" Content="&#xE921;" Tag="{DynamicResource HoverBrush}"/>
+            <Button x:Name="BtnMax" ToolTip="Maximize" Style="{StaticResource WinBtn}" Content="&#xE922;" Tag="{DynamicResource HoverBrush}"/>
+            <Button x:Name="BtnClose" ToolTip="Close" Style="{StaticResource WinBtn}" Content="&#xE8BB;" Tag="#E5484D"/>
           </StackPanel>
         </Grid>
 

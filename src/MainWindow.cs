@@ -276,6 +276,14 @@ namespace Kemas
         // ================================================================ events
         void WireEvents()
         {
+            try
+            {
+                System.Windows.Automation.AutomationProperties.SetName(BT("BtnHelp"), "Help");
+                System.Windows.Automation.AutomationProperties.SetName(BT("BtnMin"), "Minimize");
+                System.Windows.Automation.AutomationProperties.SetName(BT("BtnMax"), "Maximize or restore");
+                System.Windows.Automation.AutomationProperties.SetName(BT("BtnClose"), "Close");
+            }
+            catch { }
             BT("BtnMin").Click += (s, e) => W.WindowState = WindowState.Minimized;
             BT("BtnMax").Click += (s, e) => W.WindowState = W.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
             BT("BtnClose").Click += (s, e) => W.Close();
@@ -429,6 +437,14 @@ namespace Kemas
 
             W.PreviewKeyDown += (s, e) =>
             {
+                // Ctrl+1..6 jump between pages, F5 scans again
+                bool overlay = E<Grid>("DialogLayer").Visibility == Visibility.Visible || E<Grid>("SupportLayer").Visibility == Visibility.Visible || E<Grid>("WhatsNewLayer").Visibility == Visibility.Visible;
+                if (!overlay && !busy && (Keyboard.Modifiers & ModifierKeys.Control) != 0 && e.Key >= Key.D1 && e.Key <= Key.D6)
+                {
+                    var navs = new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps" };
+                    E<RadioButton>(navs[e.Key - Key.D1]).IsChecked = true; e.Handled = true; return;
+                }
+                if (!overlay && !busy && e.Key == Key.F5) { StartScan(); e.Handled = true; return; }
                 if (e.Key == Key.Escape && E<Grid>("DialogLayer").Visibility == Visibility.Visible) { CloseDialog(false); e.Handled = true; }
                 else if (e.Key == Key.Escape && E<Grid>("SupportLayer").Visibility == Visibility.Visible) { CloseSupport(); e.Handled = true; }
                 else if (e.Key == Key.Escape && E<Grid>("WhatsNewLayer").Visibility == Visibility.Visible) { CloseWhatsNew(false); e.Handled = true; }
