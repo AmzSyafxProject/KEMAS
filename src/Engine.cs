@@ -512,6 +512,16 @@ namespace Kemas
 
         static readonly HashSet<string> AdminOnly = new HashSet<string> { "wintemp", "prefetch", "delivery", "logs", "winupdate", "dumps", "winsxs", "winold" };
         public static bool StoreLocked(string key) { return AppInfo.IsStore && AdminOnly.Contains(key) && !IsAdmin(); }
+        public static bool RelaunchAsAdmin()
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) { UseShellExecute = true, Verb = "runas" };
+                System.Diagnostics.Process.Start(psi);
+                return true;
+            }
+            catch { return false; }
+        }
         static bool IsAdmin()
         {
             try { using (var id = System.Security.Principal.WindowsIdentity.GetCurrent()) return new System.Security.Principal.WindowsPrincipal(id).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator); }

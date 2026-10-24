@@ -264,6 +264,9 @@ namespace Kemas
             A("err_recycle", "Windows could not empty the Recycle Bin", "Windows tidak dapat mengosongkan Tong Kitar Semula");
             A("err_dism", "Windows DISM did not finish (another update may be running)", "DISM Windows tidak selesai (mungkin kemas kini lain sedang berjalan)");
             A("err_winold", "Some Windows.old files could not be removed", "Sebahagian fail Windows.old tidak dapat dibuang");
+            A("admin_run_btn", "Yes, run as administrator", "Ya, jalankan sebagai pentadbir");
+            A("admin_run_q", "This item needs administrator rights. Restart KEMAS as administrator to clean it?", "Item ini perlu hak pentadbir. Mulakan semula KEMAS sebagai pentadbir untuk membersihkannya?");
+            A("admin_run_fail", "Windows did not allow KEMAS to run as administrator here. The installer edition on the KEMAS website can clean this item.", "Windows tidak membenarkan KEMAS dijalankan sebagai pentadbir di sini. Edisi pemasang di laman web KEMAS boleh membersihkan item ini.");
             A("note_admin_needed", "needs administrator rights, which the Store edition does not use. The installer edition on the KEMAS website can clean this.", "perlu hak pentadbir, yang tidak digunakan edisi Store. Edisi pemasang di laman web KEMAS boleh membersihkannya.");
             A("note_wu_pending", "skipped: a Windows update is waiting for a restart", "dilangkau: kemas kini Windows sedang menunggu restart");
             A("note_recent", "temp files newer than 24 hours were kept (see Settings)", "fail temp lebih baharu dari 24 jam disimpan (lihat Tetapan)");

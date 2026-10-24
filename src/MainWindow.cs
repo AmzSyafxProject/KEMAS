@@ -524,7 +524,7 @@ namespace Kemas
             BT("BtnInstall").Content = installedCopy ? L.T("uninstall") : L.T("install");
             foreach (var t in targets)
             {
-                targetChecks[t.Key].Content = L.T("t_" + t.Key);
+                targetChecks[t.Key].Content = (Cleaner.StoreLocked(t.Key) ? "\uD83D\uDD12 " : "") + L.T("t_" + t.Key);
                 var row = (FrameworkElement)targetChecks[t.Key].Tag;
                 ((TextBlock)row.FindName("desc")).Text = L.T("t_" + t.Key + "_d");
                 var tag = (TextBlock)row.FindName("tagtext");

@@ -62,14 +62,26 @@ namespace Kemas
                 tile.Child = new TextBlock { Text = Glyph(t.Icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 18, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 g.Children.Add(tile);
                 var mid = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                bool lockedRow = false;
                 var cb = new CheckBox { FontSize = 14.5, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
                 cb.IsChecked = sel != null ? sel.Contains(t.Key) : t.Default;
-                if (Cleaner.StoreLocked(t.Key)) { cb.IsChecked = false; cb.IsEnabled = false; cb.ToolTip = L.T("note_admin_needed"); }
+                if (Cleaner.StoreLocked(t.Key)) { cb.IsChecked = false; cb.IsEnabled = false; cb.ToolTip = L.T("note_admin_needed"); lockedRow = true; }
                 cb.Checked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 cb.Unchecked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 var desc = new TextBlock { FontSize = 12.5, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
                 desc.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 mid.Children.Add(cb); mid.Children.Add(desc);
+                if (lockedRow)
+                {
+                    var ab = new Button { Content = L.T("admin_run_btn"), Margin = new Thickness(30, 6, 0, 0), Padding = new Thickness(12, 4, 12, 4), HorizontalAlignment = HorizontalAlignment.Left, FontSize = 12 };
+                    ab.Click += (s2, e2) =>
+                    {
+                        if (MessageBox.Show(L.T("admin_run_q"), "KEMAS", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+                        if (Cleaner.RelaunchAsAdmin()) Application.Current.Shutdown();
+                        else MessageBox.Show(L.T("admin_run_fail"), "KEMAS", MessageBoxButton.OK, MessageBoxImage.Information);
+                    };
+                    mid.Children.Add(ab);
+                }
                 Grid.SetColumn(mid, 1); g.Children.Add(mid);
                 var right = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0), MinWidth = 110 };
                 var size = new TextBlock { Text = "-", FontSize = 17, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
