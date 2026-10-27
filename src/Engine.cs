@@ -516,7 +516,7 @@ namespace Kemas
         {
             try
             {
-                var psi = new System.Diagnostics.ProcessStartInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) { UseShellExecute = true, Verb = "runas" };
+                var psi = new System.Diagnostics.ProcessStartInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) { UseShellExecute = true, Verb = "runas", Arguments = "--elevated" };
                 System.Diagnostics.Process.Start(psi);
                 return true;
             }

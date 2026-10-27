@@ -55,7 +55,7 @@ namespace Kemas
             if (!created)
             {
                 // already running: bring the existing window forward (unless we are a fresh update restarting)
-                if (!has("--updated")) { showSignal.Set(); return 0; }
+                if (!has("--updated") && !has("--elevated")) { showSignal.Set(); return 0; }
                 for (int i = 0; i < 40 && !created; i++) { Thread.Sleep(150); try { created = mutex.WaitOne(0); } catch (AbandonedMutexException) { created = true; } }
             }
 
