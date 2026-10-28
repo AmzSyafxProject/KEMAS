@@ -502,6 +502,8 @@ namespace Kemas
 
             // ---- about
             A("about_version", "Version {0} Beta  ·  Native Windows app  ·  Rendering at {1} Hz", "Versi {0} Beta  ·  Apps Windows asli  ·  Paparan pada {1} Hz");
+            A("sup_title", "Support KEMAS", "Sokong KEMAS");
+            A("sup_desc", "KEMAS is free. If it helps you, you can buy the developer a coffee. Opens in your browser.", "KEMAS percuma. Jika ia membantu anda, anda boleh belanja pembangun secawan kopi. Dibuka dalam pelayar anda.");
             A("credits", "CREDITS", "KREDIT");
             A("cr_headline", "Crafted for people who care about the details.", "Dihasilkan untuk mereka yang menghargai setiap perincian.");
             A("cr_story1", "KEMAS began with a simple belief: a computer should feel as clean and calm as the day it was first switched on. Every screen, every animation and every safeguard in this app was designed with that feeling in mind - fast where it matters, careful where it counts, and never in your way.", "KEMAS bermula dengan satu keyakinan mudah: sebuah komputer sepatutnya terasa sebersih dan setenang hari pertama ia dihidupkan. Setiap skrin, setiap animasi dan setiap perlindungan dalam aplikasi ini direka dengan perasaan itu - pantas di tempat yang penting, berhati-hati di tempat yang perlu, dan tidak pernah mengganggu anda.");

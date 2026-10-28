@@ -437,6 +437,12 @@ namespace Kemas
             return g;
         }
 
+        // ================================================================ support KEMAS (optional tip, opens checkout in browser)
+        void OpenSupportLink(string url)
+        {
+            if (!Support.Open(url)) Toast(L.T("help_no_mail"), "E7BA");
+        }
+
         // ================================================================ help & support
         void ShowSupport()
         {

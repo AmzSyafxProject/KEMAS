@@ -312,6 +312,9 @@ namespace Kemas
             wradio("WThemeSystem", () => S.Theme = "system");
             BT("BtnReport").Click += (s, e) => ShowSupport();
             BT("BtnAboutReport").Click += (s, e) => ShowSupport();
+            BT("BtnSup5").Click += (s, e) => OpenSupportLink("https://checkout.hit-pay.com/payment-request/@nuraqsa-network/a316b34d-c051-432c-b5bb-fa07743847a9/checkout");
+            BT("BtnSup10").Click += (s, e) => OpenSupportLink("https://checkout.hit-pay.com/payment-request/@nuraqsa-network/a316b395-d1db-47fe-bc2b-016ca6279e68/checkout");
+            BT("BtnSup15").Click += (s, e) => OpenSupportLink("https://checkout.hit-pay.com/payment-request/@nuraqsa-network/a316b3bd-40e0-49b2-ae72-a852dda4b2f4/checkout");
             BT("BtnSupportClose").Click += (s, e) => CloseSupport();
             BT("BtnRepMail").Click += (s, e) => SendReport(false);
             BT("BtnRepGmail").Click += (s, e) => SendReport(true);
