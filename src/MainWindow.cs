@@ -289,6 +289,7 @@ namespace Kemas
             BT("BtnMax").Click += (s, e) => W.WindowState = W.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
             BT("BtnClose").Click += (s, e) => W.Close();
 
+            SetupModules();
             foreach (var n in new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps", "NavDoctor", "NavMap", "NavRecover", "NavSettings", "NavAbout" })
             {
                 var name = n;
@@ -547,7 +548,7 @@ namespace Kemas
             Win11Corners();
             RefreshTexts();
             UpdateCrumb();
-            try { RefreshHistory(); } catch { }
+            try { RefreshHistory(); RefreshModuleTexts(); } catch { }
             RebuildTrayMenu();
         }
 
@@ -641,6 +642,7 @@ namespace Kemas
         {
             var map = new System.Collections.Generic.Dictionary<string, string> { { "PageDash", "nav_dash" }, { "PageClean", "nav_clean" }, { "PageOrg", "nav_org" }, { "PageRam", "nav_ram" }, { "PageStartup", "nav_startup" }, { "PageApps", "nav_apps" }, { "PageDoctor", "nav_doctor" }, { "PageMap", "nav_map" }, { "PageRecover", "nav_recover" }, { "PageSettings", "nav_settings" }, { "PageAbout", "nav_about" } };
             string k; if (map.TryGetValue(currentPage, out k)) TB("Crumb").Text = L.T(k);
+            else if (currentPage.StartsWith("Page") && modPages.ContainsKey(currentPage.Substring(4))) TB("Crumb").Text = ModTitle(currentPage.Substring(4));
         }
         void ShowPage(string nav)
         {
@@ -663,6 +665,7 @@ namespace Kemas
             if (page == "PageRam" && !busy) LoadRam();
             if (page == "PageApps" && !appsLoaded && !busy) LoadApps();
             if (page == "PageRecover") RefreshHistory();
+            if (modPages.ContainsKey(page.Substring(4))) ShowModule(page.Substring(4));
             if (page == "PageDoctor" && !busy) RunDoctor();
             if (page == "PageMap") ShowMapHistory();
             if (page == "PageStartup" && !startupLoaded && !busy) LoadStartup();

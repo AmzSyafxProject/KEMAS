@@ -155,6 +155,7 @@ namespace Kemas
                 TB("JunkText").Text = Fmt.Size(junkTotal);
                 TB("JunkSub").Text = string.Format(L.T("across"), targets.Count);
                 lastScanAt = DateTime.Now;
+                RecordHealthDay();
                 UpdateSelectedTotal();
                 UpdateStats();
                 Log(string.Format(L.T("scan_done"), Fmt.Size(junkTotal)));

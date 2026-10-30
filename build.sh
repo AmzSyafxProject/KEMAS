@@ -11,7 +11,7 @@ cp res/kemas.ico src/kemas.ico
 cd src
 mcs -sdk:4.8 -langversion:7 -target:winexe -platform:anycpu -optimize+ -out:../out/KEMAS.exe -win32res:../out/kemas.res \
   -r:../ref/PresentationFramework.dll -r:../ref/PresentationCore.dll -r:../ref/WindowsBase.dll -r:../ref/System.Xaml.dll \
-  -r:System.Runtime.Serialization.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Xml.dll -r:System.Core.dll \
+  -r:System.Runtime.Serialization.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Xml.dll -r:System.Core.dll -r:System.Management.dll \
   -resource:Main.xaml,Main.xaml -resource:Scene.xaml,Scene.xaml -resource:kemas.ico,kemas.ico *.cs
 rm -f kemas.ico
 cd ..

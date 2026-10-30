@@ -519,7 +519,8 @@
             <TextBlock x:Name="SideVersion" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" Margin="14,0,0,0"/>
           </StackPanel>
 
-          <StackPanel>
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,-10,0" Padding="0,0,10,0">
+          <StackPanel x:Name="NavStack">
             <RadioButton x:Name="NavDash" Style="{StaticResource Nav}" Tag="&#xE80F;" Content="{DynamicResource L_nav_dash}" IsChecked="True"/>
             <TextBlock Text="{DynamicResource L_grp_clean}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavClean" Style="{StaticResource Nav}" Tag="&#xE74D;" Content="{DynamicResource L_nav_clean}"/>
@@ -534,6 +535,7 @@
             <TextBlock Text="{DynamicResource L_grp_recover}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavRecover" Style="{StaticResource Nav}" Tag="&#xE777;" Content="{DynamicResource L_nav_recover}"/>
           </StackPanel>
+          </ScrollViewer>
         </DockPanel>
       </Border>
 
