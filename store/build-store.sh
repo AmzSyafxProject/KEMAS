@@ -11,7 +11,7 @@ rm -f res/kemas.store.rc
 cp res/kemas.ico src/kemas.ico
 (cd src && mcs -sdk:4.8 -langversion:7 -target:winexe -platform:anycpu -optimize+ -out:../out/store/KEMAS.exe -win32res:../out/kemas.store.res \
   -r:../ref/PresentationFramework.dll -r:../ref/PresentationCore.dll -r:../ref/WindowsBase.dll -r:../ref/System.Xaml.dll \
-  -r:System.Runtime.Serialization.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Xml.dll -r:System.Core.dll \
+  -r:System.Runtime.Serialization.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Xml.dll -r:System.Core.dll -r:System.Management.dll \
   -resource:Main.xaml,Main.xaml -resource:Scene.xaml,Scene.xaml -resource:kemas.ico,kemas.ico *.cs)
 rm -f src/kemas.ico
 python3 tools/mkmsix.py "$1" "out/KEMAS_$1_x64.msix" out/store/KEMAS.exe
