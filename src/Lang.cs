@@ -119,6 +119,8 @@ namespace Kemas
             A("mb_apps", "Apps & games", "Apps & permainan"); A("mb_windows", "Windows", "Windows"); A("mb_other", "Other", "Lain-lain"); A("mb_free", "Free", "Kosong");
             A("impact_high", "High impact", "Kesan tinggi"); A("impact_med", "Medium impact", "Kesan sederhana"); A("impact_low", "Low impact", "Kesan rendah");
             A("impact_tip", "Estimated from the size of the program that starts. Windows does not share exact boot timing with apps.", "Anggaran daripada saiz program yang bermula. Windows tidak berkongsi masa but tepat dengan apps.");
+            A("sel_label", "SELECTED TO CLEAN", "DIPILIH UNTUK DIBERSIHKAN");
+            A("sel_safe", "Only temporary files and caches. Your documents, photos and passwords are never touched.", "Hanya fail sementara dan cache. Dokumen, gambar dan kata laluan anda tidak disentuh.");
             A("grp_recover", "RECOVER", "PULIH");
             A("nav_recover", "Recovery Centre", "Pusat Pemulihan");
             A("rec_title", "Recovery Centre", "Pusat Pemulihan");
