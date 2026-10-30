@@ -308,6 +308,7 @@ namespace Kemas
                 loadingUi = true; E<RadioButton>(S.Theme == "light" ? "ThemeLight" : "ThemeDark").IsChecked = true; loadingUi = false;
             };
             TB("SideVersion").Text = "Version " + AppInfo.Version;
+            UpdateCrumb();
             BT("BtnScan").Click += (s, e) => StartScan();
             BT("BtnClean").Click += (s, e) => RequestClean(false);
             BT("BtnDeep").Click += (s, e) => RequestDeepClean();

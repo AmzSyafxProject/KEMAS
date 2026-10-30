@@ -551,12 +551,13 @@
           <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
 
           <!-- ================= DASHBOARD ================= -->
-          <Grid x:Name="PageDash">
+          <ScrollViewer x:Name="PageDash" VerticalScrollBarVisibility="Auto">
+          <Grid Margin="0,0,10,10">
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid Margin="0,0,0,18">
               <StackPanel>
@@ -707,11 +708,12 @@
                   <TextBlock DockPanel.Dock="Top" Text="{DynamicResource L_activity}" Style="{StaticResource Label}" Margin="0,0,0,6"/>
                   <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0" Height="Auto"
                            FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"
-                           VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+                           VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Height="120"/>
                 </DockPanel>
               </Border>
             </Grid>
           </Grid>
+          </ScrollViewer>
 
           <!-- ================= CLEANER ================= -->
           <Grid x:Name="PageClean" Visibility="Collapsed">
