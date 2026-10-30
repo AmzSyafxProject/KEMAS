@@ -299,7 +299,17 @@ namespace Kemas
             BT("BtnDashScan").Click += (s, e) => StartScan();
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
             BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
-            E<FrameworkElement>("PageDash").SizeChanged += (s, e) => LayoutDash(e.NewSize.Width);
+            LayoutDash(2000);
+            foreach (var pr in new[] { "SetCatApp:SecApp", "SetCatGen:SecGen", "SetCatClean:SecClean", "SetCatUpd:SecUpd", "SetCatHelp:SecHelp", "SetCatData:SecData" })
+            {
+                var a = pr.Split(':');
+                E<RadioButton>(a[0]).Checked += (s, e) =>
+                {
+                    var target = E<FrameworkElement>(a[1]); var sv = E<ScrollViewer>("SetScroll");
+                    var pt = target.TransformToAncestor((Visual)sv.Content).Transform(new Point(0, 0));
+                    sv.ScrollToVerticalOffset(pt.Y);
+                };
+            }
             BT("BtnAssist").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             BT("BtnOvMap").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
             E<Border>("SideStatus").MouseLeftButtonUp += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;

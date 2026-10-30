@@ -198,11 +198,11 @@ namespace Kemas
         // ================================================================ what's new
         static readonly string[][] WhatsNewItems =
         {
-            new[] { "E9D2", "wn0" },   // calmer cleaning screen
-            new[] { "E7BA", "wn1" },   // known issue: black wallpaper
-            new[] { "E72E", "wn2" },   // update security
-            new[] { "E7C3", "wn3" },   // public beta
-            new[] { "E897", "wn4" },   // help form
+            new[] { "E790", "w40a" },   // new design
+            new[] { "E9D2", "w40b" },   // PC Doctor
+            new[] { "EDA2", "w40c" },   // Storage Map
+            new[] { "E777", "w40d" },   // Recovery Centre
+            new[] { "E7E8", "w40e" },   // startup impact + search
         };
 
         /// Returns true when the welcome screen was opened (first run).
@@ -369,7 +369,7 @@ namespace Kemas
             var a = Anim(1, 0, 180);
             a.Completed += (s, e) => layer.Visibility = Visibility.Collapsed;
             layer.BeginAnimation(UIElement.OpacityProperty, a);
-            if (tryDeep) { E<RadioButton>("NavClean").IsChecked = true; if (!busy) StartScan(); }
+            if (tryDeep) E<RadioButton>("NavDoctor").IsChecked = true;
         }
 
         // ================================================================ road to 100

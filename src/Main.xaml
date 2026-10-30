@@ -577,21 +577,21 @@
           <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
 
           <!-- ================= DASHBOARD ================= -->
-          <ScrollViewer x:Name="PageDash" VerticalScrollBarVisibility="Auto">
-          <Grid Margin="0,0,10,10">
+          <Viewbox x:Name="PageDash" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top" HorizontalAlignment="Left">
+          <Grid Width="1240" Margin="0,0,0,6">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel Margin="0,0,0,18">
+            <StackPanel Margin="0,0,0,12">
               <TextBlock x:Name="Greeting" Style="{StaticResource H1}"/>
               <TextBlock x:Name="DateText" Style="{StaticResource Sub}"/>
             </StackPanel>
 
-            <Grid x:Name="DashTop" Grid.Row="1" Margin="0,0,0,16">
+            <Grid x:Name="DashTop" Grid.Row="1" Margin="0,0,0,12">
               <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
               <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-              <Border Style="{StaticResource Card}" Padding="26,22">
+              <Border Style="{StaticResource Card}" Padding="24,16">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <Viewbox Width="176" Height="176" VerticalAlignment="Center">
+                  <Viewbox Width="150" Height="150" VerticalAlignment="Center">
                     <Grid Width="196" Height="196">
                       <Ellipse Width="171" Height="171" Stroke="{DynamicResource TrackBrush}" StrokeThickness="14"/>
                       <Path x:Name="RingArc" Stroke="{StaticResource RingGrad}" StrokeThickness="14" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
@@ -617,7 +617,7 @@
                   </StackPanel>
                 </Grid>
               </Border>
-              <Border x:Name="AssistCard" Grid.Column="2" CornerRadius="16" Padding="24,22" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}">
+              <Border x:Name="AssistCard" Grid.Column="2" CornerRadius="16" Padding="22,16" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}">
                 <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#183978F6" Offset="0"/><GradientStop Color="#188B78F6" Offset="1"/></LinearGradientBrush></Border.Background>
                 <DockPanel>
                   <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
@@ -630,13 +630,13 @@
                   <Button x:Name="BtnAssist" DockPanel.Dock="Bottom" Style="{StaticResource Ghost}" Height="40" HorizontalAlignment="Left" Padding="18,0" Margin="0,14,0,0">
                     <StackPanel Orientation="Horizontal"><TextBlock Text="{DynamicResource L_assist_btn}" FontWeight="SemiBold" Foreground="{StaticResource CyanBrush}"/><TextBlock Style="{StaticResource Icon}" Text="&#xE72A;" FontSize="12" Foreground="{StaticResource CyanBrush}" Margin="10,0,0,0"/></StackPanel>
                   </Button>
-                  <TextBlock x:Name="AssistText" FontSize="13.5" LineHeight="21" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,16,0,0"/>
+                  <TextBlock x:Name="AssistText" FontSize="13.5" LineHeight="20" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
                 </DockPanel>
               </Border>
             </Grid>
 
             <UniformGrid x:Name="DashMetrics" Grid.Row="2" Columns="4" Margin="0,0,-14,2">
-              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,14,14">
+              <Border Style="{StaticResource Card}" Padding="16,12" Margin="0,0,14,12">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -646,13 +646,13 @@
                     <TextBlock x:Name="CpuText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="CpuSub" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="38" Margin="0,10,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="30" Margin="0,8,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaCpu"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#405BA8FF" Offset="0"/><GradientStop Color="#005BA8FF" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
                     <Polyline x:Name="SparkCpu" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#3978F6" Offset="0"/><GradientStop Color="#5BA8FF" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
                 </Grid>
               </Border>
-              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,14,14">
+              <Border Style="{StaticResource Card}" Padding="16,12" Margin="0,0,14,12">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -662,13 +662,13 @@
                     <TextBlock x:Name="RamUsedText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="RamFreeText" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="38" Margin="0,10,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="30" Margin="0,8,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaRam"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#40C08BFF" Offset="0"/><GradientStop Color="#00C08BFF" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
                     <Polyline x:Name="SparkRam" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#8B78F6" Offset="0"/><GradientStop Color="#C08BFF" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
                 </Grid>
               </Border>
-              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,14,14">
+              <Border Style="{StaticResource Card}" Padding="16,12" Margin="0,0,14,12">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -678,13 +678,13 @@
                     <TextBlock x:Name="DiskUsedText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="DiskFreeText" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="38" Margin="0,10,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="30" Margin="0,8,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaDisk"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#40F7C873" Offset="0"/><GradientStop Color="#00F7C873" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
                     <Polyline x:Name="SparkDisk" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#F4AE43" Offset="0"/><GradientStop Color="#F7C873" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
                 </Grid>
               </Border>
-              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,14,14">
+              <Border Style="{StaticResource Card}" Padding="16,12" Margin="0,0,14,12">
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -694,7 +694,7 @@
                     <TextBlock x:Name="JunkText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="JunkSub" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="38" Margin="0,10,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Row="1" Grid.ColumnSpan="2" Stretch="Fill" Height="30" Margin="0,8,0,0"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaJunk"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4043C6C0" Offset="0"/><GradientStop Color="#0043C6C0" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
                     <Polyline x:Name="SparkJunk" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#27B77A" Offset="0"/><GradientStop Color="#43C6C0" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
@@ -782,7 +782,7 @@
               <ProgressBar x:Name="DiskBar"/><ProgressBar x:Name="RamBar"/>
             </StackPanel>
           </Grid>
-          </ScrollViewer>
+          </Viewbox>
 
           <!-- ================= CLEANER ================= -->
           <Grid x:Name="PageClean" Visibility="Collapsed">
@@ -1090,9 +1090,21 @@
               <TextBlock Text="{DynamicResource L_settings_title}" Style="{StaticResource H1}"/>
               <TextBlock Text="{DynamicResource L_settings_sub}" Style="{StaticResource Sub}"/>
             </StackPanel>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="16"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="10" VerticalAlignment="Top">
+              <StackPanel>
+                <RadioButton x:Name="SetCatApp" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE790;" Content="{DynamicResource L_set_appearance}" IsChecked="True"/>
+                <RadioButton x:Name="SetCatGen" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE713;" Content="{DynamicResource L_set_general}"/>
+                <RadioButton x:Name="SetCatClean" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE74D;" Content="{DynamicResource L_set_cleaning}"/>
+                <RadioButton x:Name="SetCatUpd" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE895;" Content="{DynamicResource L_set_updates}"/>
+                <RadioButton x:Name="SetCatHelp" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE897;" Content="{DynamicResource L_help_title}"/>
+                <RadioButton x:Name="SetCatData" Style="{StaticResource Nav}" GroupName="setcat" Tag="&#xE8B7;" Content="{DynamicResource L_set_data}"/>
+              </StackPanel>
+            </Border>
+            <ScrollViewer x:Name="SetScroll" Grid.Column="2" VerticalScrollBarVisibility="Auto">
               <StackPanel Margin="0,0,10,10">
-                <TextBlock Text="{DynamicResource L_set_appearance}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecApp" Text="{DynamicResource L_set_appearance}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,6" Margin="0,0,0,18">
                   <StackPanel>
                     <Grid Margin="0,10">
@@ -1127,7 +1139,7 @@
                   </StackPanel>
                 </Border>
 
-                <TextBlock Text="{DynamicResource L_set_general}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecGen" Text="{DynamicResource L_set_general}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,6" Margin="0,0,0,18">
                   <StackPanel>
                     <Grid Margin="0,10">
@@ -1147,7 +1159,7 @@
                   </StackPanel>
                 </Border>
 
-                <TextBlock Text="{DynamicResource L_set_cleaning}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecClean" Text="{DynamicResource L_set_cleaning}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,6" Margin="0,0,0,18">
                   <StackPanel>
                     <Grid Margin="0,10">
@@ -1181,7 +1193,7 @@
                   </StackPanel>
                 </Border>
 
-                <TextBlock Text="{DynamicResource L_set_updates}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecUpd" Text="{DynamicResource L_set_updates}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,6" Margin="0,0,0,18">
                   <StackPanel>
                     <Grid x:Name="AutoUpdateRow" Margin="0,10">
@@ -1201,7 +1213,7 @@
                   </StackPanel>
                 </Border>
 
-                <TextBlock Text="{DynamicResource L_help_title}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecHelp" Text="{DynamicResource L_help_title}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,6" Margin="0,0,0,18">
                   <Grid Margin="0,10">
                     <StackPanel Margin="0,0,200,0"><TextBlock Text="{DynamicResource L_help_card}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_help_card_d}" Style="{StaticResource Sub}"/></StackPanel>
@@ -1209,7 +1221,7 @@
                   </Grid>
                 </Border>
 
-                <TextBlock Text="{DynamicResource L_set_data}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
+                <TextBlock x:Name="SecData" Text="{DynamicResource L_set_data}" Style="{StaticResource Label}" Margin="4,0,0,8"/>
                 <Border Style="{StaticResource Card}" Padding="20,14">
                   <WrapPanel>
                     <Button x:Name="BtnDataFolder" Content="{DynamicResource L_open_data}" Style="{StaticResource Ghost}" Margin="0,0,10,0"/>
@@ -1219,6 +1231,7 @@
                 </Border>
               </StackPanel>
             </ScrollViewer>
+            </Grid>
           </Grid>
 
           <!-- ================= PC DOCTOR ================= -->
