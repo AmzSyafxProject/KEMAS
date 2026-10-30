@@ -1161,4 +1161,23 @@ namespace Kemas
             catch { return 1; }
         }
     }
+
+    public static class Cpu
+    {
+        [DllImport("kernel32.dll")] static extern bool GetSystemTimes(out long idle, out long kernel, out long user);
+        static long pIdle, pKern, pUser;
+        /// Whole-system CPU % since the previous call (-1 on the first call or on failure).
+        public static int Sample()
+        {
+            try
+            {
+                long i, k, u; if (!GetSystemTimes(out i, out k, out u)) return -1;
+                long di = i - pIdle, dk = k - pKern, du = u - pUser; bool first = pKern == 0;
+                pIdle = i; pKern = k; pUser = u;
+                long tot = dk + du; if (first || tot <= 0) return -1;
+                return (int)Math.Round(Math.Max(0, Math.Min(100, (tot - di) * 100.0 / tot)));
+            }
+            catch { return -1; }
+        }
+    }
 }

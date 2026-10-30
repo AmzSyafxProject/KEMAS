@@ -298,7 +298,25 @@ namespace Kemas
             BT("BtnSmart").Click += (s, e) => RequestClean(true);
             BT("BtnDashScan").Click += (s, e) => StartScan();
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
-            BT("QaOrg").Click += (s, e) => E<RadioButton>("NavOrg").IsChecked = true;
+            BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
+            BT("BtnAssist").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
+            BT("BtnOvMap").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
+            E<Border>("SideStatus").MouseLeftButtonUp += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
+            var sb = E<TextBox>("SearchBox");
+            sb.TextChanged += (s, e) => TB("SearchHint").Visibility = sb.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+            sb.KeyDown += (s, e) =>
+            {
+                if (e.Key != System.Windows.Input.Key.Enter) return;
+                string q = sb.Text.Trim(); if (q.Length == 0) return;
+                var pairs = new[] { "NavDash:nav_dash", "NavClean:nav_clean", "NavOrg:nav_org", "NavRam:nav_ram", "NavStartup:nav_startup", "NavDoctor:nav_doctor", "NavMap:nav_map", "NavApps:nav_apps", "NavRecover:nav_recover", "NavSettings:nav_settings", "NavAbout:nav_about" };
+                foreach (var pr in pairs)
+                {
+                    var a = pr.Split(':');
+                    if (L.T(a[1]).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 || a[0].Substring(3).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                    { E<RadioButton>(a[0]).IsChecked = true; sb.Text = ""; Keyboard.ClearFocus(); return; }
+                }
+                Toast(L.T("search_none"), "E721");
+            };
             BT("QaRam").Click += (s, e) => E<RadioButton>("NavRam").IsChecked = true;
             BT("QaStartup").Click += (s, e) => E<RadioButton>("NavStartup").IsChecked = true;
             BT("BtnTheme").Click += (s, e) =>
@@ -312,7 +330,7 @@ namespace Kemas
             BT("BtnMapScan").Click += (s, e) => ScanMap();
             E<Canvas>("MapCanvas").SizeChanged += (s, e) => DrawMap();
             try { var dv = new DriveInfo(System.IO.Path.GetPathRoot(Environment.SystemDirectory)); StorageHistory.Record(dv.TotalSize - dv.AvailableFreeSpace); } catch { }
-            BT("BtnViewAll").Click += (s, e) => E<RadioButton>("NavRecover").IsChecked = true;
+            BT("BtnViewAll").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             RefreshHistory();
             UpdateCrumb();
             BT("BtnScan").Click += (s, e) => StartScan();
@@ -722,16 +740,21 @@ namespace Kemas
                 var d = new DriveInfo(System.IO.Path.GetPathRoot(Environment.SystemDirectory));
                 long used = d.TotalSize - d.AvailableFreeSpace;
                 diskPct = (int)Math.Round(used * 100.0 / d.TotalSize);
-                TB("DiskLabel").Text = L.T("storage") + "  " + d.Name.TrimEnd('\\');
-                TB("DiskUsedText").Text = Fmt.Size(used) + " " + L.T("used");
+                TB("DiskLabel").Text = "Disk " + d.Name.TrimEnd('\\');
+                TB("DiskUsedText").Text = diskPct + "%";
                 E<ProgressBar>("DiskBar").Value = diskPct;
-                TB("DiskFreeText").Text = string.Format(L.T("free_of"), Fmt.Size(d.AvailableFreeSpace), Fmt.Size(d.TotalSize));
+                TB("DiskFreeText").Text = Fmt.Size(used) + " / " + Fmt.Size(d.TotalSize);
+                diskUsedB = used; diskTotalB = d.TotalSize; DrawOverview();
                 E<ProgressBar>("DiskBar").Foreground = diskPct >= 90 ? (Brush)W.FindResource("BadBrush") : (Brush)W.FindResource("AccentGrad");
 
                 double total, free; Memory.Info(out total, out free, out ramPct);
-                TB("RamUsedText").Text = Fmt.Size(total - free) + " " + L.T("used");
+                TB("RamUsedText").Text = ramPct + "%";
                 E<ProgressBar>("RamBar").Value = ramPct;
-                TB("RamFreeText").Text = string.Format(L.T("free_of"), Fmt.Size(free), Fmt.Size(total));
+                TB("RamFreeText").Text = Fmt.Size(total - free) + " / " + Fmt.Size(total);
+                int cpu = Cpu.Sample();
+                if (cpu >= 0) { TB("CpuText").Text = cpu + "%"; Push(cpuHist, cpu); DrawSpark("SparkCpu", cpuHist); }
+                TB("CpuSub").Text = string.Format(L.T("cores"), Environment.ProcessorCount);
+                if (lastScanAt != DateTime.MinValue) { var ago = DateTime.Now - lastScanAt; TB("LastScanText").Text = string.Format(L.T("last_scan_ago"), ago.TotalMinutes < 1 ? L.T("just_now") : ago.TotalHours < 1 ? string.Format(L.T("min_ago"), (int)ago.TotalMinutes) : string.Format(L.T("hr_ago"), (int)ago.TotalHours)); }
                 E<ProgressBar>("RamBar").Foreground = ramPct >= 85 ? (Brush)W.FindResource("WarnBrush") : new SolidColorBrush(Color.FromRgb(0x8B, 0x78, 0xF6));
                 Push(diskHist, used / 1073741824.0); Push(ramHist, total - free);
                 DrawSpark("SparkDisk", diskHist); DrawSpark("SparkRam", ramHist);
@@ -780,8 +803,12 @@ namespace Kemas
             string pk = score >= 85 ? "Good" : score >= 60 ? "Warn" : "Bad";
             TB("ScorePillText").Text = L.T(score >= 85 ? "pill_great" : score >= 60 ? "pill_ok" : "pill_bad");
             var pc = (SolidColorBrush)W.FindResource(pk + "Brush");
-            TB("ScorePillText").Foreground = pc;
-            E<Border>("ScorePill").Background = new SolidColorBrush(Color.FromArgb(0x24, pc.Color.R, pc.Color.G, pc.Color.B));
+            TB("ScorePillText").Foreground = pc; TB("ScoreIcon").Foreground = pc;
+            TB("ScoreIcon").Text = score >= 85 ? "\uE73E" : "\uE7BA";
+            TB("SideStatusText").Text = L.T(score >= 85 ? "side_great" : "side_ok");
+            TB("SideStatusSub").Text = L.T(score >= 85 ? "side_sub" : "side_sub2");
+            TB("AssistText").Text = penJunkStd + penJunkDeep > 0 && junkTotal > JunkGrace ? string.Format(L.T("assist_junk"), Fmt.Size(junkTotal))
+                : penDisk > 0 ? string.Format(L.T("assist_disk"), diskPct) : penRam > 0 ? string.Format(L.T("assist_ram"), ramPct) : L.T("assist_ok");
             TB("TileJunk").Text = Fmt.Size(junkTotal);
             TB("TileDisk").Text = L.T(diskPct < 75 ? "st_good" : diskPct < 90 ? "st_full" : "st_crit");
             TB("TileRam").Text = L.T(ramPct < 75 ? "st_good" : "st_busy");
@@ -789,6 +816,32 @@ namespace Kemas
         }
 
         // tiny live history for the dashboard sparklines (this session only)
+        readonly System.Collections.Generic.List<double> cpuHist = new System.Collections.Generic.List<double>();
+        DateTime lastScanAt = DateTime.MinValue;
+        long diskUsedB, diskTotalB;
+        void DrawOverview()
+        {
+            if (diskTotalB <= 0) return;
+            TB("OvDrive").Text = Fmt.Size(diskTotalB) + " " + (System.IO.Path.GetPathRoot(Environment.SystemDirectory) ?? "").TrimEnd('\\');
+            TB("OvUsed").Text = string.Format(L.T("ov_used"), Fmt.Size(diskUsedB), Fmt.Size(diskTotalB));
+            var bar = E<Grid>("OvBar"); var leg = E<WrapPanel>("OvLegend");
+            bar.Children.Clear(); bar.ColumnDefinitions.Clear(); leg.Children.Clear();
+            var parts = new System.Collections.Generic.List<Tuple<string, double, string>>();
+            if (mapRep != null) { int i = 0; foreach (var b in mapRep.Blocks.Take(6)) parts.Add(Tuple.Create(L.T("mb_" + b.Key), (double)b.Bytes, MapColors[i++ % MapColors.Length])); }
+            else parts.Add(Tuple.Create(L.T("used_word"), (double)diskUsedB, "#3978F6"));
+            double sumParts = parts.Sum(x => x.Item2);
+            parts.Add(Tuple.Create(L.T("mb_free"), (double)Math.Max(0, diskTotalB - Math.Max(diskUsedB, (long)sumParts)), (string)null));
+            foreach (var pt in parts)
+            {
+                bar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(0.0001, pt.Item2), GridUnitType.Star) });
+                if (pt.Item3 != null) { var r = new Border { Background = Hex(pt.Item3) }; Grid.SetColumn(r, bar.ColumnDefinitions.Count - 1); bar.Children.Add(r); }
+                var lg = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 14, 6) };
+                var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+                if (pt.Item3 != null) dot.Background = Hex(pt.Item3); else dot.SetResourceReference(Border.BackgroundProperty, "TrackBrush");
+                var tx = new TextBlock { Text = pt.Item1 + "  " + Fmt.Size(pt.Item2), FontSize = 11.5 }; tx.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                lg.Children.Add(dot); lg.Children.Add(tx); leg.Children.Add(lg);
+            }
+        }
         readonly System.Collections.Generic.List<double> diskHist = new System.Collections.Generic.List<double>(), ramHist = new System.Collections.Generic.List<double>(), junkHist = new System.Collections.Generic.List<double>();
         long lastJunkSample = -1;
         static void Push(System.Collections.Generic.List<double> l, double v) { l.Add(v); if (l.Count > 24) l.RemoveAt(0); }
@@ -802,9 +855,16 @@ namespace Kemas
                 foreach (var v in h) { mn = Math.Min(mn, v); mx = Math.Max(mx, v); }
                 double span = mx - mn; if (span < 1e-9) span = 1;
                 for (int i = 0; i < h.Count; i++)
-                    pts.Add(new Point(2 + i * 106.0 / (h.Count - 1), span == 1 && mx == mn ? 17 : 30 - (h[i] - mn) / span * 26));
+                    pts.Add(new Point(2 + i * 92.0 / (h.Count - 1), span == 1 && mx == mn ? 24 : 40 - (h[i] - mn) / span * 32));
             }
             pl.Points = pts;
+            var area = W.FindName("Area" + name.Substring(5)) as System.Windows.Shapes.Polygon;
+            if (area != null)
+            {
+                var ap = new PointCollection(pts);
+                if (pts.Count > 1) { ap.Add(new Point(pts[pts.Count - 1].X, 44)); ap.Add(new Point(pts[0].X, 44)); }
+                area.Points = ap;
+            }
         }
 
         bool ringHooked;

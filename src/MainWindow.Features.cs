@@ -155,6 +155,7 @@ namespace Kemas
                 scanned = true;
                 TB("JunkText").Text = Fmt.Size(junkTotal);
                 TB("JunkSub").Text = string.Format(L.T("across"), targets.Count);
+                lastScanAt = DateTime.Now;
                 UpdateSelectedTotal();
                 UpdateStats();
                 Log(string.Format(L.T("scan_done"), Fmt.Size(junkTotal)));
@@ -489,7 +490,7 @@ namespace Kemas
                 mapRep = r; if (r == null) return;
                 TB("MapHint").Visibility = Visibility.Collapsed;
                 TB("MapSub").Text = string.Format(L.T("map_sub_d"), r.Drive, Fmt.Size(r.Used), Fmt.Size(r.Total));
-                DrawMap();
+                DrawMap(); DrawOverview();
                 var big = E<StackPanel>("MapBigList"); big.Children.Clear();
                 if (r.Biggest.Count == 0) { var t = new TextBlock { Text = L.T("map_big_none"), FontSize = 12.5, TextWrapping = TextWrapping.Wrap }; t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); big.Children.Add(t); }
                 foreach (var f in r.Biggest)
