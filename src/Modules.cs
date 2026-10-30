@@ -31,6 +31,10 @@ namespace Kemas
         public string C4 { get; set; }
         public object Tag;
         public long Num;
+        public string Glyph { get; set; }
+        public Brush Tile { get; set; }
+        public Brush PillBg { get; set; }
+        public Brush PillFg { get; set; }
     }
 
     [DataContract] public class HealthDay { [DataMember] public string Day = ""; [DataMember] public int Score; }
@@ -196,10 +200,15 @@ namespace Kemas
             var g = modPages[id]; g.Children.Clear(); curMod = g; curModId = id;
             var head = new Grid { Margin = new Thickness(0, 0, 0, 18) };
             head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var sp = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
+            var hp = new Grid { Margin = new Thickness(0, 0, 16, 0) };
+            hp.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); hp.ColumnDefinitions.Add(new ColumnDefinition());
+            var m = Mods.First(x => x[0] == id);
+            hp.Children.Add(GradTile(m[1], ModColor(id), 52, 22));
+            var sp = new StackPanel { Margin = new Thickness(16, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
             sp.Children.Add(new TextBlock { Text = ModTitle(id), Style = (Style)W.FindResource("H1") });
             sp.Children.Add(new TextBlock { Text = sub, Style = (Style)W.FindResource("Sub") });
-            head.Children.Add(sp);
+            Grid.SetColumn(sp, 1); hp.Children.Add(sp);
+            head.Children.Add(hp);
             var bp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             for (int i = 0; i < buttons.Length; i++) { if (i > 0) buttons[i].Margin = new Thickness(10, 0, 0, 0); bp.Children.Add(buttons[i]); }
             Grid.SetColumn(bp, 1); head.Children.Add(bp);
@@ -208,6 +217,41 @@ namespace Kemas
         }
         void ModBody(UIElement body) { Grid.SetRow(body, 1); curMod.Children.Add(body); }
 
+        static readonly string[][] Palette = { new[] { "#3978F6", "#5BA8FF" }, new[] { "#8B78F6", "#C08BFF" }, new[] { "#43C6C0", "#3978F6" }, new[] { "#F4AE43", "#ED8F5B" }, new[] { "#27B77A", "#43C6C0" }, new[] { "#ED626B", "#F48FB1" } };
+        static string[] ModColor(string id) { int i = Array.FindIndex(Mods, x => x[0] == id); return Palette[Math.Max(0, i) % Palette.Length]; }
+        static Brush Grad(string[] c) { var b = new LinearGradientBrush((Color)ColorConverter.ConvertFromString(c[0]), (Color)ColorConverter.ConvertFromString(c[1]), new Point(0, 0), new Point(1, 1)); b.Freeze(); return b; }
+        static Border GradTile(string glyph, string[] c, double size, double font)
+        {
+            return new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size * 0.28), Background = Grad(c), VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock { Text = Glyph(glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = font, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } };
+        }
+        /// Ring chart: pct 0..100 with a centre value and caption.
+        static Grid Donut(double pct, string[] c, string center, string caption, double size = 150)
+        {
+            var g = new Grid { Width = size, Height = size };
+            double th = size * 0.09, r = (size - th) / 2;
+            var track = new System.Windows.Shapes.Ellipse { Width = size - th, Height = size - th, StrokeThickness = th }; track.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "TrackBrush");
+            g.Children.Add(track);
+            double v = Math.Max(0.5, Math.Min(99.9, pct)), a = (v / 100 * 360 - 90) * Math.PI / 180, cx = size / 2;
+            var fig = new PathFigure { StartPoint = new Point(cx, th / 2) };
+            fig.Segments.Add(new ArcSegment(new Point(cx + r * Math.Cos(a), cx + r * Math.Sin(a)), new Size(r, r), 0, v > 50, SweepDirection.Clockwise, true));
+            var geo = new PathGeometry(); geo.Figures.Add(fig);
+            g.Children.Add(new System.Windows.Shapes.Path { Data = geo, Stroke = Grad(c), StrokeThickness = th, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round });
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+            var t = new TextBlock { Text = center, FontSize = size * 0.22, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center }; t.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            var cp = new TextBlock { Text = caption, FontSize = Math.Max(10, size * 0.075), HorizontalAlignment = HorizontalAlignment.Center }; cp.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            sp.Children.Add(t); sp.Children.Add(cp); g.Children.Add(sp);
+            return g;
+        }
+        UIElement DonutCard(double pct, string[] c, string center, string caption, string title, string detail)
+        {
+            var g = new Grid(); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.Children.Add(Donut(pct, c, center, caption, 130));
+            var sp = new StackPanel { Margin = new Thickness(22, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            sp.Children.Add(Strong(title, 18)); var d = Muted(detail, 13); d.Margin = new Thickness(0, 6, 0, 0); sp.Children.Add(d);
+            Grid.SetColumn(sp, 1); g.Children.Add(sp);
+            var card = CardOf(g, 22); card.Margin = new Thickness(0, 0, 12, 12); return card;
+        }
         Button Btn(string text, bool primary, Action onClick, bool danger = false)
         {
             var b = new Button { Content = text, Style = (Style)W.FindResource(danger ? "Danger" : primary ? "Primary" : "Ghost") };
@@ -238,17 +282,65 @@ namespace Kemas
                 f.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
                 dg.Columns.Add(new DataGridTemplateColumn { CellTemplate = new DataTemplate { VisualTree = f }, Width = new DataGridLength(44) });
             }
+            dg.RowHeight = 48;
             for (int i = 0; i < cols.Length; i++)
             {
                 var parts = cols[i].Split('|');
-                var col = new DataGridTextColumn { Header = parts[0], Binding = new Binding("C" + i), IsReadOnly = true,
-                    Width = parts.Length > 1 ? new DataGridLength(double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture), DataGridLengthUnitType.Star) : new DataGridLength(1, DataGridLengthUnitType.Auto) };
-                dg.Columns.Add(col);
+                bool pill = parts[0].StartsWith("!"); string head = pill ? parts[0].Substring(1) : parts[0];
+                var width = parts.Length > 1 ? new DataGridLength(double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture), DataGridLengthUnitType.Star) : new DataGridLength(1, DataGridLengthUnitType.Auto);
+                if (i == 0)
+                {
+                    var sp = new FrameworkElementFactory(typeof(StackPanel)); sp.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+                    var tile = new FrameworkElementFactory(typeof(Border));
+                    tile.SetValue(FrameworkElement.WidthProperty, 30.0); tile.SetValue(FrameworkElement.HeightProperty, 30.0); tile.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
+                    tile.SetBinding(Border.BackgroundProperty, new Binding("Tile")); tile.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
+                    var gl = new FrameworkElementFactory(typeof(TextBlock)); gl.SetBinding(TextBlock.TextProperty, new Binding("Glyph"));
+                    gl.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")); gl.SetValue(TextBlock.FontSizeProperty, 13.0); gl.SetValue(TextBlock.ForegroundProperty, Brushes.White);
+                    gl.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); gl.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+                    tile.AppendChild(gl); sp.AppendChild(tile);
+                    var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C0")); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+                    tx.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center); tx.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+                    sp.AppendChild(tx);
+                    dg.Columns.Add(new DataGridTemplateColumn { Header = head, CellTemplate = new DataTemplate { VisualTree = sp }, Width = width, SortMemberPath = "C0" });
+                }
+                else if (pill)
+                {
+                    var bd = new FrameworkElementFactory(typeof(Border)); bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(10)); bd.SetValue(Border.PaddingProperty, new Thickness(10, 3, 10, 3));
+                    bd.SetBinding(Border.BackgroundProperty, new Binding("PillBg")); bd.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+                    var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C" + i)); tx.SetBinding(TextBlock.ForegroundProperty, new Binding("PillFg"));
+                    tx.SetValue(TextBlock.FontSizeProperty, 11.5); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold); bd.AppendChild(tx);
+                    dg.Columns.Add(new DataGridTemplateColumn { Header = head, CellTemplate = new DataTemplate { VisualTree = bd }, Width = width, SortMemberPath = "C" + i });
+                    dg.Tag = i;
+                }
+                else dg.Columns.Add(new DataGridTextColumn { Header = head, Binding = new Binding("C" + i), IsReadOnly = true, Width = width });
             }
             return dg;
         }
+        static readonly string[] GoodWords = { "Great", "Keadaan Baik", "Healthy", "Sihat", "Connected", "Bersambung", "Online", "Original", "Asal", "Good", "Baik", "On", "Hidup", "Safe", "Selamat" };
+        /// Fills icon tiles and status pills for every row before the table is shown.
+        void Decorate(DataGrid dg, string id)
+        {
+            var rows = dg.ItemsSource as System.Collections.IEnumerable; if (rows == null) return;
+            var m = Mods.FirstOrDefault(x => x[0] == id); string glyph = m == null ? "E8A5" : m[1];
+            int pc = dg.Tag is int ? (int)dg.Tag : -1, k = 0;
+            foreach (ModRow r in rows)
+            {
+                if (r.Glyph == null) r.Glyph = Glyph(glyph);
+                if (r.Tile == null) r.Tile = Grad(Palette[Math.Abs((r.C0 ?? "").GetHashCode()) % Palette.Length]);
+                if (pc >= 0)
+                {
+                    string v = (string)typeof(ModRow).GetProperty("C" + pc).GetValue(r, null) ?? "";
+                    bool good = GoodWords.Any(w => v.StartsWith(w, StringComparison.OrdinalIgnoreCase));
+                    bool bad = v.IndexOf("Unhealthy", StringComparison.OrdinalIgnoreCase) >= 0 || v.IndexOf("Tidak sihat", StringComparison.OrdinalIgnoreCase) >= 0 || v.StartsWith("Off") || v.StartsWith("Mati");
+                    var c = (Color)ColorConverter.ConvertFromString(good ? "#27B77A" : bad ? "#ED626B" : "#E0961F");
+                    r.PillFg = new SolidColorBrush(c); r.PillBg = new SolidColorBrush(Color.FromArgb(0x24, c.R, c.G, c.B));
+                }
+                k++;
+            }
+        }
         Border TableCard(DataGrid dg, UIElement footer = null)
         {
+            Decorate(dg, curModId);
             var dp = new DockPanel();
             if (footer != null) { DockPanel.SetDock(footer, Dock.Bottom); dp.Children.Add(footer); }
             dp.Children.Add(dg);
@@ -256,12 +348,15 @@ namespace Kemas
         }
         UIElement Stat(string label, string value, string sub, string color)
         {
-            var sp = new StackPanel();
+            var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition());
+            var pal = Palette.FirstOrDefault(p => p[0] == color) ?? new[] { color, color };
+            row.Children.Add(GradTile(curModId == null ? "E9D2" : Mods.First(x => x[0] == curModId)[1], pal, 44, 18));
+            var sp = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(sp, 1); row.Children.Add(sp);
             var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            var v = new TextBlock { Text = value, FontSize = 24, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 4, 0, 0), Foreground = Hex(color), TextTrimming = TextTrimming.CharacterEllipsis };
+            var v = new TextBlock { Text = value, FontSize = 22, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             sp.Children.Add(l); sp.Children.Add(v);
             if (!string.IsNullOrEmpty(sub)) sp.Children.Add(Muted(sub, 11.5));
-            var c = CardOf(sp, 18); c.Margin = new Thickness(0, 0, 12, 12); return c;
+            var c = CardOf(row, 18); c.Margin = new Thickness(0, 0, 12, 12); return c;
         }
         UniformGrid Stats(int cols, params UIElement[] items) { var u = new UniformGrid { Columns = cols, Margin = new Thickness(0, 0, -12, 4) }; foreach (var i in items) u.Children.Add(i); return u; }
         Grid Rows(params UIElement[] items)
@@ -388,7 +483,7 @@ namespace Kemas
         {
             FileTable("Dupes", Tx("Identical files (same size and same content hash). The first copy in each group is never ticked. Removed copies go to the Recycle Bin.", "Fail serupa (saiz dan hash kandungan sama). Salinan pertama setiap kumpulan tidak ditanda. Salinan dibuang ke Tong Kitar Semula."),
                 Tx("Comparing files...", "Membandingkan fail..."),
-                new[] { Tx("Name", "Nama") + "|3", Tx("Folder", "Folder") + "|4", Tx("Size", "Saiz"), Tx("Group", "Kumpulan"), Tx("Copy", "Salinan") },
+                new[] { Tx("Name", "Nama") + "|3", Tx("Folder", "Folder") + "|4", Tx("Size", "Saiz"), Tx("Group", "Kumpulan"), "!" + Tx("Copy", "Salinan") },
                 cancel =>
                 {
                     var bySize = new Dictionary<long, List<FileInfo>>();
@@ -445,7 +540,7 @@ namespace Kemas
         {
             FileTable("Downloads", Tx("Old installers, large downloads and files you have not touched in 90 days. Nothing is ticked for you.", "Pemasang lama, muat turun besar dan fail yang tidak disentuh 90 hari. Tiada apa ditanda secara automatik."),
                 Tx("Reading Downloads...", "Membaca Muat Turun..."),
-                new[] { Tx("Name", "Nama") + "|4", Tx("Reason", "Sebab") + "|3", Tx("Size", "Saiz"), Tx("Modified", "Diubah") },
+                new[] { Tx("Name", "Nama") + "|4", "!" + Tx("Reason", "Sebab") + "|3", Tx("Size", "Saiz"), Tx("Modified", "Diubah") },
                 cancel =>
                 {
                     var rows = new List<ModRow>();
@@ -610,8 +705,11 @@ namespace Kemas
                 list.Children.Add(CheckRow(Tx("Startup", "Permulaan"), string.Format(Tx("{0} apps start with Windows.", "{0} apps bermula dengan Windows."), startN), startN < 6, Tx("Startup", "Permulaan"), () => E<RadioButton>("NavStartup").IsChecked = true));
                 list.Children.Add(CheckRow(Tx("Privacy", "Privasi"), string.Format(Tx("Privacy score {0}/100 from your Windows settings.", "Skor privasi {0}/100 daripada tetapan Windows."), priv), priv >= 70, Tx("Privacy Audit", "Audit Privasi"), () => E<RadioButton>("NavPrivacy").IsChecked = true));
                 list.Children.Add(CheckRow(Tx("Security", "Keselamatan"), av != null ? Tx("Protection reported by Windows: ", "Perlindungan dilaporkan Windows: ") + av : Tx("No antivirus reported by Windows Security Center.", "Tiada antivirus dilaporkan oleh Windows Security Center."), av != null, Tx("Health Check", "Semakan"), () => E<RadioButton>("NavWinHealth").IsChecked = true));
-                var top = Stats(4, Stat(Tx("PC HEALTH", "KESIHATAN PC"), sc + "/100", L.T(sc >= 85 ? "pill_great" : sc >= 60 ? "pill_ok" : "pill_bad"), sc >= 85 ? "#27B77A" : sc >= 60 ? "#F4AE43" : "#ED626B"),
-                    Stat(Tx("MEMORY", "MEMORI"), ramPct + "%", Tx("in use", "digunakan"), "#8B78F6"), Stat(Tx("DISK", "CAKERA"), diskPct + "%", Tx("full", "penuh"), "#3978F6"), Stat(Tx("PRIVACY", "PRIVASI"), priv + "/100", "", "#43C6C0"));
+                var hero = new Grid(); hero.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) }); hero.ColumnDefinitions.Add(new ColumnDefinition());
+                hero.Children.Add(DonutCard(sc, new[] { "#43C6C0", "#3978F6" }, sc.ToString(), Tx("Health score", "Skor kesihatan"), L.T(sc >= 85 ? "pill_great" : sc >= 60 ? "pill_ok" : "pill_bad"), Tx("Based on memory, storage, junk, startup, privacy and protection on this PC.", "Berdasarkan memori, storan, sampah, permulaan, privasi dan perlindungan pada PC ini.")));
+                var mini = Stats(2, Stat(Tx("MEMORY", "MEMORI"), ramPct + "%", Tx("in use", "digunakan"), "#8B78F6"), Stat(Tx("DISK", "CAKERA"), diskPct + "%", Tx("full", "penuh"), "#3978F6"), Stat(Tx("PRIVACY", "PRIVASI"), priv + "/100", "", "#43C6C0"), Stat(Tx("STARTUP", "PERMULAAN"), startN.ToString(), Tx("apps", "apps"), "#F4AE43"));
+                Grid.SetColumn(mini, 1); hero.Children.Add(mini);
+                var top = hero;
                 curMod = modPages["Health"]; foreach (var o in curMod.Children.OfType<UIElement>().Where(c => Grid.GetRow(c) == 1).ToList()) curMod.Children.Remove(o);
                 ModBody(Rows(top, CardOf(new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto })));
             });
@@ -635,7 +733,7 @@ namespace Kemas
                 cv.Children.Add(pl);
                 foreach (var pt in pl.Points) { var dot = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Fill = Hex("#3978F6") }; Canvas.SetLeft(dot, pt.X - 4); Canvas.SetTop(dot, pt.Y - 4); cv.Children.Add(dot); }
             };
-            var dg = Table(false, Tx("Day", "Hari") + "|2", Tx("Score", "Skor") + "|1", Tx("Status", "Status") + "|2");
+            var dg = Table(false, Tx("Day", "Hari") + "|2", Tx("Score", "Skor") + "|1", "!" + Tx("Status", "Status") + "|2");
             dg.ItemsSource = days.AsEnumerable().Reverse().Select(d => new ModRow { C0 = d.Day, C1 = d.Score + "/100", C2 = L.T(d.Score >= 85 ? "pill_great" : d.Score >= 60 ? "pill_ok" : "pill_bad") }).ToList();
             var chart = CardOf(new StackPanel { Children = { Strong(Tx("Health score", "Skor kesihatan")), cv } }); chart.Margin = new Thickness(0, 0, 0, 14);
             ModBody(Rows(chart, TableCard(dg)));
@@ -837,7 +935,8 @@ namespace Kemas
             int pct = (int)Math.Round(ps.BatteryLifePercent * 100);
             string left = ps.BatteryLifeRemaining > 0 ? TimeSpan.FromSeconds(ps.BatteryLifeRemaining).ToString(@"h\:mm") : "-";
             int health = design > 0 && full > 0 ? (int)Math.Round(full * 100.0 / design) : -1;
-            ModBody(Rows(Stats(4,
+            var bh = DonutCard(pct, new[] { "#27B77A", "#43C6C0" }, pct + "%", ps.PowerLineStatus == System.Windows.Forms.PowerLineStatus.Online ? Tx("Charging", "Mengecas") : Tx("On battery", "Guna bateri"), Tx("Battery level", "Paras bateri"), health > 0 ? string.Format(Tx("Battery health {0}% of its original capacity.", "Kesihatan bateri {0}% daripada kapasiti asal."), Math.Min(100, health)) : Tx("Health is not reported by this battery.", "Kesihatan tidak dilaporkan oleh bateri ini."));
+            ModBody(Rows(bh, Stats(4,
                 Stat(Tx("BATTERY", "BATERI"), pct + "%", ps.PowerLineStatus == System.Windows.Forms.PowerLineStatus.Online ? Tx("Plugged in", "Dicas") : Tx("On battery", "Guna bateri"), "#27B77A"),
                 Stat(Tx("TIME LEFT", "BAKI MASA"), left, Tx("estimated by Windows", "anggaran Windows"), "#3978F6"),
                 Stat(Tx("HEALTH", "KESIHATAN"), health > 0 ? Math.Min(100, health) + "%" : "-", health > 0 ? string.Format(Tx("{0} of {1} mWh", "{0} daripada {1} mWh"), full, design) : Tx("not reported", "tidak dilaporkan"), "#8B78F6"),
@@ -861,7 +960,7 @@ namespace Kemas
                 try { var p = Process.Start(new ProcessStartInfo("fsutil", "behavior query DisableDeleteNotify") { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true }); var o2 = p.StandardOutput.ReadToEnd(); p.WaitForExit(4000); trim = o2.Contains("= 0"); } catch { }
             }, () =>
             {
-                var dg = Table(false, Tx("Drive", "Cakera") + "|4", Tx("Type", "Jenis") + "|1", Tx("Size", "Saiz") + "|1", Tx("Bus", "Bas") + "|1", Tx("Health", "Kesihatan") + "|1"); dg.ItemsSource = rows;
+                var dg = Table(false, Tx("Drive", "Cakera") + "|4", Tx("Type", "Jenis") + "|1", Tx("Size", "Saiz") + "|1", Tx("Bus", "Bas") + "|1", "!" + Tx("Health", "Kesihatan") + "|1"); dg.ItemsSource = rows;
                 bool ok = rows.Count > 0 && rows.All(r => r.C4 == Tx("Healthy", "Sihat"));
                 var top = Stats(3, Stat(Tx("DRIVES", "CAKERA"), rows.Count.ToString(), "", "#3978F6"), Stat(Tx("STATUS", "STATUS"), rows.Count == 0 ? "-" : ok ? Tx("Good", "Baik") : Tx("Check", "Semak"), Tx("as reported by Windows", "seperti dilaporkan Windows"), ok ? "#27B77A" : "#F4AE43"), Stat("TRIM", trim ? Tx("On", "Hidup") : Tx("Off / unknown", "Mati / tidak diketahui"), Tx("SSD maintenance", "penyelenggaraan SSD"), "#8B78F6"));
                 var note = Muted(Tx("Temperature and detailed SMART counters need administrator rights and are not shown.", "Suhu dan kaunter SMART terperinci perlukan hak pentadbir dan tidak ditunjukkan."), 12); note.Margin = new Thickness(10, 8, 10, 6);
@@ -899,7 +998,11 @@ namespace Kemas
             ModBegin("Privacy", Tx("Reads your Windows privacy settings and explains each one. KEMAS changes nothing; each item opens the right Windows setting.", "Membaca tetapan privasi Windows dan menerangkannya. KEMAS tidak mengubah apa-apa; setiap item membuka tetapan Windows yang betul."));
             var list = new StackPanel();
             foreach (var c in l) { var u = c.Item4; list.Children.Add(CheckRow(c.Item1, c.Item2, c.Item3, Tx("Open setting", "Buka tetapan"), () => OpenUri(u))); }
-            ModBody(Rows(Stats(3, Stat(Tx("PRIVACY SCORE", "SKOR PRIVASI"), sc + "/100", "", sc >= 70 ? "#27B77A" : "#F4AE43"), Stat(Tx("PRIVATE", "PERSENDIRIAN"), l.Count(x => x.Item3).ToString(), Tx("settings", "tetapan"), "#3978F6"), Stat(Tx("TO REVIEW", "PERLU DISEMAK"), l.Count(x => !x.Item3).ToString(), Tx("settings", "tetapan"), "#F4AE43")),
+            var ph = new Grid(); ph.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) }); ph.ColumnDefinitions.Add(new ColumnDefinition());
+            ph.Children.Add(DonutCard(sc, new[] { "#43C6C0", "#27B77A" }, sc.ToString(), Tx("Privacy score", "Skor privasi"), sc >= 70 ? Tx("Your privacy is well protected", "Privasi anda terlindung baik") : Tx("Some settings share data", "Sesetengah tetapan berkongsi data"), Tx("Each setting below opens the right page in Windows Settings.", "Setiap tetapan di bawah membuka halaman yang betul dalam Tetapan Windows.")));
+            var pm = Stats(1, Stat(Tx("PRIVATE", "PERSENDIRIAN"), l.Count(x => x.Item3).ToString(), Tx("settings", "tetapan"), "#3978F6"), Stat(Tx("TO REVIEW", "PERLU DISEMAK"), l.Count(x => !x.Item3).ToString(), Tx("settings", "tetapan"), "#F4AE43"));
+            Grid.SetColumn(pm, 1); ph.Children.Add(pm);
+            ModBody(Rows(ph,
                 CardOf(new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto })));
         }
 
@@ -956,7 +1059,7 @@ namespace Kemas
                 var top = Stats(4, Stat(Tx("INTERNET", "INTERNET"), online ? Tx("Online", "Dalam talian") : Tx("Offline", "Luar talian"), "", online ? "#27B77A" : "#ED626B"),
                     Stat(Tx("LATENCY", "KEPENDAMAN"), online ? avg + " ms" : "-", "1.1.1.1", "#3978F6"), Stat(Tx("PACKET LOSS", "KEHILANGAN PAKET"), (lost * 100 / sent) + "%", string.Format(Tx("{0} of {1} lost", "{0} daripada {1} hilang"), lost, sent), lost == 0 ? "#27B77A" : "#F4AE43"),
                     Stat("DNS", dns >= 0 ? dns + " ms" : "-", "www.microsoft.com", "#8B78F6"));
-                var dg = Table(false, Tx("Adapter", "Penyesuai") + "|3", Tx("Type", "Jenis") + "|2", Tx("Status", "Status") + "|1", Tx("Speed", "Kelajuan") + "|1", "IPv4|2"); dg.ItemsSource = rows;
+                var dg = Table(false, Tx("Adapter", "Penyesuai") + "|3", Tx("Type", "Jenis") + "|2", "!" + Tx("Status", "Status") + "|1", Tx("Speed", "Kelajuan") + "|1", "IPv4|2"); dg.ItemsSource = rows;
                 curMod = modPages["Network"]; foreach (var o in curMod.Children.OfType<UIElement>().Where(c => Grid.GetRow(c) == 1).ToList()) curMod.Children.Remove(o);
                 ModBody(Rows(top, TableCard(dg)));
             });
