@@ -297,6 +297,17 @@ namespace Kemas
 
             BT("BtnSmart").Click += (s, e) => RequestClean(true);
             BT("BtnDashScan").Click += (s, e) => StartScan();
+            BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
+            BT("QaOrg").Click += (s, e) => E<RadioButton>("NavOrg").IsChecked = true;
+            BT("QaRam").Click += (s, e) => E<RadioButton>("NavRam").IsChecked = true;
+            BT("QaStartup").Click += (s, e) => E<RadioButton>("NavStartup").IsChecked = true;
+            BT("BtnTheme").Click += (s, e) =>
+            {
+                S.Theme = Theme.IsDark ? "light" : "dark";
+                ApplyThemeAndLanguage(); QueueSave();
+                loadingUi = true; E<RadioButton>(S.Theme == "light" ? "ThemeLight" : "ThemeDark").IsChecked = true; loadingUi = false;
+            };
+            TB("SideVersion").Text = "Version " + AppInfo.Version;
             BT("BtnScan").Click += (s, e) => StartScan();
             BT("BtnClean").Click += (s, e) => RequestClean(false);
             BT("BtnDeep").Click += (s, e) => RequestDeepClean();
@@ -710,7 +721,9 @@ namespace Kemas
                 TB("RamUsedText").Text = Fmt.Size(total - free) + " " + L.T("used");
                 E<ProgressBar>("RamBar").Value = ramPct;
                 TB("RamFreeText").Text = string.Format(L.T("free_of"), Fmt.Size(free), Fmt.Size(total));
-                E<ProgressBar>("RamBar").Foreground = ramPct >= 85 ? (Brush)W.FindResource("WarnBrush") : (Brush)W.FindResource("AccentGrad");
+                E<ProgressBar>("RamBar").Foreground = ramPct >= 85 ? (Brush)W.FindResource("WarnBrush") : new SolidColorBrush(Color.FromRgb(0x8B, 0x78, 0xF6));
+                Push(diskHist, used / 1073741824.0); Push(ramHist, total - free);
+                DrawSpark("SparkDisk", diskHist); DrawSpark("SparkRam", ramHist);
                 if (currentPage == "PageRam")
                 {
                     TB("RamPageText").Text = string.Format(L.T("in_use_of"), Fmt.Size(total - free), Fmt.Size(total));
@@ -753,6 +766,34 @@ namespace Kemas
             UpdateRoad((int)score);
             TB("ScoreTitle").Text = score >= 85 ? L.T("score_great") : score >= 60 ? L.T("score_ok") : L.T("score_bad");
             TB("ScoreDesc").Text = string.Format(L.T("score_desc"), Fmt.Size(junkTotal), diskPct, ramPct);
+            string pk = score >= 85 ? "Good" : score >= 60 ? "Warn" : "Bad";
+            TB("ScorePillText").Text = L.T(score >= 85 ? "pill_great" : score >= 60 ? "pill_ok" : "pill_bad");
+            var pc = (SolidColorBrush)W.FindResource(pk + "Brush");
+            TB("ScorePillText").Foreground = pc;
+            E<Border>("ScorePill").Background = new SolidColorBrush(Color.FromArgb(0x24, pc.Color.R, pc.Color.G, pc.Color.B));
+            TB("TileJunk").Text = Fmt.Size(junkTotal);
+            TB("TileDisk").Text = L.T(diskPct < 75 ? "st_good" : diskPct < 90 ? "st_full" : "st_crit");
+            TB("TileRam").Text = L.T(ramPct < 75 ? "st_good" : "st_busy");
+            if (junkTotal != lastJunkSample) { lastJunkSample = junkTotal; Push(junkHist, junkTotal); DrawSpark("SparkJunk", junkHist); }
+        }
+
+        // tiny live history for the dashboard sparklines (this session only)
+        readonly System.Collections.Generic.List<double> diskHist = new System.Collections.Generic.List<double>(), ramHist = new System.Collections.Generic.List<double>(), junkHist = new System.Collections.Generic.List<double>();
+        long lastJunkSample = -1;
+        static void Push(System.Collections.Generic.List<double> l, double v) { l.Add(v); if (l.Count > 24) l.RemoveAt(0); }
+        void DrawSpark(string name, System.Collections.Generic.List<double> h)
+        {
+            var pl = E<System.Windows.Shapes.Polyline>(name);
+            var pts = new PointCollection();
+            if (h.Count >= 2)
+            {
+                double mn = double.MaxValue, mx = double.MinValue;
+                foreach (var v in h) { mn = Math.Min(mn, v); mx = Math.Max(mx, v); }
+                double span = mx - mn; if (span < 1e-9) span = 1;
+                for (int i = 0; i < h.Count; i++)
+                    pts.Add(new Point(2 + i * 106.0 / (h.Count - 1), span == 1 && mx == mn ? 17 : 30 - (h[i] - mn) / span * 26));
+            }
+            pl.Points = pts;
         }
 
         bool ringHooked;
