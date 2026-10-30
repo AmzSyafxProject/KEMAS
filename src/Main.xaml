@@ -53,7 +53,6 @@
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="16"/>
       <Setter Property="Padding" Value="22,18"/>
-      <Setter Property="Effect"><Setter.Value><DropShadowEffect BlurRadius="22" ShadowDepth="3" Direction="270" Opacity="0.05" Color="#172033"/></Setter.Value></Setter>
     </Style>
     <Style x:Key="Tile" TargetType="Button">
       <Setter Property="Cursor" Value="Hand"/>
@@ -103,7 +102,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
-            <Border x:Name="bd" CornerRadius="10" Background="Transparent" Padding="14,0">
+            <Border x:Name="bd" CornerRadius="10" Background="Transparent" BorderThickness="1" BorderBrush="Transparent" Padding="14,0">
               <Grid>
                 <Border x:Name="bar" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left" Margin="-14,0,0,0"
                         Background="{StaticResource AccentGrad}" Opacity="0"/>
@@ -120,7 +119,7 @@
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
                 <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavSelBrush}"/>
-                <Setter TargetName="bd" Property="Effect"><Setter.Value><DropShadowEffect BlurRadius="14" ShadowDepth="1" Direction="270" Opacity="0.07" Color="#172033"/></Setter.Value></Setter>
+                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                 <Setter TargetName="ic" Property="Foreground" Value="{StaticResource CyanBrush}"/>
               </Trigger>

@@ -111,7 +111,7 @@ namespace Kemas
             LoadSettingsIntoUi();
             RefreshTexts();
             SetRing(0.5);
-            SetupAurora();
+            E<Canvas>("Aurora").Visibility = Visibility.Collapsed;   // 4.0: flat background, no animated glow (saves GPU every frame)
 
             W.SourceInitialized += (s, e) => Win11Corners();
             W.ContentRendered += OnFirstRender;
