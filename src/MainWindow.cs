@@ -299,6 +299,7 @@ namespace Kemas
             BT("BtnDashScan").Click += (s, e) => StartScan();
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
             BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
+            E<FrameworkElement>("PageDash").SizeChanged += (s, e) => LayoutDash(e.NewSize.Width);
             BT("BtnAssist").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             BT("BtnOvMap").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
             E<Border>("SideStatus").MouseLeftButtonUp += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
@@ -643,10 +644,10 @@ namespace Kemas
             UpdateCrumb();
             if (!S.ReducedMotion)
             {
-                nw.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 240));
+                nw.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 140));
                 var tt = nw.RenderTransform as TranslateTransform;
                 if (tt == null) { tt = new TranslateTransform(); nw.RenderTransform = tt; }
-                tt.BeginAnimation(TranslateTransform.YProperty, Anim(14, 0, 320, new QuinticEase { EasingMode = EasingMode.EaseOut }));
+                tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 180, new QuinticEase { EasingMode = EasingMode.EaseOut }));
             }
             if (!busy) TB("StatusText").Text = "";      // an old message from another page must not linger
             if (page == "PageRam" && !busy) LoadRam();
@@ -819,6 +820,37 @@ namespace Kemas
         readonly System.Collections.Generic.List<double> cpuHist = new System.Collections.Generic.List<double>();
         DateTime lastScanAt = DateTime.MinValue;
         long diskUsedB, diskTotalB;
+        int dashMode = -1;
+        void LayoutDash(double w)
+        {
+            int mode = w >= 1350 ? 2 : w >= 900 ? 1 : 0;
+            if (mode == dashMode) return; dashMode = mode;
+            var assist = E<FrameworkElement>("AssistCard");
+            if (mode == 0) { Grid.SetRow(assist, 1); Grid.SetColumn(assist, 0); Grid.SetColumnSpan(assist, 3); assist.Margin = new Thickness(0, 16, 0, 0); }
+            else { Grid.SetRow(assist, 0); Grid.SetColumn(assist, 2); Grid.SetColumnSpan(assist, 1); assist.Margin = new Thickness(0); }
+            foreach (FrameworkElement c in E<Grid>("DashTop").Children) if (c != assist) Grid.SetColumnSpan(c, mode == 0 ? 3 : 1);
+            E<UniformGrid>("DashMetrics").Columns = mode == 2 ? 4 : 2;
+            var qa = E<FrameworkElement>("QaCard"); var sto = E<FrameworkElement>("StoCard"); var tips = E<FrameworkElement>("TipsCard");
+            if (mode == 2)
+            {
+                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 1);
+                Grid.SetRow(sto, 0); Grid.SetColumn(sto, 2); Grid.SetColumnSpan(sto, 1); sto.Margin = new Thickness(0);
+                Grid.SetRow(tips, 0); Grid.SetColumn(tips, 4); Grid.SetColumnSpan(tips, 1); tips.Margin = new Thickness(0);
+            }
+            else if (mode == 1)
+            {
+                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 1);
+                Grid.SetRow(sto, 0); Grid.SetColumn(sto, 2); Grid.SetColumnSpan(sto, 3); sto.Margin = new Thickness(0);
+                Grid.SetRow(tips, 1); Grid.SetColumn(tips, 0); Grid.SetColumnSpan(tips, 5); tips.Margin = new Thickness(0, 14, 0, 0);
+            }
+            else
+            {
+                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 5);
+                Grid.SetRow(sto, 1); Grid.SetColumn(sto, 0); Grid.SetColumnSpan(sto, 5); sto.Margin = new Thickness(0, 14, 0, 0);
+                Grid.SetRow(tips, 2); Grid.SetColumn(tips, 0); Grid.SetColumnSpan(tips, 5); tips.Margin = new Thickness(0, 14, 0, 0);
+            }
+        }
+
         void DrawOverview()
         {
             if (diskTotalB <= 0) return;

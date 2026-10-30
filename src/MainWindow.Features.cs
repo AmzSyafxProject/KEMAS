@@ -50,25 +50,24 @@ namespace Kemas
                     head.Children.Add(hd);
                     list.Children.Add(head);
                 }
-                var row = new Border { CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 13, 16, 13), Margin = new Thickness(0, 0, 0, 10), BorderThickness = new Thickness(1) };
-                row.SetResourceReference(Border.BackgroundProperty, "CardBrush");
+                var row = new Border { Padding = new Thickness(0, 11, 0, 11), BorderThickness = new Thickness(0, 0, 0, 1) };
                 row.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
                 var g = new Grid();
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var tile = new Border { Width = 42, Height = 42, CornerRadius = new CornerRadius(13), VerticalAlignment = VerticalAlignment.Center };
+                var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(10), VerticalAlignment = VerticalAlignment.Center };
                 tile.SetResourceReference(Border.BackgroundProperty, "IconTile");
-                tile.Child = new TextBlock { Text = Glyph(t.Icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 18, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                tile.Child = new TextBlock { Text = Glyph(t.Icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 g.Children.Add(tile);
                 var mid = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 bool lockedRow = false;
-                var cb = new CheckBox { FontSize = 14.5, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
+                var cb = new CheckBox { FontSize = 13.5, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
                 cb.IsChecked = sel != null ? sel.Contains(t.Key) : t.Default;
                 if (Cleaner.StoreLocked(t.Key)) { cb.IsChecked = false; cb.IsEnabled = false; cb.ToolTip = L.T("note_admin_needed"); lockedRow = true; }
                 cb.Checked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 cb.Unchecked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
-                var desc = new TextBlock { FontSize = 12.5, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
+                var desc = new TextBlock { FontSize = 12, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
                 desc.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 mid.Children.Add(cb); mid.Children.Add(desc);
                 if (lockedRow)
@@ -84,7 +83,7 @@ namespace Kemas
                 }
                 Grid.SetColumn(mid, 1); g.Children.Add(mid);
                 var right = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0), MinWidth = 110 };
-                var size = new TextBlock { Text = "-", FontSize = 17, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
+                var size = new TextBlock { Text = "-", FontSize = 14.5, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
                 var tag = new TextBlock { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) };
                 tag.Foreground = t.Tag == "safe" ? (Brush)W.FindResource("GoodBrush") : t.Tag == "permanent" ? (Brush)W.FindResource("BadBrush") : t.Tag == "deep" ? Hex("#9C8BFF") : (Brush)W.FindResource("WarnBrush");
                 right.Children.Add(size); right.Children.Add(tag);
