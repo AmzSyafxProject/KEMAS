@@ -751,7 +751,7 @@
                     <TextBlock x:Name="OvUsed" FontSize="12" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                   </Grid>
                   <Border CornerRadius="5" Height="10" Margin="0,10,0,14" ClipToBounds="True" Background="{DynamicResource TrackBrush}">
-                    <Grid x:Name="OvBar"/>
+                    <Grid x:Name="StoBar"/>
                   </Border>
                   <WrapPanel x:Name="OvLegend"/>
                   <Button x:Name="BtnOvMap" Style="{StaticResource Link}" Content="{DynamicResource L_ov_map}" HorizontalAlignment="Left" Margin="0,10,0,0"/>

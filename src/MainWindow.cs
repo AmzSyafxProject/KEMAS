@@ -824,7 +824,7 @@ namespace Kemas
             if (diskTotalB <= 0) return;
             TB("OvDrive").Text = Fmt.Size(diskTotalB) + " " + (System.IO.Path.GetPathRoot(Environment.SystemDirectory) ?? "").TrimEnd('\\');
             TB("OvUsed").Text = string.Format(L.T("ov_used"), Fmt.Size(diskUsedB), Fmt.Size(diskTotalB));
-            var bar = E<Grid>("OvBar"); var leg = E<WrapPanel>("OvLegend");
+            var bar = E<Grid>("StoBar"); var leg = E<WrapPanel>("OvLegend");
             bar.Children.Clear(); bar.ColumnDefinitions.Clear(); leg.Children.Clear();
             var parts = new System.Collections.Generic.List<Tuple<string, double, string>>();
             if (mapRep != null) { int i = 0; foreach (var b in mapRep.Blocks.Take(6)) parts.Add(Tuple.Create(L.T("mb_" + b.Key), (double)b.Bytes, MapColors[i++ % MapColors.Length])); }
