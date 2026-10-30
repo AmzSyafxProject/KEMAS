@@ -57,6 +57,7 @@ class T {
     { var b=Support.Body("Problem report","It crashed",true,300); Check(b.Contains("It crashed") && b.Contains("KEMAS: 4.0.0") && Support.MailtoUrl("Question","hi",true).StartsWith("mailto:amzarsyaf2002@gmail.com?subject=") && Support.MailtoUrl("Question",new string('x',5000),true).Length < 2100 && Support.GmailUrl("Suggestion","hi",false).Contains("su=KEMAS"), "support report builder"); }
     { var st=Json.Read<Settings>("{\"Theme\":\"light\"}"); Check(st.RemoveLockedAtRestart && !st.WelcomeDone, "new settings defaults"); }
     { var ts=Cleaner.CreateTargets(); Check(ts.Where(Cleaner.IsDeep).All(x=>!x.Default) && ts.Count(Cleaner.IsDeep)==6 && ts.Select(x=>x.Key).Distinct().Count()==ts.Count, "deep targets off by default, unique keys"); }
+    { var hf=Json.Read<HistFile>(Json.Write(new HistFile{Items=new List<HistEntry>{new HistEntry{Kind="organize",Title="T",Undo="org:x"}}})); Check(hf.Items.Count==1 && hf.Items[0].Undo=="org:x" && !hf.Items[0].Undone, "history json roundtrip"); }
     // --- settings + export roundtrip
     var s=new Settings(); s.FillDefaults(); s.OrgRules[0].Name="Foto Kahwin"; 
     var back=Json.Read<Settings>(Json.Write(s)); back.FillDefaults();

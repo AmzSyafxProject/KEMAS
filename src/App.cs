@@ -257,6 +257,7 @@ namespace Kemas
                 s.LastClean = DateTime.Now.ToString("dd MMM, HH:mm", L.Culture);
                 s.LastFreed = freed; s.TotalFreed += freed; s.CleanCount++;
                 s.Save();
+                History.Add("autoclean", L.T("hist_autoclean"), string.Format(L.T("hist_freed"), Fmt.Size(freed)));
                 using (var tray = new System.Windows.Forms.NotifyIcon())
                 {
                     using (var st = Assembly.GetExecutingAssembly().GetManifestResourceStream("kemas.ico")) tray.Icon = new System.Drawing.Icon(st, 32, 32);

@@ -72,6 +72,13 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <Style x:Key="Link" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource CyanBrush}"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate></Setter.Value></Setter>
+    </Style>
     <Style x:Key="Icon" TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
@@ -514,6 +521,8 @@
             <RadioButton x:Name="NavStartup" Style="{StaticResource Nav}" Tag="&#xE7E8;" Content="{DynamicResource L_nav_startup}"/>
             <TextBlock Text="{DynamicResource L_grp_analyze}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavApps" Style="{StaticResource Nav}" Tag="&#xE71D;" Content="{DynamicResource L_nav_apps}"/>
+            <TextBlock Text="{DynamicResource L_grp_recover}" Style="{StaticResource NavGroup}"/>
+            <RadioButton x:Name="NavRecover" Style="{StaticResource Nav}" Tag="&#xE777;" Content="{DynamicResource L_nav_recover}"/>
           </StackPanel>
         </DockPanel>
       </Border>
@@ -705,8 +714,13 @@
               </Border>
               <Border Grid.Column="2" Style="{StaticResource Card}" Padding="22,14">
                 <DockPanel>
-                  <TextBlock DockPanel.Dock="Top" Text="{DynamicResource L_activity}" Style="{StaticResource Label}" Margin="0,0,0,6"/>
-                  <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0"
+                  <Grid DockPanel.Dock="Top" Margin="0,0,0,2">
+                    <TextBlock Text="{DynamicResource L_activity}" Style="{StaticResource Label}"/>
+                    <Button x:Name="BtnViewAll" Style="{StaticResource Link}" Content="{DynamicResource L_view_all}" HorizontalAlignment="Right"/>
+                  </Grid>
+                  <TextBlock x:Name="RecentEmpty" DockPanel.Dock="Top" Text="{DynamicResource L_rec_empty}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                  <StackPanel x:Name="RecentList" DockPanel.Dock="Top"/>
+                  <TextBox x:Name="LogBox" Visibility="Collapsed" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0"
                            FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"
                            VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Height="120"/>
                 </DockPanel>
@@ -1133,6 +1147,31 @@
                 </Border>
               </StackPanel>
             </ScrollViewer>
+          </Grid>
+
+          <!-- ================= RECOVERY CENTRE ================= -->
+          <Grid x:Name="PageRecover" Visibility="Collapsed">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <StackPanel Margin="0,0,0,18">
+              <TextBlock Text="{DynamicResource L_rec_title}" Style="{StaticResource H1}"/>
+              <TextBlock Text="{DynamicResource L_rec_sub}" Style="{StaticResource Sub}"/>
+            </StackPanel>
+            <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,16">
+              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,0" ><StackPanel Orientation="Horizontal"><Border Width="38" Height="38" CornerRadius="10" Background="#2227B77A"><TextBlock Style="{StaticResource Icon}" Text="&#xE7A7;" FontSize="16" Foreground="#27B77A" HorizontalAlignment="Center"/></Border><StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="{DynamicResource L_rec_c1}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_rec_c1d}" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel></StackPanel></Border>
+              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,0" ><StackPanel Orientation="Horizontal"><Border Width="38" Height="38" CornerRadius="10" Background="#1F3978F6"><TextBlock Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="16" Foreground="#3978F6" HorizontalAlignment="Center"/></Border><StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="{DynamicResource L_rec_c2}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_rec_c2d}" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel></StackPanel></Border>
+              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,0" ><StackPanel Orientation="Horizontal"><Border Width="38" Height="38" CornerRadius="10" Background="#1F8B78F6"><TextBlock Style="{StaticResource Icon}" Text="&#xE9F9;" FontSize="16" Foreground="#8B78F6" HorizontalAlignment="Center"/></Border><StackPanel Margin="12,0,0,0" VerticalAlignment="Center"><TextBlock Text="{DynamicResource L_rec_c3}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_rec_c3d}" FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel></StackPanel></Border>
+            </UniformGrid>
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="22,8,22,8">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Bottom" Text="{DynamicResource L_rec_local}" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,4"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                  <StackPanel>
+                    <TextBlock x:Name="RecEmpty" Text="{DynamicResource L_rec_empty}" FontSize="13" Foreground="{DynamicResource MutedBrush}" Margin="0,14,0,14" TextWrapping="Wrap"/>
+                    <StackPanel x:Name="RecList"/>
+                  </StackPanel>
+                </ScrollViewer>
+              </DockPanel>
+            </Border>
           </Grid>
 
           <!-- ================= ABOUT ================= -->

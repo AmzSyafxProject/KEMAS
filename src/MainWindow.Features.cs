@@ -437,6 +437,86 @@ namespace Kemas
             return g;
         }
 
+        // ================================================================ recovery centre
+        void RefreshHistory()
+        {
+            var items = History.Load();
+            var list = E<StackPanel>("RecList"); list.Children.Clear();
+            var home = E<StackPanel>("RecentList"); home.Children.Clear();
+            TB("RecEmpty").Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            TB("RecentEmpty").Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            string latestOrg = Organizer.LastUndoFile();
+            foreach (var h in items.Take(60)) list.Children.Add(HistRow(h, latestOrg, true));
+            foreach (var h in items.Take(4)) home.Children.Add(HistRow(h, latestOrg, false));
+        }
+
+        string HistTime(HistEntry h)
+        {
+            DateTime t; if (!DateTime.TryParse(h.Time, out t)) return h.Time;
+            return t.Date == DateTime.Today ? L.T("today") + ", " + t.ToString("HH:mm") : t.ToString("d MMM, HH:mm", L.Culture);
+        }
+
+        FrameworkElement HistRow(HistEntry h, string latestOrg, bool full)
+        {
+            var g = new Grid { Margin = new Thickness(0, 0, 0, 0) };
+            var line = new Border { BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(0, full ? 12 : 8, 0, full ? 12 : 8), Child = g };
+            line.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
+            if (full) g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+            g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            int c = 0;
+            if (full)
+            {
+                var tt = new TextBlock { Text = HistTime(h), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center };
+                tt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); g.Children.Add(tt); c = 1;
+            }
+            var mid = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var t1 = new TextBlock { Text = h.Title, FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+            t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            var t2 = new TextBlock { Text = h.Detail + (full ? "" : "  ·  " + HistTime(h)), FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
+            t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            mid.Children.Add(t1); mid.Children.Add(t2);
+            Grid.SetColumn(mid, c); g.Children.Add(mid);
+            if (!full) return line;
+
+            var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            bool canUndo = !h.Undone && ((h.Undo.StartsWith("org:") && h.Undo.Substring(4) == latestOrg && File.Exists(latestOrg)) || h.Undo.StartsWith("startup:"));
+            string pill = h.Undone ? L.T("rec_undone") : canUndo ? L.T("rec_can_undo") : L.T("rec_no_undo");
+            var pb = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+            var pt = new TextBlock { Text = pill, FontSize = 11.5, FontWeight = FontWeights.SemiBold };
+            if (canUndo) { pb.Background = Hex("#2227B77A"); pt.Foreground = (Brush)W.FindResource("GoodBrush"); }
+            else { pb.SetResourceReference(Border.BackgroundProperty, "HoverBrush"); pt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); }
+            pb.Child = pt; right.Children.Add(pb);
+            Button b = null;
+            if (canUndo) { b = new Button { Content = L.T("rec_undo") }; b.Click += (s, e) => UndoHistory(h); }
+            else if (!string.IsNullOrEmpty(h.Receipt)) { b = new Button { Content = L.T("rec_receipt") }; b.Click += (s, e) => Ask(h.Title + "  ·  " + HistTime(h), h.Detail + "\n\n" + h.Receipt.Trim(), "OK", "E9F9", false, null); }
+            if (b != null) { b.Style = (Style)W.FindResource("Ghost"); b.Height = 32; b.Padding = new Thickness(14, 0, 14, 0); b.FontSize = 12.5; b.IsEnabled = !busy; right.Children.Add(b); }
+            Grid.SetColumn(right, c + 1); g.Children.Add(right);
+            return line;
+        }
+
+        void UndoHistory(HistEntry h)
+        {
+            if (h.Undo.StartsWith("org:")) { RequestUndo(); return; }
+            if (h.Undo.StartsWith("startup:"))
+            {
+                var a = h.Undo.Substring(8).Split('|');
+                var item = Startup.List().FirstOrDefault(x => x.Name == a[0]);
+                if (item == null) { Toast(L.T("startup_fail_item"), "E7BA"); return; }
+                bool want = a.Length > 1 && a[1] == "1";
+                try
+                {
+                    Startup.SetEnabled(item, want);
+                    History.MarkUndone(h.Undo);
+                    History.Add("undo", L.T("hist_undo_startup"), string.Format(want ? L.T("startup_enabled") : L.T("startup_disabled"), item.Name));
+                    Toast(string.Format(want ? L.T("startup_enabled") : L.T("startup_disabled"), item.Name), "E73E");
+                    startupLoaded = false;
+                }
+                catch (Exception ex) { Toast(L.T("startup_fail_item"), "E7BA"); global::Kemas.Log.Error("Undo startup", ex); }
+                RefreshHistory();
+            }
+        }
+
         // ================================================================ support KEMAS (optional tip, opens checkout in browser)
         void OpenSupportLink(string url)
         {
@@ -593,6 +673,10 @@ namespace Kemas
                 UpdateLastClean();
                 UpdateSelectedTotal();
                 Log(string.Format(L.T("clean_done"), Fmt.Size(freed)));
+                var rc = new System.Text.StringBuilder();
+                foreach (var r in results) rc.AppendLine(L.T("t_" + r.Key) + ": " + (r.State == ItemState.Skipped ? L.T("hist_skipped") : Fmt.Size(r.Freed)) + (r.Locked > 0 ? "  (" + string.Format(L.T("note_locked"), r.Locked) + ")" : ""));
+                History.Add("clean", L.T("smart"), string.Format(L.T("hist_freed"), Fmt.Size(freed)) + (skipped > 0 ? "  ·  " + string.Format(L.T("chip_skipped"), skipped) : ""), rc.ToString());
+                RefreshHistory();
             });
         }
 
@@ -855,7 +939,12 @@ namespace Kemas
                 var cb = fe as CheckBox;
                 if (item == null || cb == null) return;
                 bool want = !item.Enabled;
-                try { Startup.SetEnabled(item, want); Toast(string.Format(want ? L.T("startup_enabled") : L.T("startup_disabled"), item.Name), "E73E"); }
+                try
+                {
+                    Startup.SetEnabled(item, want); Toast(string.Format(want ? L.T("startup_enabled") : L.T("startup_disabled"), item.Name), "E73E");
+                    History.Add("startup", L.T("hist_startup"), string.Format(want ? L.T("startup_enabled") : L.T("startup_disabled"), item.Name), "", "startup:" + item.Name + "|" + (!want ? "1" : "0"));
+                    RefreshHistory();
+                }
                 catch (Exception ex) { Toast(L.T("startup_fail_item"), "E7BA"); global::Kemas.Log.Error("Startup", ex); }
                 cb.IsChecked = item.Enabled;
                 UpdateStartupSummary();
@@ -973,6 +1062,7 @@ namespace Kemas
                 plan = null; E<DataGrid>("OrgGrid").ItemsSource = null;
                 TB("OrgSummary").Text = string.Format(L.T("organized_n"), res.Moved);
                 Log(string.Format(L.T("organized_n"), res.Moved));
+                if (res.Moved > 0) { History.Add("organize", L.T("hist_org"), string.Format(L.T("organized_n"), res.Moved), "", string.IsNullOrEmpty(res.UndoFile) ? "" : "org:" + res.UndoFile); RefreshHistory(); }
             });
         }
 
@@ -998,6 +1088,9 @@ namespace Kemas
                     if (res.Skipped.Count > 0) chips.Add(Tuple.Create(string.Format(L.T("chip_skipped"), res.Skipped.Count), "warn"));
                     ShowDone(L.T("undo_done"), L.T("undo_done_sub"), res.Moved, true, L.T("files_restored"), chips, notes);
                     Log(string.Format(L.T("restored_n"), res.Moved));
+                    History.MarkUndone("org:" + f);
+                    History.Add("undo", L.T("hist_undo_org"), string.Format(L.T("restored_n"), res.Moved));
+                    RefreshHistory();
                 });
             });
         }

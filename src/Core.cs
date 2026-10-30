@@ -204,6 +204,62 @@ namespace Kemas
         }
     }
 
+    // Recovery Centre: every change KEMAS makes, kept on this PC only (history.json, newest first, max 200)
+    [DataContract]
+    public class HistEntry
+    {
+        [DataMember] public string Time = "";     // ISO 8601 local
+        [DataMember] public string Kind = "";     // clean | autoclean | organize | undo | startup
+        [DataMember] public string Title = "";
+        [DataMember] public string Detail = "";
+        [DataMember] public string Receipt = "";
+        [DataMember] public string Undo = "";     // org:<undo file> | startup:<name>|<was enabled>
+        [DataMember] public bool Undone;
+    }
+
+    [DataContract]
+    public class HistFile { [DataMember] public List<HistEntry> Items = new List<HistEntry>(); }
+
+    public static class History
+    {
+        public static string FilePath { get { return Path.Combine(AppInfo.DataDir, "history.json"); } }
+        static readonly object gate = new object();
+        public static List<HistEntry> Load()
+        {
+            lock (gate)
+            {
+                try { if (File.Exists(FilePath)) { var f = Json.Read<HistFile>(File.ReadAllText(FilePath, Encoding.UTF8)); if (f != null && f.Items != null) return f.Items; } }
+                catch (Exception ex) { Log.Error("History.Load", ex); }
+                return new List<HistEntry>();
+            }
+        }
+        public static void Save(List<HistEntry> items)
+        {
+            lock (gate)
+            {
+                try
+                {
+                    Directory.CreateDirectory(AppInfo.DataDir);
+                    if (items.Count > 200) items.RemoveRange(200, items.Count - 200);
+                    File.WriteAllText(FilePath, Json.Write(new HistFile { Items = items }), Encoding.UTF8);
+                }
+                catch (Exception ex) { Log.Error("History.Save", ex); }
+            }
+        }
+        public static HistEntry Add(string kind, string title, string detail, string receipt = "", string undo = "")
+        {
+            var e = new HistEntry { Time = DateTime.Now.ToString("s"), Kind = kind, Title = title, Detail = detail, Receipt = receipt ?? "", Undo = undo ?? "" };
+            var l = Load(); l.Insert(0, e); Save(l);
+            return e;
+        }
+        public static void MarkUndone(string undo)
+        {
+            var l = Load(); bool ch = false;
+            foreach (var e in l) if (e.Undo == undo && !e.Undone) { e.Undone = true; ch = true; }
+            if (ch) Save(l);
+        }
+    }
+
     public static class Json
     {
         public static T Read<T>(string text) where T : class
