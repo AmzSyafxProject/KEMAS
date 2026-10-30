@@ -7,17 +7,22 @@
         TextOptions.TextFormattingMode="Ideal">
   <Window.Resources>
     <LinearGradientBrush x:Key="AccentGrad" StartPoint="0,0" EndPoint="1,1">
-      <GradientStop Color="#7B5CFF" Offset="0"/>
-      <GradientStop Color="#2FD4FF" Offset="1"/>
+      <GradientStop Color="#3978F6" Offset="0"/>
+      <GradientStop Color="#5B8DFF" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="CyanBrush" Color="#22C4F0"/>
-    <SolidColorBrush x:Key="GoodBrush" Color="#21C98A"/>
-    <SolidColorBrush x:Key="WarnBrush" Color="#F5A524"/>
-    <SolidColorBrush x:Key="BadBrush" Color="#F2557A"/>
+    <LinearGradientBrush x:Key="RingGrad" StartPoint="0,0" EndPoint="1,1">
+      <GradientStop Color="#8B78F6" Offset="0"/>
+      <GradientStop Color="#3978F6" Offset="0.5"/>
+      <GradientStop Color="#43C6C0" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="CyanBrush" Color="#3978F6"/>
+    <SolidColorBrush x:Key="GoodBrush" Color="#27B77A"/>
+    <SolidColorBrush x:Key="WarnBrush" Color="#F4AE43"/>
+    <SolidColorBrush x:Key="BadBrush" Color="#ED626B"/>
 
     <Style x:Key="H1" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="28"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="26"/>
+      <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
     </Style>
     <Style x:Key="H2" TargetType="TextBlock">
@@ -46,7 +51,7 @@
       <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="18"/>
+      <Setter Property="CornerRadius" Value="16"/>
       <Setter Property="Padding" Value="22,18"/>
     </Style>
     <Style x:Key="Icon" TargetType="TextBlock">
@@ -55,18 +60,25 @@
     </Style>
 
     <!-- navigation -->
+    <Style x:Key="NavGroup" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="10.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+      <Setter Property="Opacity" Value="0.8"/>
+      <Setter Property="Margin" Value="14,14,0,6"/>
+    </Style>
     <Style x:Key="Nav" TargetType="RadioButton">
       <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="Height" Value="42"/>
-      <Setter Property="Margin" Value="0,0,0,4"/>
+      <Setter Property="Height" Value="38"/>
+      <Setter Property="Margin" Value="0,0,0,2"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="GroupName" Value="nav"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
-            <Border x:Name="bd" CornerRadius="12" Background="Transparent" Padding="14,0">
+            <Border x:Name="bd" CornerRadius="10" Background="Transparent" Padding="14,0">
               <Grid>
                 <Border x:Name="bar" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left" Margin="-14,0,0,0"
                         Background="{StaticResource AccentGrad}" Opacity="0"/>
@@ -105,7 +117,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="bd" CornerRadius="20" Background="{StaticResource AccentGrad}" Padding="{TemplateBinding Padding}">
+            <Border x:Name="bd" CornerRadius="10" Background="{StaticResource AccentGrad}" Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -123,7 +135,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="bd" CornerRadius="20" Background="{DynamicResource GhostBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+            <Border x:Name="bd" CornerRadius="10" Background="{DynamicResource GhostBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -140,7 +152,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="bd" CornerRadius="20" Background="#1FF2557A" BorderBrush="#55F2557A" BorderThickness="1" Padding="{TemplateBinding Padding}">
+            <Border x:Name="bd" CornerRadius="10" Background="#1FF2557A" BorderBrush="#55F2557A" BorderThickness="1" Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -474,10 +486,13 @@
 
           <StackPanel>
             <RadioButton x:Name="NavDash" Style="{StaticResource Nav}" Tag="&#xE80F;" Content="{DynamicResource L_nav_dash}" IsChecked="True"/>
+            <TextBlock Text="{DynamicResource L_grp_clean}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavClean" Style="{StaticResource Nav}" Tag="&#xE74D;" Content="{DynamicResource L_nav_clean}"/>
             <RadioButton x:Name="NavOrg" Style="{StaticResource Nav}" Tag="&#xE8B7;" Content="{DynamicResource L_nav_org}"/>
+            <TextBlock Text="{DynamicResource L_grp_boost}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavRam" Style="{StaticResource Nav}" Tag="&#xE9D9;" Content="{DynamicResource L_nav_ram}"/>
             <RadioButton x:Name="NavStartup" Style="{StaticResource Nav}" Tag="&#xE7E8;" Content="{DynamicResource L_nav_startup}"/>
+            <TextBlock Text="{DynamicResource L_grp_analyze}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavApps" Style="{StaticResource Nav}" Tag="&#xE71D;" Content="{DynamicResource L_nav_apps}"/>
           </StackPanel>
         </DockPanel>
@@ -492,10 +507,15 @@
         </Grid.RowDefinitions>
 
         <Grid x:Name="TitleBar" Background="Transparent">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="34,0,0,0" IsHitTestVisible="False">
+            <TextBlock Text="KEMAS" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
+            <TextBlock Text="  /  " FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
+            <TextBlock x:Name="Crumb" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+          </StackPanel>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
             <Border x:Name="BetaPill" CornerRadius="11" Height="22" Margin="0,9,10,0" Padding="2,0,10,0" Background="#26FFFFFF" VerticalAlignment="Top" ToolTip="Beta Test - official public release 25 Oct 2026">
               <StackPanel Orientation="Horizontal">
-                <Border CornerRadius="9" Height="18" Padding="8,0" Background="{StaticResource AccentGrad}" VerticalAlignment="Center"><TextBlock Text="BETA" FontSize="10" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/></Border>
+                <Border CornerRadius="9" Height="18" Padding="8,0" Background="{StaticResource AccentGrad}" VerticalAlignment="Center"><TextBlock Text="4.0" FontSize="10" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/></Border>
                 <TextBlock x:Name="BetaCountdown" Margin="8,0,0,0" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
               </StackPanel>
             </Border>
@@ -522,7 +542,7 @@
               <TextBlock x:Name="DateText" Style="{StaticResource Sub}"/>
             </StackPanel>
 
-            <Border Grid.Row="1" CornerRadius="24" Padding="26,22" Margin="0,0,0,16" Background="{DynamicResource HeroBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+            <Border Grid.Row="1" CornerRadius="16" Padding="26,22" Margin="0,0,0,16" Background="{DynamicResource HeroBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
               <Grid>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
@@ -531,7 +551,7 @@
                 <Grid Width="196" Height="196">
                   <Ellipse Width="164" Height="164" Fill="{DynamicResource RingGlow}"/>
                   <Ellipse Width="184" Height="184" Stroke="{DynamicResource TrackBrush}" StrokeThickness="13"/>
-                  <Path x:Name="RingArc" Stroke="{StaticResource AccentGrad}" StrokeThickness="13" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                  <Path x:Name="RingArc" Stroke="{StaticResource RingGrad}" StrokeThickness="13" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                   <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock x:Name="ScoreText" Text="--" FontSize="54" FontWeight="Bold" Foreground="{DynamicResource HeroText}" HorizontalAlignment="Center"/>
                     <TextBlock Text="{DynamicResource L_health}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource HeroMuted}" HorizontalAlignment="Center" Margin="0,-4,0,0"/>

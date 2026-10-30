@@ -499,6 +499,7 @@ namespace Kemas
             L.Apply(W.Resources, S.Language);
             Win11Corners();
             RefreshTexts();
+            UpdateCrumb();
             RebuildTrayMenu();
         }
 
@@ -588,6 +589,11 @@ namespace Kemas
 
         // ================================================================ navigation
         string currentPage = "PageDash";
+        void UpdateCrumb()
+        {
+            var map = new System.Collections.Generic.Dictionary<string, string> { { "PageDash", "nav_dash" }, { "PageClean", "nav_clean" }, { "PageOrg", "nav_org" }, { "PageRam", "nav_ram" }, { "PageStartup", "nav_startup" }, { "PageApps", "nav_apps" }, { "PageSettings", "nav_settings" }, { "PageAbout", "nav_about" } };
+            string k; if (map.TryGetValue(currentPage, out k)) TB("Crumb").Text = L.T(k);
+        }
         void ShowPage(string nav)
         {
             string page = "Page" + nav.Substring(3);
@@ -597,6 +603,7 @@ namespace Kemas
             old.Visibility = Visibility.Collapsed;
             nw.Visibility = Visibility.Visible;
             currentPage = page;
+            UpdateCrumb();
             if (!S.ReducedMotion)
             {
                 nw.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 240));

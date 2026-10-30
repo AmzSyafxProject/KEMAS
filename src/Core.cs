@@ -12,7 +12,7 @@ namespace Kemas
     public static class AppInfo
     {
         public const string Name = "KEMAS";
-        public const string Version = "3.4.8";
+        public const string Version = "4.0.0";
         public const string Tagline = "Your PC, Kemas.";
         // GitHub repository used for updates: "owner/repo". Empty = updates disabled.
         public const string UpdateRepo = "AmzSyafxProject/KEMAS";
@@ -93,7 +93,7 @@ namespace Kemas
     [DataContract]
     public class Settings
     {
-        [DataMember] public string Theme = "dark";          // dark | light | system
+        [DataMember] public string Theme = "light";          // dark | light | system
         [DataMember] public string Language = "en";         // en | ms
         [DataMember] public bool ReducedMotion = false;
         [DataMember] public string DisplayName = "";        // empty = detect from Windows
@@ -128,13 +128,13 @@ namespace Kemas
         [OnDeserializing]
         void Defaults(StreamingContext c)
         {
-            Theme = "dark"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
+            Theme = "light"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
             CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = false; AutoUpdate = true; RemoveLockedAtRestart = true;
         }
 
         public void FillDefaults()
         {
-            if (string.IsNullOrEmpty(Theme)) Theme = "dark";
+            if (string.IsNullOrEmpty(Theme)) Theme = "light";
             if (string.IsNullOrEmpty(Language)) Language = "en";
             if (string.IsNullOrEmpty(AutoClean)) AutoClean = "off";
             if (string.IsNullOrEmpty(OrgOthersName)) OrgOthersName = "Others";

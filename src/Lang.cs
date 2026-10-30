@@ -40,10 +40,13 @@ namespace Kemas
             A("greet_morning", "Good morning ☀", "Selamat pagi ☀");
             A("greet_afternoon", "Good afternoon", "Selamat petang");
             A("greet_evening", "Good evening", "Selamat malam");
-            A("nav_dash", "Dashboard", "Papan Utama");
-            A("nav_clean", "System Cleaner", "Pembersih Sistem");
+            A("nav_dash", "Home", "Utama");
+            A("grp_clean", "CLEAN", "BERSIH");
+            A("grp_boost", "BOOST", "PRESTASI");
+            A("grp_analyze", "ANALYZE", "ANALISIS");
+            A("nav_clean", "Smart Clean", "Pembersihan Pintar");
             A("nav_org", "File Organizer", "Penyusun Fail");
-            A("nav_ram", "Memory Booster", "Penggalak Memori");
+            A("nav_ram", "Memory", "Memori");
             A("nav_startup", "Startup Apps", "Apps Permulaan");
             A("nav_apps", "Programs", "Program");
             A("nav_settings", "Settings", "Tetapan");
@@ -501,7 +504,7 @@ namespace Kemas
             A("uninstalled", "KEMAS has been removed. Thank you for using it!", "KEMAS telah dibuang. Terima kasih kerana menggunakannya!");
 
             // ---- about
-            A("about_version", "Version {0} Beta  ·  Native Windows app  ·  Rendering at {1} Hz", "Versi {0} Beta  ·  Apps Windows asli  ·  Paparan pada {1} Hz");
+            A("about_version", "Version {0}  ·  New Generation  ·  Rendering at {1} Hz", "Versi {0}  ·  Generasi Baharu  ·  Paparan pada {1} Hz");
             A("sup_title", "Support KEMAS", "Sokong KEMAS");
             A("sup_desc", "KEMAS is free. If it helps you, you can buy the developer a coffee. Opens in your browser.", "KEMAS percuma. Jika ia membantu anda, anda boleh belanja pembangun secawan kopi. Dibuka dalam pelayar anda.");
             A("credits", "CREDITS", "KREDIT");
