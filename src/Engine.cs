@@ -7,7 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Runtime.Serialization;
 using Microsoft.Win32;
+using Brush = System.Windows.Media.Brush;
 
 namespace Kemas
 {
@@ -943,6 +945,10 @@ namespace Kemas
         public RegistryView View;
         public string ApprovedKey;     // StartupApproved\Run | Run32 | StartupFolder
         public string ValueName;
+        public int Tag;
+        public string ImpactText { get; set; }
+        public Brush ImpactBrush { get; set; }
+        public Brush ImpactBg { get; set; }
     }
 
     public static class Startup
@@ -1021,6 +1027,138 @@ namespace Kemas
                 k.SetValue(item.ValueName, b, RegistryValueKind.Binary);
             }
             item.Enabled = enabled;
+        }
+    }
+
+    // ===================================================================== STORAGE MAP (4.0)
+    public class StorageBlock { public string Key; public long Bytes; public string Path; }
+    public class BigFile { public string Name; public string Path; public long Bytes; }
+    public class StorageReport { public List<StorageBlock> Blocks = new List<StorageBlock>(); public List<BigFile> Biggest = new List<BigFile>(); public long Used, Free, Total; public string Drive; }
+
+    public static class StorageMap
+    {
+        /// Walks a folder tree (skipping reparse points and unreadable folders) and keeps the biggest files.
+        static long Walk(string root, List<BigFile> top, Func<bool> cancel)
+        {
+            long sum = 0;
+            var stack = new Stack<string>(); stack.Push(root);
+            while (stack.Count > 0)
+            {
+                if (cancel != null && cancel()) break;
+                var d = stack.Pop();
+                try
+                {
+                    var di = new DirectoryInfo(d);
+                    foreach (var f in di.EnumerateFiles())
+                    {
+                        try
+                        {
+                            if ((f.Attributes & FileAttributes.ReparsePoint) != 0) continue;
+                            long len = f.Length; sum += len;
+                            if (top != null && len > 50L * 1024 * 1024)
+                            {
+                                top.Add(new BigFile { Name = f.Name, Path = f.FullName, Bytes = len });
+                                if (top.Count > 40) { top.Sort((a, b) => b.Bytes.CompareTo(a.Bytes)); top.RemoveRange(20, top.Count - 20); }
+                            }
+                        }
+                        catch { }
+                    }
+                    foreach (var sub in di.EnumerateDirectories())
+                        try { if ((sub.Attributes & FileAttributes.ReparsePoint) == 0) stack.Push(sub.FullName); } catch { }
+                }
+                catch { }
+            }
+            return sum;
+        }
+
+        static string Shell(string guid, Environment.SpecialFolder fallback)
+        {
+            try
+            {
+                using (var k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"))
+                {
+                    var v = k == null ? null : k.GetValue(guid) as string;
+                    if (!string.IsNullOrEmpty(v)) return Environment.ExpandEnvironmentVariables(v);
+                }
+            }
+            catch { }
+            return Environment.GetFolderPath(fallback);
+        }
+
+        public static StorageReport Scan(Func<bool> cancel)
+        {
+            var rep = new StorageReport();
+            var drive = new DriveInfo(Path.GetPathRoot(Environment.SystemDirectory));
+            rep.Drive = drive.Name.TrimEnd('\\'); rep.Total = drive.TotalSize; rep.Free = drive.AvailableFreeSpace; rep.Used = rep.Total - rep.Free;
+            string root = Path.GetPathRoot(Environment.SystemDirectory);
+            var folders = new List<Tuple<string, string>> {
+                Tuple.Create("videos", Shell("My Video", Environment.SpecialFolder.MyVideos)),
+                Tuple.Create("pictures", Shell("My Pictures", Environment.SpecialFolder.MyPictures)),
+                Tuple.Create("music", Shell("My Music", Environment.SpecialFolder.MyMusic)),
+                Tuple.Create("documents", Shell("Personal", Environment.SpecialFolder.MyDocuments)),
+                Tuple.Create("downloads", KnownFolders.Downloads),
+                Tuple.Create("desktop", Shell("Desktop", Environment.SpecialFolder.DesktopDirectory)) };
+            var top = new List<BigFile>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var f in folders)
+            {
+                if (string.IsNullOrEmpty(f.Item2) || !Directory.Exists(f.Item2) || !seen.Add(f.Item2)) continue;
+                if (!f.Item2.StartsWith(root, StringComparison.OrdinalIgnoreCase)) continue;     // only folders on the system drive count toward its map
+                rep.Blocks.Add(new StorageBlock { Key = f.Item1, Path = f.Item2, Bytes = Walk(f.Item2, top, cancel) });
+            }
+            double apps = 0; try { apps = Programs.List().Sum(a => a.SizeMB) * 1024 * 1024; } catch { }
+            rep.Blocks.Add(new StorageBlock { Key = "apps", Bytes = (long)apps });
+            string win = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            rep.Blocks.Add(new StorageBlock { Key = "windows", Path = win, Bytes = Walk(win, null, cancel) });
+            long known = rep.Blocks.Sum(b => b.Bytes);
+            rep.Blocks.Add(new StorageBlock { Key = "other", Bytes = Math.Max(0, rep.Used - known) });
+            rep.Blocks.RemoveAll(b => b.Bytes <= 0);
+            rep.Blocks.Sort((a, b) => b.Bytes.CompareTo(a.Bytes));
+            top.Sort((a, b) => b.Bytes.CompareTo(a.Bytes));
+            rep.Biggest = top.Take(8).ToList();
+            return rep;
+        }
+    }
+
+    // daily used-space snapshots for the Storage history line (storage.json, last 60 days)
+    [DataContract] public class StorageDay { [DataMember] public string Day = ""; [DataMember] public double UsedGB; }
+    [DataContract] public class StorageHistFile { [DataMember] public List<StorageDay> Days = new List<StorageDay>(); }
+    public static class StorageHistory
+    {
+        static string FilePath { get { return Path.Combine(AppInfo.DataDir, "storage.json"); } }
+        public static List<StorageDay> Record(long usedBytes)
+        {
+            var f = new StorageHistFile();
+            try { if (File.Exists(FilePath)) f = Json.Read<StorageHistFile>(File.ReadAllText(FilePath)) ?? new StorageHistFile(); } catch { }
+            if (f.Days == null) f.Days = new List<StorageDay>();
+            string today = DateTime.Today.ToString("yyyy-MM-dd");
+            f.Days.RemoveAll(d => d.Day == today);
+            f.Days.Add(new StorageDay { Day = today, UsedGB = Math.Round(usedBytes / 1073741824.0, 2) });
+            f.Days.Sort((a, b) => string.CompareOrdinal(a.Day, b.Day));
+            if (f.Days.Count > 60) f.Days.RemoveRange(0, f.Days.Count - 60);
+            try { Directory.CreateDirectory(AppInfo.DataDir); File.WriteAllText(FilePath, Json.Write(f)); } catch { }
+            return f.Days;
+        }
+    }
+
+    // estimated startup impact from the size of the program that starts (Windows does not expose real boot timing to apps)
+    public static class StartupImpact
+    {
+        public static int Level(StartupItem it)
+        {
+            try
+            {
+                string cmd = (it.Command ?? "").Trim(), exe;
+                if (cmd.StartsWith("\"")) { int e = cmd.IndexOf('"', 1); exe = e > 0 ? cmd.Substring(1, e - 1) : cmd.Trim('"'); }
+                else { int e = cmd.IndexOf(".exe", StringComparison.OrdinalIgnoreCase); exe = e > 0 ? cmd.Substring(0, e + 4) : cmd; }
+                exe = Environment.ExpandEnvironmentVariables(exe);
+                if (!File.Exists(exe)) return 1;
+                var dir = Path.GetDirectoryName(exe);
+                long sz = new FileInfo(exe).Length;
+                try { sz += new DirectoryInfo(dir).EnumerateFiles("*.dll").Sum(f => f.Length); } catch { }
+                return sz > 150L * 1024 * 1024 ? 3 : sz > 30L * 1024 * 1024 ? 2 : 1;
+            }
+            catch { return 1; }
         }
     }
 }

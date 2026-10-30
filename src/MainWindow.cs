@@ -289,7 +289,7 @@ namespace Kemas
             BT("BtnMax").Click += (s, e) => W.WindowState = W.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
             BT("BtnClose").Click += (s, e) => W.Close();
 
-            foreach (var n in new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps", "NavRecover", "NavSettings", "NavAbout" })
+            foreach (var n in new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps", "NavDoctor", "NavMap", "NavRecover", "NavSettings", "NavAbout" })
             {
                 var name = n;
                 E<RadioButton>(n).Checked += (s, e) => ShowPage(name);
@@ -308,6 +308,10 @@ namespace Kemas
                 loadingUi = true; E<RadioButton>(S.Theme == "light" ? "ThemeLight" : "ThemeDark").IsChecked = true; loadingUi = false;
             };
             TB("SideVersion").Text = "Version " + AppInfo.Version;
+            BT("BtnDocCheck").Click += (s, e) => RunDoctor();
+            BT("BtnMapScan").Click += (s, e) => ScanMap();
+            E<Canvas>("MapCanvas").SizeChanged += (s, e) => DrawMap();
+            try { var dv = new DriveInfo(System.IO.Path.GetPathRoot(Environment.SystemDirectory)); StorageHistory.Record(dv.TotalSize - dv.AvailableFreeSpace); } catch { }
             BT("BtnViewAll").Click += (s, e) => E<RadioButton>("NavRecover").IsChecked = true;
             RefreshHistory();
             UpdateCrumb();
@@ -459,7 +463,7 @@ namespace Kemas
                 bool overlay = E<Grid>("DialogLayer").Visibility == Visibility.Visible || E<Grid>("SupportLayer").Visibility == Visibility.Visible || E<Grid>("WhatsNewLayer").Visibility == Visibility.Visible;
                 if (!overlay && !busy && (Keyboard.Modifiers & ModifierKeys.Control) != 0 && e.Key >= Key.D1 && e.Key <= Key.D6)
                 {
-                    var navs = new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps", "NavRecover" };
+                    var navs = new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavDoctor", "NavMap", "NavApps", "NavRecover" };
                     E<RadioButton>(navs[e.Key - Key.D1]).IsChecked = true; e.Handled = true; return;
                 }
                 if (!overlay && !busy && e.Key == Key.F5) { StartScan(); e.Handled = true; return; }
@@ -606,7 +610,7 @@ namespace Kemas
         string currentPage = "PageDash";
         void UpdateCrumb()
         {
-            var map = new System.Collections.Generic.Dictionary<string, string> { { "PageDash", "nav_dash" }, { "PageClean", "nav_clean" }, { "PageOrg", "nav_org" }, { "PageRam", "nav_ram" }, { "PageStartup", "nav_startup" }, { "PageApps", "nav_apps" }, { "PageRecover", "nav_recover" }, { "PageSettings", "nav_settings" }, { "PageAbout", "nav_about" } };
+            var map = new System.Collections.Generic.Dictionary<string, string> { { "PageDash", "nav_dash" }, { "PageClean", "nav_clean" }, { "PageOrg", "nav_org" }, { "PageRam", "nav_ram" }, { "PageStartup", "nav_startup" }, { "PageApps", "nav_apps" }, { "PageDoctor", "nav_doctor" }, { "PageMap", "nav_map" }, { "PageRecover", "nav_recover" }, { "PageSettings", "nav_settings" }, { "PageAbout", "nav_about" } };
             string k; if (map.TryGetValue(currentPage, out k)) TB("Crumb").Text = L.T(k);
         }
         void ShowPage(string nav)
@@ -630,6 +634,8 @@ namespace Kemas
             if (page == "PageRam" && !busy) LoadRam();
             if (page == "PageApps" && !appsLoaded && !busy) LoadApps();
             if (page == "PageRecover") RefreshHistory();
+            if (page == "PageDoctor" && !busy) RunDoctor();
+            if (page == "PageMap") ShowMapHistory();
             if (page == "PageStartup" && !startupLoaded && !busy) LoadStartup();
         }
 

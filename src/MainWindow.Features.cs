@@ -437,6 +437,141 @@ namespace Kemas
             return g;
         }
 
+        // ================================================================ PC doctor (rule-based on real measurements)
+        void RunDoctor()
+        {
+            var list = E<StackPanel>("DocList");
+            int issues = 0;
+            List<StartupItem> st = null; int dlCount = 0;
+            Run(() =>
+            {
+                try { st = Startup.List(); foreach (var it in st) it.Tag = it.Enabled ? StartupImpact.Level(it) : 0; } catch { st = new List<StartupItem>(); }
+                try { dlCount = Directory.EnumerateFiles(KnownFolders.Downloads).Count(); } catch { }
+            }, () =>
+            {
+                list.Children.Clear();
+                Action<string, bool, string, string, string, Action> add = (icon, bad, title, desc, src, act) =>
+                {
+                    if (bad) issues++;
+                    list.Children.Add(RoadRow(icon, title, desc + "\n" + string.Format(L.T("doc_src"), src), 0, L.T("btn_review"), act, !bad));
+                };
+                int en = st.Count(x => x.Enabled), hi = st.Count(x => x.Enabled && x.Tag == 3);
+                bool sb = en >= 6 || hi >= 2;
+                add("E7E8", sb, L.T("doc_startup"), sb ? string.Format(L.T("doc_startup_bad"), en, hi) : string.Format(L.T("doc_startup_ok"), en), L.T("doc_startup_src"), () => E<RadioButton>("NavStartup").IsChecked = true);
+                string dn = "C:"; int freePct = 100 - diskPct;
+                try { dn = System.IO.Path.GetPathRoot(Environment.SystemDirectory).TrimEnd('\\'); } catch { }
+                bool db = freePct < 15;
+                add("EDA2", db, L.T("doc_disk"), string.Format(L.T(db ? "doc_disk_bad" : "doc_disk_ok"), freePct, dn), string.Format(L.T("doc_disk_src"), dn), () => E<RadioButton>("NavMap").IsChecked = true);
+                bool rb = ramPct > 85;
+                add("E9D9", rb, L.T("doc_ram"), string.Format(L.T(rb ? "doc_ram_bad" : "doc_ram_ok"), ramPct), L.T("doc_ram_src"), () => E<RadioButton>("NavRam").IsChecked = true);
+                bool jb = scanned && junkTotal > 500L * 1024 * 1024;
+                add("E74D", jb, L.T("doc_junk"), jb ? string.Format(L.T("doc_junk_bad"), Fmt.Size(junkTotal)) : L.T("doc_junk_ok"), L.T("doc_junk_src"), () => E<RadioButton>("NavClean").IsChecked = true);
+                bool lb = dlCount > 100;
+                add("E8B7", lb, L.T("doc_dl"), string.Format(L.T(lb ? "doc_dl_bad" : "doc_dl_ok"), dlCount), L.T("doc_dl_src"), () => E<RadioButton>("NavOrg").IsChecked = true);
+                TB("DocCount").Text = issues == 0 ? L.T("doc_none") : string.Format(L.T("doc_n"), issues);
+                TB("DocCountSub").Text = L.T(issues == 0 ? "doc_none_d" : "doc_some_d");
+            });
+        }
+
+        // ================================================================ storage map
+        StorageReport mapRep;
+        static readonly string[] MapColors = { "#3978F6", "#8B78F6", "#43C6C0", "#ED626B", "#F4AE43", "#27B77A", "#5B8DFF", "#A38AFF", "#9AA3B5" };
+        void ScanMap()
+        {
+            if (busy) return;
+            TB("MapHint").Text = L.T("map_scanning"); TB("MapHint").Visibility = Visibility.Visible;
+            E<Canvas>("MapCanvas").Children.Clear();
+            StorageReport r = null;
+            BT("BtnMapScan").IsEnabled = false;
+            Run(() => { r = StorageMap.Scan(() => cancelFlag); }, () =>
+            {
+                BT("BtnMapScan").IsEnabled = true;
+                mapRep = r; if (r == null) return;
+                TB("MapHint").Visibility = Visibility.Collapsed;
+                TB("MapSub").Text = string.Format(L.T("map_sub_d"), r.Drive, Fmt.Size(r.Used), Fmt.Size(r.Total));
+                DrawMap();
+                var big = E<StackPanel>("MapBigList"); big.Children.Clear();
+                if (r.Biggest.Count == 0) { var t = new TextBlock { Text = L.T("map_big_none"), FontSize = 12.5, TextWrapping = TextWrapping.Wrap }; t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); big.Children.Add(t); }
+                foreach (var f in r.Biggest)
+                {
+                    var g = new Grid { Margin = new Thickness(0, 6, 0, 6), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = f.Path };
+                    var n = new TextBlock { Text = f.Name, FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 0, 70, 0) };
+                    n.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+                    var sz = new TextBlock { Text = Fmt.Size(f.Bytes), FontSize = 12.5, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Right };
+                    sz.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+                    g.Children.Add(n); g.Children.Add(sz);
+                    var path = f.Path;
+                    g.MouseLeftButtonUp += (s, e) => { try { Process.Start("explorer.exe", "/select,\"" + path + "\""); } catch { } };
+                    big.Children.Add(g);
+                }
+                ShowMapHistory();
+            });
+        }
+
+        void DrawMap()
+        {
+            var cv = E<Canvas>("MapCanvas"); cv.Children.Clear();
+            if (mapRep == null || cv.ActualWidth < 50 || cv.ActualHeight < 50) return;
+            var blocks = mapRep.Blocks.Select(b => Tuple.Create(b.Key, (double)b.Bytes, b.Path)).ToList();
+            blocks.Add(Tuple.Create("free", (double)mapRep.Free, (string)null));
+            var rects = new List<Tuple<Tuple<string, double, string>, Rect>>();
+            Split(blocks, new Rect(0, 0, cv.ActualWidth, cv.ActualHeight), rects);
+            int ci = 0;
+            foreach (var r in rects)
+            {
+                var b = r.Item1; var rc = r.Item2;
+                if (rc.Width < 6 || rc.Height < 6) continue;
+                bool free = b.Item1 == "free";
+                var col = (Color)ColorConverter.ConvertFromString(free ? "#9AA3B5" : MapColors[ci++ % MapColors.Length]);
+                var bd = new Border { Width = rc.Width - 6, Height = rc.Height - 6, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 12, 10), BorderThickness = new Thickness(1),
+                    Background = new SolidColorBrush(Color.FromArgb((byte)(free ? 0x14 : Theme.IsDark ? 0x55 : 0x30), col.R, col.G, col.B)),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, col.R, col.G, col.B)) };
+                var sp = new StackPanel();
+                var t1 = new TextBlock { Text = L.T("mb_" + b.Item1), FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+                t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+                var t2 = new TextBlock { Text = Fmt.Size(b.Item2), FontSize = 12 };
+                t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                sp.Children.Add(t1); if (rc.Height > 54) sp.Children.Add(t2);
+                bd.Child = sp;
+                if (!string.IsNullOrEmpty(b.Item3)) { var p = b.Item3; bd.Cursor = System.Windows.Input.Cursors.Hand; bd.ToolTip = p; bd.MouseLeftButtonUp += (s, e) => { try { Process.Start("explorer.exe", "\"" + p + "\""); } catch { } }; }
+                Canvas.SetLeft(bd, rc.X + 3); Canvas.SetTop(bd, rc.Y + 3);
+                cv.Children.Add(bd);
+            }
+        }
+
+        // binary split treemap: halves by total size along the longer side
+        static void Split(List<Tuple<string, double, string>> items, Rect r, List<Tuple<Tuple<string, double, string>, Rect>> outp)
+        {
+            if (items.Count == 0) return;
+            if (items.Count == 1) { outp.Add(Tuple.Create(items[0], r)); return; }
+            double total = items.Sum(x => x.Item2); if (total <= 0) return;
+            double acc = 0; int cut = 1;
+            for (int i = 0; i < items.Count - 1; i++) { acc += items[i].Item2; cut = i + 1; if (acc >= total / 2) break; }
+            var a = items.Take(cut).ToList(); var b = items.Skip(cut).ToList();
+            double fa = a.Sum(x => x.Item2) / total;
+            if (r.Width >= r.Height)
+            { double w = r.Width * fa; Split(a, new Rect(r.X, r.Y, w, r.Height), outp); Split(b, new Rect(r.X + w, r.Y, r.Width - w, r.Height), outp); }
+            else
+            { double h = r.Height * fa; Split(a, new Rect(r.X, r.Y, r.Width, h), outp); Split(b, new Rect(r.X, r.Y + h, r.Width, r.Height - h), outp); }
+        }
+
+        void ShowMapHistory()
+        {
+            List<StorageDay> days;
+            try { var d = new DriveInfo(System.IO.Path.GetPathRoot(Environment.SystemDirectory)); days = StorageHistory.Record(d.TotalSize - d.AvailableFreeSpace); } catch { return; }
+            var pl = E<System.Windows.Shapes.Polyline>("MapHistLine"); var pts = new PointCollection();
+            if (days.Count >= 2)
+            {
+                double mn = days.Min(x => x.UsedGB), mx = days.Max(x => x.UsedGB), sp = Math.Max(0.5, mx - mn);
+                for (int i = 0; i < days.Count; i++) pts.Add(new Point(i * 254.0 / (days.Count - 1) + 1, 64 - (days[i].UsedGB - mn) / sp * 58));
+                var first = days[0]; double diff = days[days.Count - 1].UsedGB - first.UsedGB;
+                DateTime fd; DateTime.TryParse(first.Day, out fd);
+                TB("MapHistText").Text = string.Format(L.T("map_hist_d"), days[days.Count - 1].UsedGB.ToString("0.0") + " GB", (diff >= 0 ? "+" : "") + diff.ToString("0.0") + " GB", fd.ToString("d MMM", L.Culture));
+            }
+            else TB("MapHistText").Text = L.T("map_hist_first");
+            pl.Points = pts;
+        }
+
         // ================================================================ recovery centre
         void RefreshHistory()
         {
@@ -1152,8 +1287,14 @@ namespace Kemas
         void LoadStartup()
         {
             List<StartupItem> items = null;
-            Run(() => { items = Startup.List(); }, () =>
+            Run(() => { items = Startup.List(); foreach (var it in items) it.Tag = StartupImpact.Level(it); }, () =>
             {
+                foreach (var it in items)
+                {
+                    var c = it.Tag == 3 ? Color.FromRgb(0xED, 0x62, 0x6B) : it.Tag == 2 ? Color.FromRgb(0xE0, 0x96, 0x1F) : Color.FromRgb(0x27, 0xB7, 0x7A);
+                    it.ImpactText = L.T(it.Tag == 3 ? "impact_high" : it.Tag == 2 ? "impact_med" : "impact_low");
+                    it.ImpactBrush = new SolidColorBrush(c); it.ImpactBg = new SolidColorBrush(Color.FromArgb(0x24, c.R, c.G, c.B));
+                }
                 startupItems = items;
                 startupLoaded = true;
                 E<ItemsControl>("StartupList").ItemsSource = items;

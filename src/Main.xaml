@@ -519,6 +519,8 @@
             <RadioButton x:Name="NavRam" Style="{StaticResource Nav}" Tag="&#xE9D9;" Content="{DynamicResource L_nav_ram}"/>
             <RadioButton x:Name="NavStartup" Style="{StaticResource Nav}" Tag="&#xE7E8;" Content="{DynamicResource L_nav_startup}"/>
             <TextBlock Text="{DynamicResource L_grp_analyze}" Style="{StaticResource NavGroup}"/>
+            <RadioButton x:Name="NavDoctor" Style="{StaticResource Nav}" Tag="&#xE9D2;" Content="{DynamicResource L_nav_doctor}"/>
+            <RadioButton x:Name="NavMap" Style="{StaticResource Nav}" Tag="&#xEDA2;" Content="{DynamicResource L_nav_map}"/>
             <RadioButton x:Name="NavApps" Style="{StaticResource Nav}" Tag="&#xE71D;" Content="{DynamicResource L_nav_apps}"/>
             <TextBlock Text="{DynamicResource L_grp_recover}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavRecover" Style="{StaticResource Nav}" Tag="&#xE777;" Content="{DynamicResource L_nav_recover}"/>
@@ -960,7 +962,12 @@
                           <TextBlock Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="16" Foreground="#9C8BFF" HorizontalAlignment="Center"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="14,0,16,0" VerticalAlignment="Center">
-                          <TextBlock Text="{Binding Name}" FontSize="14.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                          <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" FontSize="14.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" MaxWidth="420"/>
+                            <Border CornerRadius="9" Padding="8,1" Margin="10,0,0,0" Background="{Binding ImpactBg}" VerticalAlignment="Center" ToolTip="{DynamicResource L_impact_tip}">
+                              <TextBlock Text="{Binding ImpactText}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding ImpactBrush}"/>
+                            </Border>
+                          </StackPanel>
                           <TextBlock FontSize="12" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Command}">
                             <Run Text="{Binding Location, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding Command, Mode=OneWay}"/>
                           </TextBlock>
@@ -1146,6 +1153,67 @@
                 </Border>
               </StackPanel>
             </ScrollViewer>
+          </Grid>
+
+          <!-- ================= PC DOCTOR ================= -->
+          <Grid x:Name="PageDoctor" Visibility="Collapsed">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid Margin="0,0,0,18">
+              <StackPanel Margin="0,0,200,0">
+                <TextBlock Text="{DynamicResource L_doc_title}" Style="{StaticResource H1}"/>
+                <TextBlock Text="{DynamicResource L_doc_sub}" Style="{StaticResource Sub}"/>
+              </StackPanel>
+              <Button x:Name="BtnDocCheck" Style="{StaticResource Primary}" HorizontalAlignment="Right" VerticalAlignment="Center" Content="{DynamicResource L_doc_check}"/>
+            </Grid>
+            <Grid Grid.Row="1">
+              <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+              <Border Style="{StaticResource Card}" Padding="22,10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="DocList"/></ScrollViewer>
+              </Border>
+              <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top" Padding="22,20">
+                <StackPanel>
+                  <TextBlock Text="{DynamicResource L_doc_how}" Style="{StaticResource Label}"/>
+                  <TextBlock Text="{DynamicResource L_doc_how_d}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,16" LineHeight="19"/>
+                  <Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,0,0,14"/>
+                  <TextBlock Text="{DynamicResource L_doc_result}" Style="{StaticResource Label}"/>
+                  <TextBlock x:Name="DocCount" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,6,0,0"/>
+                  <TextBlock x:Name="DocCountSub" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Grid>
+
+          <!-- ================= STORAGE MAP ================= -->
+          <Grid x:Name="PageMap" Visibility="Collapsed">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid Margin="0,0,0,18">
+              <StackPanel Margin="0,0,200,0">
+                <TextBlock Text="{DynamicResource L_map_title}" Style="{StaticResource H1}"/>
+                <TextBlock x:Name="MapSub" Text="{DynamicResource L_map_sub}" Style="{StaticResource Sub}"/>
+              </StackPanel>
+              <Button x:Name="BtnMapScan" Style="{StaticResource Primary}" HorizontalAlignment="Right" VerticalAlignment="Center" Content="{DynamicResource L_map_scan}"/>
+            </Grid>
+            <Grid Grid.Row="1">
+              <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+              <Border Style="{StaticResource Card}" Padding="12">
+                <Grid>
+                  <Canvas x:Name="MapCanvas" ClipToBounds="True"/>
+                  <TextBlock x:Name="MapHint" Text="{DynamicResource L_map_hint}" FontSize="13" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="30"/>
+                </Grid>
+              </Border>
+              <Border Grid.Column="2" Style="{StaticResource Card}" Padding="22,18">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="{DynamicResource L_map_hist}" Style="{StaticResource Label}"/>
+                    <Canvas Width="256" Height="70" Margin="0,10,0,4" HorizontalAlignment="Left"><Polyline x:Name="MapHistLine" Stroke="{StaticResource CyanBrush}" StrokeThickness="2" StrokeLineJoin="Round"/></Canvas>
+                    <TextBlock x:Name="MapHistText" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+                    <Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,14,0,12"/>
+                    <TextBlock Text="{DynamicResource L_map_big}" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                  </StackPanel>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="MapBigList"/></ScrollViewer>
+                </DockPanel>
+              </Border>
+            </Grid>
           </Grid>
 
           <!-- ================= RECOVERY CENTRE ================= -->
