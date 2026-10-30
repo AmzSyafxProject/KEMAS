@@ -706,7 +706,7 @@
               <Border Grid.Column="2" Style="{StaticResource Card}" Padding="22,14">
                 <DockPanel>
                   <TextBlock DockPanel.Dock="Top" Text="{DynamicResource L_activity}" Style="{StaticResource Label}" Margin="0,0,0,6"/>
-                  <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0" Height="Auto"
+                  <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" Padding="0"
                            FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"
                            VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Height="120"/>
                 </DockPanel>
