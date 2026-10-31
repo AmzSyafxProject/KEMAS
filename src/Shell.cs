@@ -60,11 +60,11 @@ namespace Kemas
             { "DiskHealth", new[] { "Drive model, type and Windows health status.", "Model cakera, jenis dan status kesihatan Windows." } },
             { "Privacy", new[] { "Windows settings that share your data.", "Tetapan Windows yang berkongsi data anda." } },
             { "WinHealth", new[] { "Windows Update, Defender, SFC and DISM.", "Windows Update, Defender, SFC dan DISM." } },
-            { "Network", new[] { "Adapters, ping and DNS.", "Penyesuai, ping dan DNS." } },
-            { "Drivers", new[] { "Installed drivers with version and date.", "Pemacu dipasang dengan versi dan tarikh." } },
-            { "SysInfo", new[] { "Windows, CPU, GPU, memory and board.", "Windows, CPU, GPU, memori dan papan induk." } },
-            { "Shredder", new[] { "Overwrite files so they cannot be recovered.", "Tindih fail supaya tidak boleh dipulihkan." } },
-            { "Restore", new[] { "Windows restore points; create one before big changes.", "Titik pemulihan Windows; cipta sebelum perubahan besar." } },
+            { "Network", new[] { "Check network adapters, connection, ping and DNS.", "Semak penyesuai rangkaian, sambungan, ping dan DNS." } },
+            { "Drivers", new[] { "View installed drivers and their versions.", "Lihat pemacu yang dipasang dan versinya." } },
+            { "SysInfo", new[] { "View Windows version, CPU, GPU, memory and system details.", "Lihat versi Windows, CPU, GPU, memori dan butiran sistem." } },
+            { "Shredder", new[] { "Securely delete selected files with explicit confirmation.", "Padam fail terpilih dengan selamat selepas pengesahan." } },
+            { "Restore", new[] { "Manage Windows restore points and create one before major changes.", "Urus titik pemulihan Windows dan cipta satu sebelum perubahan besar." } },
         };
 
         string NavTitle(string nav)
@@ -82,7 +82,13 @@ namespace Kemas
             string[] c; if (CoreNav.TryGetValue(nav, out c)) return Tx(c[3], c[4]);
             string[] d; return ModDesc.TryGetValue(nav.Substring(3), out d) ? Tx(d[0], d[1]) : "";
         }
-        Cat CatOf(string nav) { return cats == null ? null : cats.FirstOrDefault(c => c.Landing == nav || c.Items.Contains(nav)); }
+        Dictionary<string, string> Hidden = new Dictionary<string, string>();
+        Cat CatOf(string nav)
+        {
+            if (cats == null) return null;
+            string h; if (Hidden.TryGetValue(nav, out h)) return cats.First(c => c.Id == h);
+            return cats.FirstOrDefault(c => c.Landing == nav || c.Items.Contains(nav));
+        }
         void Go(string nav) { var r = E<RadioButton>(nav); if (r.IsChecked == true) ShowPage(nav); else r.IsChecked = true; }
 
         // ------------------------------------------------------------ sidebar
@@ -90,14 +96,16 @@ namespace Kemas
         {
             cats = new List<Cat>
             {
-                new Cat { Id = "ov", Glyph = "E95E", En = "Overview", Ms = "Ringkasan", Items = new[] { "NavHealth", "NavDoctor", "NavTimeline" } },
-                new Cat { Id = "cl", Glyph = "E74D", En = "Cleanup", Ms = "Pembersihan", Landing = "NavHubClean", Items = new[] { "NavClean", "NavOrg", "NavDeepApp", "NavDupes", "NavLarge", "NavEmpty", "NavResidual", "NavBrowser", "NavDownloads" } },
-                new Cat { Id = "pf", Glyph = "EC4A", En = "Performance", Ms = "Prestasi", Landing = "NavHubPerf", Items = new[] { "NavPerf", "NavRam", "NavStartup", "NavBackground", "NavGame", "NavProfiles", "NavBattery" } },
+                new Cat { Id = "ov", Glyph = "E95E", En = "Overview", Ms = "Ringkasan", Items = new[] { "NavHealth", "NavDoctor" } },
+                new Cat { Id = "cl", Glyph = "E74D", En = "Cleanup", Ms = "Pembersihan", Landing = "NavHubClean", Items = new[] { "NavHubClean", "NavClean", "NavDeepApp", "NavDupes", "NavLarge" } },
+                new Cat { Id = "pf", Glyph = "EC4A", En = "Performance", Ms = "Prestasi", Landing = "NavHubPerf", Items = new[] { "NavPerf", "NavStartup", "NavBackground", "NavGame" } },
                 new Cat { Id = "st", Glyph = "EDA2", En = "Storage", Ms = "Storan", Landing = "NavHubStore", Items = new[] { "NavMap", "NavDiskHealth", "NavApps" } },
-                new Cat { Id = "pr", Glyph = "E72E", En = "Privacy & Security", Ms = "Privasi & Keselamatan", Landing = "NavHubPriv", Items = new[] { "NavPrivacy", "NavWinHealth" } },
-                new Cat { Id = "ut", Glyph = "E90F", En = "Utilities", Ms = "Utiliti", Landing = "NavHubUtil", Items = new[] { "NavNetwork", "NavDrivers", "NavSysInfo", "NavShredder", "NavRestore" } },
-                new Cat { Id = "rc", Glyph = "E777", En = "Recovery", Ms = "Pemulihan", Landing = "NavRecover", Items = new string[0] },
+                new Cat { Id = "pr", Glyph = "E72E", En = "Privacy & Security", Ms = "Privasi & Keselamatan", Landing = "NavHubPriv", Items = new[] { "NavPrivacy", "NavBrowser", "NavWinHealth" } },
+                new Cat { Id = "ut", Glyph = "E90F", En = "Utilities", Ms = "Utiliti", Landing = "NavHubUtil", Items = new[] { "NavNetwork", "NavDrivers", "NavSysInfo", "NavShredder" } },
+                new Cat { Id = "rc", Glyph = "E777", En = "Recovery", Ms = "Pemulihan", Items = new[] { "NavRecover", "NavRestore" } },
             };
+            // pages reached from a category overview rather than the sidebar
+            Hidden = new Dictionary<string, string> { { "NavOrg", "cl" }, { "NavEmpty", "cl" }, { "NavResidual", "cl" }, { "NavDownloads", "cl" }, { "NavRam", "pf" }, { "NavProfiles", "pf" }, { "NavBattery", "pf" }, { "NavTimeline", "ov" } };
             var stack = E<StackPanel>("NavStack");
             Func<string, RadioButton> take = n => { var r = E<RadioButton>(n); var p = r.Parent as Panel; if (p != null) p.Children.Remove(r); return r; };
             var home = take("NavDash");
@@ -108,11 +116,11 @@ namespace Kemas
             {
                 var cat = c;
                 var g = new Grid { Height = 34 };
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(26) });
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                cat.Icon = new TextBlock { Text = Glyph(c.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15, VerticalAlignment = VerticalAlignment.Center };
-                cat.Label = new TextBlock { FontSize = 12.5, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+                cat.Icon = new TextBlock { Text = Glyph(c.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 16, VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
+                cat.Label = new TextBlock { FontSize = 11, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
                 cat.Chevron = new TextBlock { FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 10, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0), Padding = new Thickness(6), Background = Brushes.Transparent, Cursor = Cursors.Hand };
                 cat.Icon.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 cat.Label.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
@@ -120,7 +128,7 @@ namespace Kemas
                 Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
                 g.Children.Add(cat.Icon); g.Children.Add(cat.Label);
                 if (c.Items.Length > 0) g.Children.Add(cat.Chevron);
-                cat.Header = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 0, 4, 0), Margin = new Thickness(0, 10, 0, 2), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
+                cat.Header = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 0, 4, 0), Margin = new Thickness(0, 12, 0, 2), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
                 System.Windows.Automation.AutomationProperties.SetName(cat.Header, c.En);
                 cat.Header.MouseEnter += (s, e) => { if (!HeaderActive(cat)) cat.Header.SetResourceReference(Border.BackgroundProperty, "HoverBrush"); };
                 cat.Header.MouseLeave += (s, e) => PaintHeaders();
@@ -133,7 +141,7 @@ namespace Kemas
                     else if (e.Key == Key.Left) { Toggle(cat, false); e.Handled = true; }
                 };
                 stack.Children.Add(cat.Header);
-                cat.Body = new StackPanel { Margin = new Thickness(8, 0, 0, 0) };
+                cat.Body = new StackPanel();
                 foreach (var n in c.Items) cat.Body.Children.Add(take(n));
                 stack.Children.Add(cat.Body);
                 cat.Body.Visibility = open.Contains(c.Id) ? Visibility.Visible : Visibility.Collapsed;
@@ -141,7 +149,7 @@ namespace Kemas
             if (string.IsNullOrEmpty(S.NavOpen)) cats[0].Body.Visibility = Visibility.Visible;
             RefreshSidebarTexts();
         }
-        bool HeaderActive(Cat c) { return c.Landing != null && currentPage == "Page" + c.Landing.Substring(3); }
+        bool HeaderActive(Cat c) { return c.Landing != null && !c.Items.Contains(c.Landing) && currentPage == "Page" + c.Landing.Substring(3); }
         void HeaderClick(Cat c)
         {
             if (compact) { Go(c.Landing ?? c.Items[0]); return; }
@@ -177,10 +185,10 @@ namespace Kemas
             foreach (var c in cats)
             {
                 bool act = HeaderActive(c), inside = c == mine;
-                if (act) c.Header.SetResourceReference(Border.BackgroundProperty, "NavSelBrush"); else c.Header.Background = Brushes.Transparent;
-                c.Label.SetResourceReference(TextBlock.ForegroundProperty, act ? "TextBrush" : "MutedBrush");
+                if (act && compact) c.Header.SetResourceReference(Border.BackgroundProperty, "NavSelBrush"); else c.Header.Background = Brushes.Transparent;
+                c.Label.SetResourceReference(TextBlock.ForegroundProperty, act ? "CyanBrush" : "MutedBrush");
                 if (inside) c.Icon.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush"); else c.Icon.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                if (inside && !act) c.Label.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
+
             }
         }
         /// Called after every page change: keeps the active category open and the breadcrumb right.
@@ -214,8 +222,9 @@ namespace Kemas
             foreach (var c in cats)
             {
                 c.Label.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+                c.Icon.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
                 c.Chevron.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-                c.Header.Margin = on ? new Thickness(0, 4, 0, 2) : new Thickness(0, 10, 0, 2);
+                c.Header.Margin = on ? new Thickness(0, 4, 0, 2) : new Thickness(0, 12, 0, 2);
                 c.Header.Height = on ? 38 : double.NaN;
                 if (on) c.Body.Visibility = Visibility.Collapsed;
             }
@@ -363,9 +372,9 @@ namespace Kemas
             page("NavDash");
             foreach (var c in cats)
             {
-                if (c.Landing != null && c.Landing.StartsWith("NavHub")) { var cc = c; l.Add(new Hit { Group = "p", Title = Tx(c.En, c.Ms), Sub = Tx("Overview", "Ringkasan"), Glyph = c.Glyph, Do = () => Go(cc.Landing), Keys = c.En + " " + c.Ms }); }
-                foreach (var n in c.Items) page(n);
-                if (c.Landing == "NavRecover") page("NavRecover");
+                if (c.Landing != null) { var cc = c; l.Add(new Hit { Group = "p", Title = c.Landing == "NavHubClean" ? NavTitle(c.Landing) : Tx(c.En, c.Ms), Sub = Tx(c.En, c.Ms), Glyph = c.Glyph, Do = () => Go(cc.Landing), Keys = c.En + " " + c.Ms + " scan imbas" }); }
+                foreach (var n in c.Items) if (n != c.Landing) page(n);
+                foreach (var hp in Hidden.Where(x => x.Value == c.Id)) page(hp.Key);
             }
             page("NavSettings"); page("NavAbout");
             Action<string, string, string, string, string> set = (sec, en, ms, keys, glyph) =>
@@ -414,7 +423,7 @@ namespace Kemas
         {
             var g = new Grid();
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            g.Children.Add(GradTile(h.Glyph, h.Group == "a" ? Palette[2] : h.Group == "s" ? Palette[1] : Palette[0], 28, 12));
+            g.Children.Add(FlatIcon(h.Glyph, 28, 13));
             var t = Strong(h.Title, 13); t.Margin = new Thickness(12, 0, 8, 0); t.VerticalAlignment = VerticalAlignment.Center; t.TextWrapping = TextWrapping.NoWrap; t.TextTrimming = TextTrimming.CharacterEllipsis; Grid.SetColumn(t, 1); g.Children.Add(t);
             var s = Muted(h.Sub, 11.5); s.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(s, 2); g.Children.Add(s);
             var b = new Button { Content = g, Style = (Style)W.FindResource("Row"), HorizontalContentAlignment = HorizontalAlignment.Stretch };
@@ -422,7 +431,7 @@ namespace Kemas
             return b;
         }
 
-        // ------------------------------------------------------------ landing pages
+        // ------------------------------------------------------------ landing pages (calm: one list, few numbers)
         void ShowHub(string id)
         {
             switch (id)
@@ -434,218 +443,168 @@ namespace Kemas
                 case "HubUtil": HubUtil(); break;
             }
         }
-        /// Card that opens a tool: icon, name, purpose, live status.
-        Border ToolCard(string nav, string status, string statusKind = "")
+        static Border FlatIcon(string glyph, double size, double font)
         {
-            var g = new Grid();
-            g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var top = new Grid();
-            int pi = Math.Abs(nav.GetHashCode()) % Palette.Length;
-            top.Children.Add(new Border { HorizontalAlignment = HorizontalAlignment.Left, Child = GradTile(NavGlyph(nav), Palette[pi], 42, 17) });
+            var b = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size * 0.28), VerticalAlignment = VerticalAlignment.Center };
+            b.SetResourceReference(Border.BackgroundProperty, "SelectBrush");
+            var t = new TextBlock { Text = Glyph(glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = font, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            t.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
+            b.Child = t; return b;
+        }
+        /// One horizontal row that opens a tool: icon, name, one line, optional status, arrow.
+        Border ToolRow(string nav, string status = null, string kind = "", string title = null)
+        {
+            var g = new Grid { MinHeight = 44 };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.Children.Add(FlatIcon(NavGlyph(nav), 40, 17));
+            var sp = new StackPanel { Margin = new Thickness(16, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
+            sp.Children.Add(Strong(title ?? NavTitle(nav), 14)); var d = Muted(NavDesc(nav), 12.5); d.Margin = new Thickness(0, 2, 0, 0); sp.Children.Add(d);
+            Grid.SetColumn(sp, 1); g.Children.Add(sp);
             if (!string.IsNullOrEmpty(status))
             {
-                var c = (Color)ColorConverter.ConvertFromString(statusKind == "good" ? "#27B77A" : statusKind == "warn" ? "#E0961F" : statusKind == "bad" ? "#ED626B" : "#788195");
-                top.Children.Add(new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 3, 10, 3), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, MaxWidth = 170,
-                    Background = new SolidColorBrush(Color.FromArgb(0x22, c.R, c.G, c.B)),
-                    Child = new TextBlock { Text = status, FontSize = 11.5, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(c), TextTrimming = TextTrimming.CharacterEllipsis } });
+                var st = new TextBlock { Text = status, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
+                st.SetResourceReference(TextBlock.ForegroundProperty, kind == "warn" ? "WarnBrush" : kind == "bad" ? "BadBrush" : "MutedBrush");
+                Grid.SetColumn(st, 2); g.Children.Add(st);
             }
-            g.Children.Add(top);
-            var t = Strong(NavTitle(nav), 15); t.Margin = new Thickness(0, 14, 0, 4); Grid.SetRow(t, 1); g.Children.Add(t);
-            var d = Muted(NavDesc(nav), 12.5); d.MinHeight = 34; Grid.SetRow(d, 2); g.Children.Add(d);
-            var open = new TextBlock { Text = Tx("Open", "Buka") + "  " + Glyph("E72A"), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 0) };
-            open.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
-            Grid.SetRow(open, 3); g.Children.Add(open);
-            var card = CardOf(g, 18); card.Margin = new Thickness(0, 0, 12, 12); card.Cursor = Cursors.Hand; card.Focusable = true;
-            System.Windows.Automation.AutomationProperties.SetName(card, NavTitle(nav));
+            var arrow = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            arrow.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            Grid.SetColumn(arrow, 3); g.Children.Add(arrow);
+            var card = new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(16, 14, 18, 14), Margin = new Thickness(0, 0, 0, 8), Child = g, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
+            System.Windows.Automation.AutomationProperties.SetName(card, title ?? NavTitle(nav));
             card.MouseEnter += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
             card.MouseLeave += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
+            card.GotKeyboardFocus += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
+            card.LostKeyboardFocus += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
             card.MouseLeftButtonUp += (s, e) => Go(nav);
-            card.KeyDown += (s, e) => { if (e.Key == Key.Enter || e.Key == Key.Space) Go(nav); };
+            card.KeyDown += (s, e) => { if (e.Key == Key.Enter || e.Key == Key.Space) { Go(nav); e.Handled = true; } };
             return card;
-        }
-        /// Responsive grid: 3 columns on wide windows, 2 on medium, 1 on narrow.
-        UniformGrid Flow(int max, params UIElement[] items)
-        {
-            var u = new UniformGrid { Columns = max, Margin = new Thickness(0, 0, -12, 0) };
-            foreach (var i in items) u.Children.Add(i);
-            u.SizeChanged += (s, e) => { int c = e.NewSize.Width >= 1080 ? max : e.NewSize.Width >= 640 ? Math.Min(2, max) : 1; if (u.Columns != c) u.Columns = c; };
-            return u;
         }
         TextBlock Section(string t)
         {
-            var tb = new TextBlock { Text = t, FontSize = 15, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 14, 0, 12) };
-            tb.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); return tb;
+            var tb = new TextBlock { Text = t, FontSize = 13, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 18, 0, 10) };
+            tb.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); return tb;
         }
         void HubBody(params UIElement[] parts)
         {
-            var sp = new StackPanel { Margin = new Thickness(0, 0, 8, 16) };
+            var sp = new StackPanel { Margin = new Thickness(0, 0, 12, 16), MaxWidth = 960, HorizontalAlignment = HorizontalAlignment.Left };
             foreach (var p in parts) if (p != null) sp.Children.Add(p);
-            ModBody(new ScrollViewer { Content = sp, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, -8, 0) });
+            ModBody(new ScrollViewer { Content = sp, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, -12, 0) });
         }
-        /// Big-number tile with a handle on its value so landing pages can update it live.
-        Border LiveTile(string label, string glyph, string[] pal, out TextBlock value, out TextBlock sub)
+        /// Compact number: label over value, with a handle so landing pages can update it live.
+        Border Metric(string label, out TextBlock value, out TextBlock sub)
         {
-            var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition());
-            row.Children.Add(GradTile(glyph, pal, 44, 18));
-            var sp = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(sp, 1); row.Children.Add(sp);
-            var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            value = new TextBlock { Text = "…", FontSize = 22, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; value.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-            sub = Muted("", 11.5); sub.TextTrimming = TextTrimming.CharacterEllipsis; sub.TextWrapping = TextWrapping.NoWrap;
-            sp.Children.Add(l); sp.Children.Add(value); sp.Children.Add(sub);
-            var c = CardOf(row, 18); c.Margin = new Thickness(0, 0, 12, 12); return c;
-        }
-        UIElement RecentFor(params string[] kinds)
-        {
-            var items = History.Load().Where(h => kinds.Length == 0 || kinds.Contains(h.Kind)).Take(4).ToList();
             var sp = new StackPanel();
-            if (items.Count == 0) { var m = Muted(Tx("No activity yet. Finished operations appear here and in Recovery Centre.", "Belum ada aktiviti. Operasi yang selesai muncul di sini dan dalam Pusat Pemulihan."), 12.5); m.Margin = new Thickness(0, 6, 0, 6); sp.Children.Add(m); }
-            foreach (var h in items)
-            {
-                DateTime t; string when = DateTime.TryParse(h.Time, out t) ? t.ToString("d MMM, HH:mm") : "";
-                sp.Children.Add(CheckRow(h.Title, (h.Detail ?? "") + (when.Length > 0 ? "  ·  " + when : ""), true));
-            }
-            var g = new Grid(); g.Children.Add(sp);
-            var all = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Open Recovery Centre", "Buka Pusat Pemulihan"), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 10, 0, 0) };
-            all.Click += (s, e) => Go("NavRecover");
-            var outer = new StackPanel(); outer.Children.Add(sp); outer.Children.Add(all);
-            return CardOf(outer, 20);
+            var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            value = new TextBlock { Text = "…", FontSize = 24, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 4, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; value.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            sub = Muted("", 12); sub.TextTrimming = TextTrimming.CharacterEllipsis; sub.TextWrapping = TextWrapping.NoWrap;
+            sp.Children.Add(l); sp.Children.Add(value); sp.Children.Add(sub);
+            var c = CardOf(sp, 18); c.Margin = new Thickness(0, 0, 8, 0); return c;
         }
-        static string[] P(int i) { return Palette[i % Palette.Length]; }
+        UniformGrid Metrics(params UIElement[] items) { var u = new UniformGrid { Rows = 1, Margin = new Thickness(0, 0, -8, 0) }; foreach (var i in items) u.Children.Add(i); return u; }
+        StackPanel List(params UIElement[] rows) { var sp = new StackPanel(); foreach (var r in rows) sp.Children.Add(r); return sp; }
 
         void HubClean()
         {
-            var scan = Btn(Tx("Scan for junk", "Imbas sampah"), true, () => { Go("NavClean"); StartScan(); });
-            ModBegin("HubClean", Tx("Find files you do not need and remove them safely. Every cleaner shows you the list before anything is removed.", "Cari fail yang tidak diperlukan dan buang dengan selamat. Setiap pembersih menunjukkan senarai sebelum apa-apa dibuang."), scan);
-            TextBlock v1, s1, v2, s2, v3, s3, v4, s4;
-            var t1 = LiveTile(Tx("JUNK FOUND", "SAMPAH DIJUMPAI"), "E74D", P(0), out v1, out s1);
-            var t2 = LiveTile(Tx("LAST CLEAN", "PEMBERSIHAN TERAKHIR"), "E81C", P(2), out v2, out s2);
-            var t3 = LiveTile(Tx("TOTAL FREED", "JUMLAH DIKOSONGKAN"), "E896", P(4), out v3, out s3);
-            var t4 = LiveTile(Tx("CLEANS RUN", "PEMBERSIHAN DIBUAT"), "E73E", P(1), out v4, out s4);
+            ModBegin("HubClean", Tx("Scans everything that is safe to remove. You review the list before anything is deleted.", "Mengimbas semua yang selamat dibuang. Anda semak senarai sebelum apa-apa dipadam."),
+                Btn(Tx("Scan now", "Imbas sekarang"), true, () => { Go("NavClean"); StartScan(); }));
+            TextBlock v1, s1, v2, s2, v3, s3;
+            var m1 = Metric(Tx("Can be removed", "Boleh dibuang"), out v1, out s1);
+            var m2 = Metric(Tx("Last clean", "Pembersihan terakhir"), out v2, out s2);
+            var m3 = Metric(Tx("Freed in total", "Jumlah dikosongkan"), out v3, out s3);
             bool have = scanned && junkTotal >= 0;
-            v1.Text = have ? Fmt.Size(junkTotal) : "—"; s1.Text = have ? Tx("ready to review in Smart Clean", "sedia disemak dalam Pembersihan Pintar") : Tx("not scanned yet", "belum diimbas");
-            v2.Text = S.LastFreed > 0 ? Fmt.Size((long)S.LastFreed) : "—"; s2.Text = string.IsNullOrEmpty(S.LastClean) ? Tx("never", "belum pernah") : S.LastClean;
-            v3.Text = Fmt.Size((long)S.TotalFreed); s3.Text = Tx("since you installed KEMAS", "sejak KEMAS dipasang");
-            v4.Text = S.CleanCount.ToString(); s4.Text = Tx("times", "kali");
-            var tools = new List<UIElement> { ToolCard("NavClean", have ? Fmt.Size(junkTotal) : Tx("Not scanned", "Belum diimbas"), have && junkTotal > 100L * 1048576 ? "warn" : have ? "good" : "") };
-            foreach (var n in new[] { "NavDeepApp", "NavDupes", "NavLarge", "NavEmpty", "NavResidual", "NavBrowser", "NavDownloads" }) tools.Add(ToolCard(n, Tx("Scans when opened", "Imbas bila dibuka")));
-            tools.Insert(1, ToolCard("NavOrg", S.OrgFolders == null || S.OrgFolders.Count == 0 ? Tx("No folders yet", "Belum ada folder") : string.Format(Tx("{0} folders", "{0} folder"), S.OrgFolders.Count)));
-            HubBody(Flow(4, t1, t2, t3, t4), Section(Tx("Cleaning tools", "Alat pembersihan")), Flow(3, tools.ToArray()), Section(Tx("Recent cleaning", "Pembersihan terkini")), RecentFor("clean", "autoclean", "organize"));
+            v1.Text = have ? Fmt.Size(junkTotal) : "—"; s1.Text = have ? Tx("from the last scan", "dari imbasan terakhir") : Tx("not scanned yet", "belum diimbas");
+            v2.Text = S.LastFreed > 0 ? Fmt.Size(S.LastFreed) : "—"; s2.Text = string.IsNullOrEmpty(S.LastClean) ? Tx("never", "belum pernah") : S.LastClean;
+            v3.Text = Fmt.Size(S.TotalFreed); s3.Text = string.Format(Tx("in {0} cleans", "dalam {0} pembersihan"), S.CleanCount);
+            HubBody(Metrics(m1, m2, m3),
+                Section(Tx("Cleaners", "Pembersih")),
+                List(ToolRow("NavClean", have ? Fmt.Size(junkTotal) : null, have && junkTotal > 512L * 1048576 ? "warn" : ""), ToolRow("NavDeepApp"), ToolRow("NavDupes"), ToolRow("NavLarge")),
+                Section(Tx("More tools", "Alat lain")),
+                List(ToolRow("NavEmpty"), ToolRow("NavResidual"), ToolRow("NavDownloads"), ToolRow("NavOrg")));
         }
 
         void HubPerf()
         {
-            ModBegin("HubPerf", Tx("What is using your PC right now, and the tools to keep it quick. Nothing is closed or changed without asking you.", "Apa yang menggunakan PC anda sekarang, dan alat untuk kekalkan kelajuan. Tiada apa ditutup atau diubah tanpa kebenaran anda."),
-                Btn(Tx("Open Performance Monitor", "Buka Pemantau Prestasi"), true, () => Go("NavPerf")));
-            TextBlock cpuV, cpuS, ramV, ramS, stV, stS, topV, topS;
-            var t1 = LiveTile("CPU", "E950", P(0), out cpuV, out cpuS);
-            var t2 = LiveTile("RAM", "E9D9", P(1), out ramV, out ramS);
-            var t3 = LiveTile(Tx("STARTUP APPS", "APPS PERMULAAN"), "E7E8", P(3), out stV, out stS);
-            var t4 = LiveTile(Tx("HEAVIEST APP", "APP PALING BERAT"), "E7C4", P(2), out topV, out topS);
+            ModBegin("HubPerf", Tx("What is using your PC right now. Nothing is closed or changed without asking you.", "Apa yang menggunakan PC anda sekarang. Tiada apa ditutup atau diubah tanpa kebenaran anda."),
+                Btn(Tx("Open monitor", "Buka pemantau"), true, () => Go("NavPerf")));
+            TextBlock cpuV, cpuS, ramV, ramS, stV, stS;
+            var m1 = Metric("CPU", out cpuV, out cpuS);
+            var m2 = Metric(Tx("Memory", "Memori"), out ramV, out ramS);
+            var m3 = Metric(Tx("Startup apps", "Apps permulaan"), out stV, out stS);
             cpuS.Text = string.Format(L.T("cores"), Environment.ProcessorCount);
-            var tools = new UIElement[] { ToolCard("NavPerf", Tx("Live", "Langsung"), "good"), ToolCard("NavRam", ""), ToolCard("NavStartup", ""), ToolCard("NavBackground", ""), ToolCard("NavGame", ""), ToolCard("NavProfiles", ""), ToolCard("NavBattery", "") };
-            HubBody(Flow(4, t1, t2, t3, t4), Section(Tx("Performance tools", "Alat prestasi")), Flow(3, tools));
+            var startRow = ToolRow("NavStartup");
+            HubBody(Metrics(m1, m2, m3),
+                Section(Tx("Tools", "Alat")),
+                List(ToolRow("NavPerf"), startRow, ToolRow("NavBackground"), ToolRow("NavGame")),
+                Section(Tx("More tools", "Alat lain")),
+                List(ToolRow("NavRam"), ToolRow("NavProfiles"), ToolRow("NavBattery")));
             Action tick = () =>
             {
                 int c = Cpu.Sample(); if (c >= 0) cpuV.Text = c + "%";
                 double total, free; int pct; Memory.Info(out total, out free, out pct);
-                ramV.Text = pct + "%"; ramS.Text = Fmt.Size((long)(total - free)) + " / " + Fmt.Size((long)total);
+                ramV.Text = pct + "%"; ramS.Text = Fmt.Size(total - free) + " / " + Fmt.Size(total);
             };
             tick();
             modTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) }; modTimer.Tick += (s, e) => tick(); modTimer.Start();
             Task.Factory.StartNew(() =>
             {
-                int on = -1, all = 0; string top = null; long topB = 0;
+                int on = -1, all = 0;
                 try { var l = Startup.List(); all = l.Count; on = l.Count(x => x.Enabled); } catch { }
-                try
-                {
-                    var ps = Process.GetProcesses(); int me = Process.GetCurrentProcess().Id;
-                    foreach (var g in ps.Where(p => p.Id > 4 && p.Id != me).GroupBy(p => { try { return p.ProcessName; } catch { return "?"; } }))
-                    {
-                        long sum = 0; foreach (var p in g) try { sum += p.WorkingSet64; } catch { }
-                        if (sum > topB && !string.Equals(g.Key, "Memory Compression", StringComparison.OrdinalIgnoreCase)) { topB = sum; top = g.Key; }
-                    }
-                    foreach (var p in ps) try { p.Dispose(); } catch { }
-                }
-                catch { }
-                Ui(() =>
-                {
-                    stV.Text = on >= 0 ? on.ToString() : "—"; stS.Text = on >= 0 ? string.Format(Tx("enabled of {0}", "dihidupkan daripada {0}"), all) : Tx("could not read", "tidak dapat dibaca");
-                    topV.Text = top ?? "—"; topS.Text = top == null ? "" : Fmt.Size(topB) + Tx(" of memory", " memori");
-                });
+                Ui(() => { stV.Text = on >= 0 ? on.ToString() : "—"; stS.Text = on >= 0 ? string.Format(Tx("enabled of {0}", "dihidupkan daripada {0}"), all) : Tx("could not read", "tidak dapat dibaca"); });
             });
         }
 
         void HubStore()
         {
-            ModBegin("HubStore", Tx("How full your drives are and what fills them. Open Storage Map to explore folder by folder.", "Sejauh mana cakera anda penuh dan apa yang memenuhkannya. Buka Peta Storan untuk teroka folder demi folder."),
-                Btn(Tx("Open Storage Map", "Buka Peta Storan"), true, () => Go("NavMap")));
+            ModBegin("HubStore", Tx("How full your drives are, and the tools to see what fills them.", "Sejauh mana cakera anda penuh, dan alat untuk melihat apa yang memenuhkannya."),
+                Btn(Tx("Analyze storage", "Analisis storan"), true, () => Go("NavMap")));
             var drives = new List<DriveInfo>();
             try { drives = DriveInfo.GetDrives().Where(d => { try { return d.IsReady && d.DriveType == DriveType.Fixed; } catch { return false; } }).ToList(); } catch { }
-            var sys = drives.FirstOrDefault(d => d.Name.Equals(Path.GetPathRoot(Environment.SystemDirectory), StringComparison.OrdinalIgnoreCase)) ?? drives.FirstOrDefault();
-            UIElement top = null;
-            if (sys != null)
-            {
-                long used = sys.TotalSize - sys.AvailableFreeSpace; double pct = used * 100.0 / sys.TotalSize;
-                var hg = new Grid(); hg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) }); hg.ColumnDefinitions.Add(new ColumnDefinition());
-                hg.Children.Add(DonutCard(pct, pct >= 90 ? new[] { "#ED626B", "#F48FB1" } : pct >= 75 ? new[] { "#F4AE43", "#ED8F5B" } : new[] { "#3978F6", "#43C6C0" }, Math.Round(pct) + "%", Tx("used", "digunakan"),
-                    string.Format(Tx("{0} free on {1}", "{0} kosong di {1}"), Fmt.Size(sys.AvailableFreeSpace), sys.Name.TrimEnd('\\')),
-                    pct >= 90 ? Tx("Your system drive is almost full. Windows needs free space for updates.", "Cakera sistem hampir penuh. Windows perlukan ruang untuk kemas kini.") : pct >= 75 ? Tx("Getting full. A cleanup soon keeps Windows comfortable.", "Semakin penuh. Pembersihan nanti akan membantu Windows.") : Tx("Plenty of room for Windows and updates.", "Banyak ruang untuk Windows dan kemas kini.")));
-                var st = Stats(1, Stat(Tx("USED", "DIGUNAKAN"), Fmt.Size(used), "", "#3978F6"), Stat(Tx("CAPACITY", "KAPASITI"), Fmt.Size(sys.TotalSize), sys.DriveFormat, "#43C6C0"));
-                Grid.SetColumn(st, 1); hg.Children.Add(st);
-                top = hg;
-            }
             var list = new StackPanel();
             foreach (var d in drives)
             {
                 long used = d.TotalSize - d.AvailableFreeSpace; double pct = used * 100.0 / d.TotalSize;
-                var g = new Grid { Margin = new Thickness(0, 8, 0, 8) };
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(190) });
+                var g = new Grid { Margin = new Thickness(0, 6, 0, 6) };
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
                 string lbl = ""; try { lbl = d.VolumeLabel; } catch { }
-                var nm = Strong(d.Name.TrimEnd('\\') + (string.IsNullOrEmpty(lbl) ? "" : "  " + lbl), 13.5); nm.VerticalAlignment = VerticalAlignment.Center; g.Children.Add(nm);
+                var nm = Strong(d.Name.TrimEnd('\\') + (string.IsNullOrEmpty(lbl) ? "" : "  " + lbl), 13.5); nm.VerticalAlignment = VerticalAlignment.Center; nm.TextTrimming = TextTrimming.CharacterEllipsis; nm.TextWrapping = TextWrapping.NoWrap; g.Children.Add(nm);
                 var pb = new ProgressBar { Value = pct, Height = 8, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
-                if (pct >= 90) pb.Foreground = (Brush)W.FindResource("BadBrush"); else if (pct >= 75) pb.Foreground = (Brush)W.FindResource("WarnBrush");
+                if (pct >= 90) pb.Foreground = (Brush)W.FindResource("BadBrush"); else if (pct >= 80) pb.Foreground = (Brush)W.FindResource("WarnBrush");
                 Grid.SetColumn(pb, 1); g.Children.Add(pb);
-                var tx = Muted(Fmt.Size(used) + " / " + Fmt.Size(d.TotalSize) + "  (" + Math.Round(pct) + "%)", 12.5); tx.VerticalAlignment = VerticalAlignment.Center; tx.HorizontalAlignment = HorizontalAlignment.Right; Grid.SetColumn(tx, 2); g.Children.Add(tx);
+                var tx = Muted(string.Format(Tx("{0} free of {1}", "{0} kosong daripada {1}"), Fmt.Size(d.AvailableFreeSpace), Fmt.Size(d.TotalSize)), 12.5); tx.VerticalAlignment = VerticalAlignment.Center; tx.HorizontalAlignment = HorizontalAlignment.Right; Grid.SetColumn(tx, 2); g.Children.Add(tx);
                 list.Children.Add(g);
             }
             if (drives.Count == 0) list.Children.Add(Muted(Tx("No fixed drives could be read.", "Tiada cakera tetap dapat dibaca."), 12.5));
-            var tools = new UIElement[] { ToolCard("NavMap", ""), ToolCard("NavDiskHealth", ""), ToolCard("NavApps", ""), ToolCard("NavLarge", ""), ToolCard("NavDupes", "") };
-            HubBody(top, Section(Tx("Drives", "Cakera")), CardOf(list, 20), Section(Tx("Storage tools", "Alat storan")), Flow(3, tools));
+            HubBody(CardOf(list, 20),
+                Section(Tx("Tools", "Alat")),
+                List(ToolRow("NavMap"), ToolRow("NavDiskHealth"), ToolRow("NavApps")));
         }
 
         void HubPriv()
         {
-            var l = PrivacyChecks(); int sc = PrivacyScore(l);
-            ModBegin("HubPriv", Tx("Windows settings that share your data, and the health of Windows itself. KEMAS does not replace Windows Security or your antivirus.", "Tetapan Windows yang berkongsi data anda, dan kesihatan Windows sendiri. KEMAS tidak menggantikan Windows Security atau antivirus anda."),
+            var l = PrivacyChecks();
+            int ok = l.Count(x => x.Item3);
+            ModBegin("HubPriv", string.Format(Tx("{0} of {1} Windows privacy settings keep your data private. KEMAS does not replace Windows Security or your antivirus.", "{0} daripada {1} tetapan privasi Windows menjaga data anda. KEMAS tidak menggantikan Windows Security atau antivirus anda."), ok, l.Count),
                 Btn(Tx("Run privacy audit", "Jalankan audit privasi"), true, () => Go("NavPrivacy")));
-            var hg = new Grid(); hg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) }); hg.ColumnDefinitions.Add(new ColumnDefinition());
-            hg.Children.Add(DonutCard(sc, new[] { "#43C6C0", "#27B77A" }, sc.ToString(), Tx("privacy", "privasi"), sc >= 70 ? Tx("Your privacy is well protected", "Privasi anda terlindung baik") : Tx("Some settings share data", "Sesetengah tetapan berkongsi data"),
-                string.Format(Tx("{0} of {1} settings are private.", "{0} daripada {1} tetapan adalah peribadi."), l.Count(x => x.Item3), l.Count)));
-            bool admin = IsAdmin();
-            var st = Stats(1, Stat(Tx("TO REVIEW", "PERLU DISEMAK"), l.Count(x => !x.Item3).ToString(), Tx("settings", "tetapan"), "#F4AE43"),
-                Stat(Tx("PERMISSIONS", "KEBENARAN"), admin ? Tx("Administrator", "Pentadbir") : Tx("Standard", "Biasa"), admin ? Tx("all checks available", "semua semakan tersedia") : Tx("SFC and DISM need administrator", "SFC dan DISM perlukan pentadbir"), "#8B78F6"));
-            Grid.SetColumn(st, 1); hg.Children.Add(st);
             var review = new StackPanel();
             foreach (var c in l.Where(x => !x.Item3)) { var u = c.Item4; review.Children.Add(CheckRow(c.Item1, c.Item2, false, Tx("Open setting", "Buka tetapan"), () => OpenUri(u))); }
-            if (review.Children.Count == 0) review.Children.Add(CheckRow(Tx("Nothing to review", "Tiada yang perlu disemak"), Tx("Every checked setting keeps your data private.", "Setiap tetapan yang disemak menjaga data anda."), true));
-            var tools = new UIElement[] { ToolCard("NavPrivacy", sc + "/100", sc >= 70 ? "good" : "warn"), ToolCard("NavWinHealth", admin ? "" : Tx("Partly needs admin", "Sebahagian perlu pentadbir"), admin ? "" : "warn"), ToolCard("NavBrowser", ""), ToolCard("NavShredder", "") };
-            HubBody(hg, Section(Tx("Needs your attention", "Perlu perhatian anda")), CardOf(review, 20), Section(Tx("Privacy and security tools", "Alat privasi dan keselamatan")), Flow(3, tools));
+            UIElement attention = review.Children.Count == 0 ? null : (UIElement)CardOf(review, 20);
+            bool admin = IsAdmin();
+            HubBody(attention == null ? null : Section(Tx("Recommended", "Disyorkan")), attention,
+                Section(Tx("Tools", "Alat")),
+                List(ToolRow("NavPrivacy", l.Count - ok > 0 ? string.Format(Tx("{0} to review", "{0} untuk disemak"), l.Count - ok) : null, "warn"), ToolRow("NavBrowser"), ToolRow("NavWinHealth", admin ? null : Tx("Some checks need admin", "Sesetengah semakan perlu pentadbir"))));
         }
 
         void HubUtil()
         {
-            ModBegin("HubUtil", Tx("Windows tools gathered in one place. Each one explains what it does before it changes anything.", "Alat Windows dikumpul di satu tempat. Setiap satu menerangkan fungsinya sebelum mengubah apa-apa."));
-            bool net = false; try { net = NetworkInterface.GetIsNetworkAvailable(); } catch { }
-            bool admin = IsAdmin();
-            var tools = new UIElement[]
-            {
-                ToolCard("NavNetwork", net ? Tx("Online", "Dalam talian") : Tx("Offline", "Luar talian"), net ? "good" : "bad"),
-                ToolCard("NavDrivers", Tx("Read only", "Baca sahaja")),
-                ToolCard("NavSysInfo", Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit"),
-                ToolCard("NavShredder", Tx("Permanent", "Kekal"), "bad"),
-                ToolCard("NavRestore", admin ? Tx("Ready", "Sedia") : Tx("Needs admin", "Perlu pentadbir"), admin ? "good" : "warn"),
-            };
-            HubBody(Flow(3, tools));
+            ModBegin("HubUtil", Tx("Windows tools in one place for system information, maintenance and troubleshooting.", "Alat Windows di satu tempat untuk maklumat sistem, penyelenggaraan dan penyelesaian masalah."));
+            bool net = true; try { net = NetworkInterface.GetIsNetworkAvailable(); } catch { }
+            HubBody(List(
+                ToolRow("NavNetwork", net ? null : Tx("Offline", "Luar talian"), "bad"),
+                ToolRow("NavDrivers"),
+                ToolRow("NavSysInfo"),
+                ToolRow("NavShredder"),
+                ToolRow("NavRestore", IsAdmin() ? null : Tx("Needs admin", "Perlu pentadbir"), "", Tx("System Restore", "Pemulihan Sistem"))));
         }
     }
 }

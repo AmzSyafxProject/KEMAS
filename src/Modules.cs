@@ -135,8 +135,8 @@ namespace Kemas
             new[] { "Drivers", "E964", "Driver Information", "Maklumat Pemacu", "ut" },
             new[] { "SysInfo", "E7F4", "System Information", "Maklumat Sistem", "ut" },
             new[] { "Shredder", "E74D", "File Shredder", "Pemusnah Fail", "ut" },
-            new[] { "Restore", "E777", "System Restore", "Pemulihan Sistem", "ut" },
-            new[] { "HubClean", "E74D", "Cleanup", "Pembersihan", "hub" },
+            new[] { "Restore", "E777", "Backup & Restore", "Sandaran & Pemulihan", "ut" },
+            new[] { "HubClean", "E721", "Smart Scan", "Imbasan Pintar", "hub" },
             new[] { "HubPerf", "EC4A", "Performance", "Prestasi", "hub" },
             new[] { "HubStore", "EDA2", "Storage", "Storan", "hub" },
             new[] { "HubPriv", "E72E", "Privacy & Security", "Privasi & Keselamatan", "hub" },
@@ -165,7 +165,7 @@ namespace Kemas
             }
             BuildSidebar();
             // landing-page radios live hidden in the sidebar so the nav group stays exclusive
-            foreach (var h in new[] { "NavHubClean", "NavHubPerf", "NavHubStore", "NavHubPriv", "NavHubUtil" })
+            foreach (var h in new[] { "NavHubPerf", "NavHubStore", "NavHubPriv", "NavHubUtil", "NavTimeline", "NavOrg", "NavEmpty", "NavResidual", "NavDownloads", "NavRam", "NavProfiles", "NavBattery" })
             { var r = E<RadioButton>(h); r.Visibility = Visibility.Collapsed; E<StackPanel>("NavStack").Children.Add(r); }
         }
 
@@ -182,16 +182,14 @@ namespace Kemas
         Grid ModBegin(string id, string sub, params Button[] buttons)
         {
             var g = modPages[id]; g.Children.Clear(); curMod = g; curModId = id;
+            g.MaxWidth = 1280;
             var head = new Grid { Margin = new Thickness(0, 0, 0, 18) };
             head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var hp = new Grid { Margin = new Thickness(0, 0, 16, 0) };
-            hp.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); hp.ColumnDefinitions.Add(new ColumnDefinition());
-            var m = Mods.First(x => x[0] == id);
-            hp.Children.Add(GradTile(m[1], ModColor(id), 52, 22));
-            var sp = new StackPanel { Margin = new Thickness(16, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             sp.Children.Add(new TextBlock { Text = ModTitle(id), Style = (Style)W.FindResource("H1") });
             sp.Children.Add(new TextBlock { Text = sub, Style = (Style)W.FindResource("Sub") });
-            Grid.SetColumn(sp, 1); hp.Children.Add(sp);
+            hp.Children.Add(sp);
             head.Children.Add(hp);
             var bp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             for (int i = 0; i < buttons.Length; i++) { if (i > 0) buttons[i].Margin = new Thickness(10, 0, 0, 0); bp.Children.Add(buttons[i]); }
@@ -277,9 +275,9 @@ namespace Kemas
                     var sp = new FrameworkElementFactory(typeof(StackPanel)); sp.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
                     var tile = new FrameworkElementFactory(typeof(Border));
                     tile.SetValue(FrameworkElement.WidthProperty, 30.0); tile.SetValue(FrameworkElement.HeightProperty, 30.0); tile.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
-                    tile.SetBinding(Border.BackgroundProperty, new Binding("Tile")); tile.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
+                    tile.SetResourceReference(Border.BackgroundProperty, "SelectBrush"); tile.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
                     var gl = new FrameworkElementFactory(typeof(TextBlock)); gl.SetBinding(TextBlock.TextProperty, new Binding("Glyph"));
-                    gl.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")); gl.SetValue(TextBlock.FontSizeProperty, 13.0); gl.SetValue(TextBlock.ForegroundProperty, Brushes.White);
+                    gl.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")); gl.SetValue(TextBlock.FontSizeProperty, 13.0); gl.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
                     gl.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); gl.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
                     tile.AppendChild(gl); sp.AppendChild(tile);
                     var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C0")); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
@@ -332,10 +330,8 @@ namespace Kemas
         }
         UIElement Stat(string label, string value, string sub, string color)
         {
-            var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition());
-            var pal = Palette.FirstOrDefault(p => p[0] == color) ?? new[] { color, color };
-            row.Children.Add(GradTile(curModId == null ? "E9D2" : Mods.First(x => x[0] == curModId)[1], pal, 44, 18));
-            var sp = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(sp, 1); row.Children.Add(sp);
+            var row = new Grid();
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center }; row.Children.Add(sp);
             var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             var v = new TextBlock { Text = value, FontSize = 22, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             sp.Children.Add(l); sp.Children.Add(v);
@@ -673,7 +669,8 @@ namespace Kemas
         void ModHealth()
         {
             ModBegin("Health", Tx("One overview of performance, storage, privacy and security, from real checks on this PC.", "Gambaran prestasi, storan, privasi dan keselamatan daripada semakan sebenar pada PC ini."),
-                Btn(Tx("Open PC Doctor", "Buka PC Doctor"), true, () => E<RadioButton>("NavDoctor").IsChecked = true));
+                Btn(Tx("Health timeline", "Garis masa kesihatan"), false, () => E<RadioButton>("NavTimeline").IsChecked = true),
+                Btn(Tx("Open Smart Assistant", "Buka Pembantu Pintar"), true, () => E<RadioButton>("NavDoctor").IsChecked = true));
             ModBody(Loading(Tx("Checking...", "Menyemak...")));
             int priv = -1; string av = null; int startN = 0;
             Run(() =>

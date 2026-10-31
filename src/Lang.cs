@@ -44,7 +44,7 @@ namespace Kemas
             A("grp_clean", "CLEAN", "BERSIH");
             A("grp_boost", "BOOST", "PRESTASI");
             A("grp_analyze", "ANALYZE", "ANALISIS");
-            A("nav_clean", "Smart Clean", "Pembersihan Pintar");
+            A("nav_clean", "Junk Cleaner", "Pembersih Sampah");
             A("nav_org", "File Organizer", "Penyusun Fail");
             A("nav_ram", "Memory", "Memori");
             A("nav_startup", "Startup Apps", "Apps Permulaan");
@@ -69,9 +69,9 @@ namespace Kemas
             A("tile_ram", "Memory", "Memori");
             A("quick_actions", "QUICK ACTIONS", "TINDAKAN PANTAS");
             A("view_all", "View all", "Lihat semua");
-            A("nav_doctor", "PC Doctor", "PC Doctor");
-            A("nav_map", "Storage Map", "Peta Storan");
-            A("doc_title", "PC Doctor", "PC Doctor");
+            A("nav_doctor", "Smart Assistant", "Pembantu Pintar");
+            A("nav_map", "Storage Analyzer", "Penganalisis Storan");
+            A("doc_title", "Smart Assistant", "Pembantu Pintar");
             A("doc_sub", "Checks your PC and explains, in plain words, what is slowing it down. Nothing changes until you choose.", "Memeriksa PC anda dan menerangkan dengan mudah apa yang melambatkannya. Tiada apa berubah sehingga anda memilih.");
             A("doc_check", "Check again", "Semak semula");
             A("doc_how", "HOW PC DOCTOR WORKS", "CARA PC DOCTOR BERFUNGSI");
@@ -103,7 +103,7 @@ namespace Kemas
             A("doc_dl_ok", "{0} loose files in Downloads. Tidy enough.", "{0} fail dalam Muat Turun. Cukup kemas.");
             A("doc_dl_src", "your Downloads folder", "folder Muat Turun anda");
             A("btn_review", "Review", "Semak");
-            A("map_title", "Storage Map", "Peta Storan");
+            A("map_title", "Storage Analyzer", "Penganalisis Storan");
             A("map_sub", "See what fills your system drive. Click a block to open the folder.", "Lihat apa yang memenuhi cakera sistem anda. Klik blok untuk membuka folder.");
             A("map_sub_d", "Drive {0}  ·  {1} used of {2}. Click a block to open the folder.", "Cakera {0}  ·  {1} digunakan daripada {2}. Klik blok untuk membuka folder.");
             A("map_scan", "Map my drive", "Petakan cakera");
@@ -153,8 +153,8 @@ namespace Kemas
             A("used_word", "Used", "Digunakan");
             A("pill_great_x", "", "");
             A("grp_recover", "RECOVER", "PULIH");
-            A("nav_recover", "Recovery Centre", "Pusat Pemulihan");
-            A("rec_title", "Recovery Centre", "Pusat Pemulihan");
+            A("nav_recover", "Recovery History", "Sejarah Pemulihan");
+            A("rec_title", "Recovery History", "Sejarah Pemulihan");
             A("rec_sub", "Every change KEMAS makes is recorded here. Undo what can be undone, with a receipt for every clean.", "Setiap perubahan oleh KEMAS direkodkan di sini. Buat asal apa yang boleh, dengan resit untuk setiap pembersihan.");
             A("rec_c1", "Organize undo", "Buat asal susunan");
             A("rec_c1d", "Move your latest organized files back", "Pulangkan fail yang terakhir disusun");
@@ -216,7 +216,7 @@ namespace Kemas
             A("left_in_use", "left (files in use are skipped)", "berbaki (fail yang sedang digunakan dilangkau)");
 
             // ---- cleaner
-            A("clean_title", "System Cleaner", "Pembersih Sistem");
+            A("clean_title", "Junk Cleaner", "Pembersih Sampah");
             A("clean_sub", "Temp files, Prefetch, Recycle Bin, browser caches and Windows leftovers.", "Fail temp, Prefetch, Tong Kitar Semula, cache pelayar dan sisa Windows.");
             A("select_all", "Select all", "Pilih semua");
             A("select_none", "Select none", "Nyahpilih semua");
@@ -497,7 +497,7 @@ namespace Kemas
             A("files_restored", "files restored", "fail dipulangkan");
 
             // ---- memory
-            A("ram_title", "Memory Booster", "Penggalak Memori");
+            A("ram_title", "Memory", "Memori");
             A("ram_sub", "See which apps eat your RAM, free memory, or close heavy apps.", "Lihat apps yang guna RAM, bebaskan memori, atau tutup apps berat.");
             A("free_ram", "Free up RAM", "Bebaskan RAM");
             A("end_selected", "End selected", "Tamatkan pilihan");

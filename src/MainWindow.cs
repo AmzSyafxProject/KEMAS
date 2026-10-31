@@ -858,6 +858,16 @@ namespace Kemas
                 Grid.SetRow(sto, 1); Grid.SetColumn(sto, 0); Grid.SetColumnSpan(sto, 5); sto.Margin = new Thickness(0, 14, 0, 0);
                 Grid.SetRow(tips, 2); Grid.SetColumn(tips, 0); Grid.SetColumnSpan(tips, 5); tips.Margin = new Thickness(0, 14, 0, 0);
             }
+            // 4.0 calm Home: CPU and RAM only (storage has its own card, junk sits in the health text); no quick-action grid
+            var mets = E<UniformGrid>("DashMetrics");
+            for (int i = 2; i < mets.Children.Count; i++) mets.Children[i].Visibility = Visibility.Collapsed;
+            mets.Columns = 2;
+            qa.Visibility = Visibility.Collapsed;
+            var bottom = E<Grid>("DashBottom");
+            bottom.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star); bottom.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
+            bottom.ColumnDefinitions[3].Width = new GridLength(0); bottom.ColumnDefinitions[4].Width = new GridLength(0);
+            Grid.SetRow(sto, 0); Grid.SetColumn(sto, 0); Grid.SetColumnSpan(sto, 1); sto.Margin = new Thickness(0);
+            Grid.SetRow(tips, 0); Grid.SetColumn(tips, 2); Grid.SetColumnSpan(tips, 1); tips.Margin = new Thickness(0);
         }
 
         void DrawOverview()

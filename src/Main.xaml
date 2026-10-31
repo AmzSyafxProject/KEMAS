@@ -136,8 +136,8 @@
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
                 <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavSelBrush}"/>
-                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource CyanBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter TargetName="ic" Property="Foreground" Value="{StaticResource CyanBrush}"/>
               </Trigger>
             </ControlTemplate.Triggers>
@@ -512,7 +512,7 @@
           </StackPanel>
 
           <StackPanel DockPanel.Dock="Bottom">
-            <Border x:Name="SideStatus" CornerRadius="14" Padding="12,12" Margin="0,0,0,12" Background="{DynamicResource NavSelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Cursor="Hand">
+            <Border x:Name="SideStatus" Visibility="Collapsed" CornerRadius="14" Padding="12,12" Margin="0,0,0,12" Background="{DynamicResource NavSelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Cursor="Hand">
               <StackPanel Orientation="Horizontal">
                 <Border Width="34" Height="34" CornerRadius="17"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#43C6C0" Offset="0"/><GradientStop Color="#3978F6" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="14" Foreground="White" HorizontalAlignment="Center"/></Border>
                 <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
@@ -636,11 +636,10 @@
                   </StackPanel>
                 </Grid>
               </Border>
-              <Border x:Name="AssistCard" Grid.Column="2" CornerRadius="16" Padding="22,16" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}">
-                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#183978F6" Offset="0"/><GradientStop Color="#188B78F6" Offset="1"/></LinearGradientBrush></Border.Background>
+              <Border x:Name="AssistCard" Grid.Column="2" Style="{StaticResource Card}" Padding="22,16">
                 <DockPanel>
                   <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                    <Border Width="46" Height="46" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#5B8DFF" Offset="0"/><GradientStop Color="#8B78F6" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE99A;" FontSize="20" Foreground="White" HorizontalAlignment="Center"/></Border>
+                    <Border Width="46" Height="46" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE99A;" FontSize="20" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                     <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                       <TextBlock Text="{DynamicResource L_assist_title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                       <TextBlock Text="{DynamicResource L_assist_sub}" FontSize="11.5" Foreground="{DynamicResource MutedBrush}"/>
@@ -659,7 +658,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <Border Width="40" Height="40" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#3978F6" Offset="0"/><GradientStop Color="#5BA8FF" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE950;" FontSize="17" Foreground="White" HorizontalAlignment="Center"/></Border>
+                  <Border Width="40" Height="40" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE950;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                   <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
                     <TextBlock Text="CPU" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="CpuText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
@@ -675,7 +674,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <Border Width="40" Height="40" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#8B78F6" Offset="0"/><GradientStop Color="#C08BFF" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE964;" FontSize="17" Foreground="White" HorizontalAlignment="Center"/></Border>
+                  <Border Width="40" Height="40" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE964;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                   <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
                     <TextBlock Text="RAM" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="RamUsedText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
@@ -691,7 +690,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <Border Width="40" Height="40" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F4AE43" Offset="0"/><GradientStop Color="#F7C873" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="17" Foreground="White" HorizontalAlignment="Center"/></Border>
+                  <Border Width="40" Height="40" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                   <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
                     <TextBlock x:Name="DiskLabel" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="DiskUsedText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
@@ -707,7 +706,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <Border Width="40" Height="40" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#27B77A" Offset="0"/><GradientStop Color="#43C6C0" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="17" Foreground="White" HorizontalAlignment="Center"/></Border>
+                  <Border Width="40" Height="40" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                   <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
                     <TextBlock Text="{DynamicResource L_tile_junk}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="JunkText" Text="-" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
@@ -730,7 +729,7 @@
                   <UniformGrid Columns="2">
                     <Button x:Name="QaClean" Style="{StaticResource Tile}" Margin="0,0,8,8">
                       <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#3978F6" Offset="0"/><GradientStop Color="#5BA8FF" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="15" Foreground="White" HorizontalAlignment="Center"/></Border>
+                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                           <TextBlock Text="{DynamicResource L_qa_clean}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                           <TextBlock Text="{DynamicResource L_qa_clean_d}" FontSize="11" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
@@ -739,7 +738,7 @@
                     </Button>
                     <Button x:Name="QaRam" Style="{StaticResource Tile}" Margin="0,0,8,8">
                       <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#8B78F6" Offset="0"/><GradientStop Color="#C08BFF" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="15" Foreground="White" HorizontalAlignment="Center"/></Border>
+                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                           <TextBlock Text="{DynamicResource L_qa_ram}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                           <TextBlock Text="{DynamicResource L_qa_ram_d}" FontSize="11" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
@@ -748,7 +747,7 @@
                     </Button>
                     <Button x:Name="QaStartup" Style="{StaticResource Tile}" Margin="0,0,8,8">
                       <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#43C6C0" Offset="0"/><GradientStop Color="#3978F6" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="15" Foreground="White" HorizontalAlignment="Center"/></Border>
+                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                           <TextBlock Text="{DynamicResource L_nav_startup}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                           <TextBlock Text="{DynamicResource L_qa_startup_d}" FontSize="11" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
@@ -757,7 +756,7 @@
                     </Button>
                     <Button x:Name="QaOrg" Style="{StaticResource Tile}" Margin="0,0,8,8">
                       <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F4AE43" Offset="0"/><GradientStop Color="#ED8F5B" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="15" Foreground="White" HorizontalAlignment="Center"/></Border>
+                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
                         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                           <TextBlock Text="{DynamicResource L_qa_map}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                           <TextBlock Text="{DynamicResource L_qa_map_d}" FontSize="11" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
