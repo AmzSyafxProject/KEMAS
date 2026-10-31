@@ -24,6 +24,7 @@ namespace Kemas
             public string Id, Glyph, En, Ms, Landing;     // Landing = nav name opened by the header (null = header only toggles)
             public string[] Items;
             public Border Header; public StackPanel Body; public TextBlock Chevron, Label, Icon;
+            public Border Hover, Sel, Bar, Ring; public RotateTransform Rot;
         }
         List<Cat> cats;
         static readonly Dictionary<string, string[]> CoreNav = new Dictionary<string, string[]>
@@ -110,43 +111,81 @@ namespace Kemas
             Func<string, RadioButton> take = n => { var r = E<RadioButton>(n); var p = r.Parent as Panel; if (p != null) p.Children.Remove(r); return r; };
             var home = take("NavDash");
             stack.Children.Clear();
-            stack.Children.Add(home);
+            sectionLabels.Clear();
             var open = new HashSet<string>((S.NavOpen ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-            foreach (var c in cats)
+            stack.Children.Add(SectionLabel("MAIN", "UTAMA", true));
+            stack.Children.Add(home);
+            foreach (var group in new[] { new[] { "MONITORING", "PEMANTAUAN", "ov", "pf", "st" }, new[] { "MANAGEMENT", "PENGURUSAN", "cl", "pr", "ut", "rc" } })
             {
-                var cat = c;
-                var g = new Grid { Height = 42 };
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                g.ColumnDefinitions.Add(new ColumnDefinition());
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                cat.Icon = new TextBlock { Text = Glyph(c.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17.5, Width = 28, VerticalAlignment = VerticalAlignment.Center };
-                cat.Label = new TextBlock { FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
-                cat.Chevron = new TextBlock { FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0), Padding = new Thickness(6), Background = Brushes.Transparent, Cursor = Cursors.Hand };
-                cat.Icon.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                cat.Label.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                cat.Chevron.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
-                g.Children.Add(cat.Icon); g.Children.Add(cat.Label);
-                if (c.Items.Length > 0) g.Children.Add(cat.Chevron);
-                cat.Header = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 0, 4, 0), Margin = new Thickness(0, 0, 0, 2), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
-                System.Windows.Automation.AutomationProperties.SetName(cat.Header, c.En);
-                cat.Header.MouseEnter += (s, e) => { if (!HeaderActive(cat)) cat.Header.SetResourceReference(Border.BackgroundProperty, "HoverBrush"); };
-                cat.Header.MouseLeave += (s, e) => PaintHeaders();
-                cat.Chevron.MouseLeftButtonUp += (s, e) => { e.Handled = true; Toggle(cat, cat.Body.Visibility != Visibility.Visible); };
-                cat.Header.MouseLeftButtonUp += (s, e) => HeaderClick(cat);
-                cat.Header.KeyDown += (s, e) =>
+                stack.Children.Add(SectionLabel(group[0], group[1], false));
+                foreach (var id in group.Skip(2))
                 {
-                    if (e.Key == Key.Enter || e.Key == Key.Space) { HeaderClick(cat); e.Handled = true; }
-                    else if (e.Key == Key.Right) { Toggle(cat, true); e.Handled = true; }
-                    else if (e.Key == Key.Left) { Toggle(cat, false); e.Handled = true; }
-                };
-                stack.Children.Add(cat.Header);
-                cat.Body = new StackPanel { Margin = new Thickness(14, 0, 0, 4) };
-                foreach (var n in c.Items) cat.Body.Children.Add(take(n));
-                stack.Children.Add(cat.Body);
-                cat.Body.Visibility = open.Contains(c.Id) ? Visibility.Visible : Visibility.Collapsed;
+                    var cat = cats.First(x => x.Id == id);
+                    stack.Children.Add(MakeHeader(cat));
+                    cat.Body = new StackPanel { Margin = new Thickness(0, 0, 0, 6) };
+                    foreach (var n in cat.Items) { var r = take(n); r.Style = (Style)W.FindResource("NavSub"); cat.Body.Children.Add(r); }
+                    stack.Children.Add(cat.Body);
+                    cat.Body.Visibility = open.Contains(cat.Id) ? Visibility.Visible : Visibility.Collapsed;
+                    cat.Rot.Angle = cat.Body.Visibility == Visibility.Visible ? 90 : 0;
+                }
+            }
+            // Settings and About sit at the bottom under their own label
+            var bottom = (Panel)E<RadioButton>("NavSettings").Parent;
+            if (!bottom.Children.OfType<FrameworkElement>().Any(x => x.Tag as string == "pref"))
+            {
+                var pl = SectionLabel("PREFERENCES", "KEUTAMAAN", true); pl.Tag = "pref";
+                bottom.Children.Insert(bottom.Children.IndexOf(E<RadioButton>("NavSettings")), pl);
             }
             RefreshSidebarTexts();
+        }
+        readonly List<Tuple<Grid, TextBlock, Border, string, string>> sectionLabels = new List<Tuple<Grid, TextBlock, Border, string, string>>();
+        /// Small caps group label; in the icon-only sidebar it turns into a short divider.
+        Grid SectionLabel(string en, string ms, bool first)
+        {
+            var g = new Grid { Margin = new Thickness(20, first ? 4 : 18, 0, 6) };
+            var t = new TextBlock { FontSize = 11.5, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms) };
+            t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            var d = new Border { Height = 1, Width = 24, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Collapsed };
+            d.SetResourceReference(Border.BackgroundProperty, "LineBrush");
+            g.Children.Add(t); g.Children.Add(d);
+            System.Windows.Automation.AutomationProperties.SetName(g, en);
+            sectionLabels.Add(Tuple.Create(g, t, d, en, ms));
+            return g;
+        }
+        /// Category row drawn like a sidebar item: fading hover, selection tint, gradient bar, rotating chevron.
+        Border MakeHeader(Cat cat)
+        {
+            var root = new Grid { Height = 40, Background = Brushes.Transparent };
+            Func<string, Border> layer = res => { var b = new Border { CornerRadius = new CornerRadius(8), Margin = new Thickness(8, 0, 0, 0), Opacity = 0 }; b.SetResourceReference(Border.BackgroundProperty, res); return b; };
+            cat.Hover = layer("HoverBrush"); cat.Sel = layer("NavSelBrush");
+            cat.Ring = new Border { CornerRadius = new CornerRadius(8), Margin = new Thickness(8, 0, 0, 0), BorderThickness = new Thickness(1.5), Opacity = 0 }; cat.Ring.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
+            cat.Bar = new Border { Width = 3, Height = 22, CornerRadius = new CornerRadius(0, 2, 2, 0), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0, Background = (Brush)W.FindResource("BrandBar") };
+            root.Children.Add(cat.Hover); root.Children.Add(cat.Sel); root.Children.Add(cat.Ring); root.Children.Add(cat.Bar);
+            var g = new Grid { Margin = new Thickness(20, 0, 8, 0) };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            cat.Icon = new TextBlock { Text = Glyph(cat.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 18, Width = 24, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            cat.Label = new TextBlock { FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+            cat.Rot = new RotateTransform(0);
+            cat.Chevron = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 10, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Width = 28, Height = 28, Padding = new Thickness(0, 9, 0, 0), TextAlignment = TextAlignment.Center, Background = Brushes.Transparent, Cursor = Cursors.Hand, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = cat.Rot, ToolTip = Tx("Show or hide pages", "Tunjuk atau sembunyi halaman") };
+            Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
+            g.Children.Add(cat.Icon); g.Children.Add(cat.Label);
+            if (cat.Items.Length > 0) g.Children.Add(cat.Chevron);
+            root.Children.Add(g);
+            cat.Header = new Border { Child = root, Margin = new Thickness(0, 1, 0, 1), Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
+            System.Windows.Automation.AutomationProperties.SetName(cat.Header, cat.En);
+            cat.Header.MouseEnter += (s, e) => cat.Hover.BeginAnimation(UIElement.OpacityProperty, Anim(cat.Hover.Opacity, 1, 120));
+            cat.Header.MouseLeave += (s, e) => cat.Hover.BeginAnimation(UIElement.OpacityProperty, Anim(cat.Hover.Opacity, 0, 180));
+            cat.Header.GotKeyboardFocus += (s, e) => cat.Ring.Opacity = 1;
+            cat.Header.LostKeyboardFocus += (s, e) => cat.Ring.Opacity = 0;
+            cat.Chevron.MouseLeftButtonUp += (s, e) => { e.Handled = true; Toggle(cat, cat.Body.Visibility != Visibility.Visible); };
+            cat.Header.MouseLeftButtonUp += (s, e) => HeaderClick(cat);
+            cat.Header.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter || e.Key == Key.Space) { HeaderClick(cat); e.Handled = true; }
+                else if (e.Key == Key.Right) { Toggle(cat, true); e.Handled = true; }
+                else if (e.Key == Key.Left) { Toggle(cat, false); e.Handled = true; }
+            };
+            return cat.Header;
         }
         bool HeaderActive(Cat c) { return c.Landing != null && !c.Items.Contains(c.Landing) && currentPage == "Page" + c.Landing.Substring(3); }
         void HeaderClick(Cat c)
@@ -159,7 +198,9 @@ namespace Kemas
         {
             if (c.Items.Length == 0) return;
             c.Body.Visibility = show && !compact ? Visibility.Visible : Visibility.Collapsed;
-            c.Chevron.Text = Glyph(show ? "E70D" : "E76C");
+            double to = c.Body.Visibility == Visibility.Visible ? 90 : 0;
+            if (S.ReducedMotion) c.Rot.Angle = to; else c.Rot.BeginAnimation(RotateTransform.AngleProperty, Anim(c.Rot.Angle, to, 160));
+            System.Windows.Automation.AutomationProperties.SetItemStatus(c.Header, to > 0 ? "expanded" : "collapsed");
             if (!compact)
             {
                 S.NavOpen = string.Join(",", cats.Where(x => x.Body.Visibility == Visibility.Visible).Select(x => x.Id));
@@ -174,7 +215,13 @@ namespace Kemas
             {
                 c.Label.Text = Tx(c.En, c.Ms);
                 c.Header.ToolTip = compact ? Tx(c.En, c.Ms) : null;
-                c.Chevron.Text = Glyph(c.Body.Visibility == Visibility.Visible ? "E70D" : "E76C");
+            }
+            foreach (var sl in sectionLabels)
+            {
+                sl.Item2.Text = Tx(sl.Item4, sl.Item5);
+                sl.Item2.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+                sl.Item3.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+                sl.Item1.Margin = compact ? new Thickness(18, sl.Item1.Margin.Top, 0, 6) : new Thickness(20, sl.Item1.Margin.Top, 0, 6);
             }
         }
         void PaintHeaders()
@@ -184,15 +231,15 @@ namespace Kemas
             foreach (var c in cats)
             {
                 bool act = HeaderActive(c), inside = c == mine;
-                // overview page open = solid brand blue like a selected item; a page inside = label lit, the item itself carries the fill
-                bool fill = act || (compact && inside);
-                if (fill) c.Header.SetResourceReference(Border.BackgroundProperty, "NavActiveBrush"); else c.Header.Background = Brushes.Transparent;
-                foreach (var t in new[] { c.Label, c.Icon, c.Chevron })
-                {
-                    if (fill) t.Foreground = Brushes.White;
-                    else t.SetResourceReference(TextBlock.ForegroundProperty, inside ? "TextBrush" : "MutedBrush");
-                }
-                c.Label.FontWeight = fill || inside ? FontWeights.SemiBold : FontWeights.Normal;
+                // overview page open (or a page inside, in the icon-only sidebar) = the same selected look as an item
+                bool sel = act || (compact && inside);
+                c.Sel.BeginAnimation(UIElement.OpacityProperty, null); c.Bar.BeginAnimation(UIElement.OpacityProperty, null);
+                c.Sel.Opacity = sel ? 1 : 0; c.Bar.Opacity = sel ? 1 : 0;
+                // a page inside: the parent stays quiet but bold, so the child carries the colour
+                c.Label.SetResourceReference(TextBlock.ForegroundProperty, sel ? "AccentTextBrush" : inside ? "TextBrush" : "SideTextBrush");
+                c.Icon.SetResourceReference(TextBlock.ForegroundProperty, sel ? "AccentTextBrush" : inside ? "TextBrush" : "MutedBrush");
+                c.Chevron.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                c.Label.FontWeight = sel || inside ? FontWeights.SemiBold : FontWeights.Normal;
 
             }
         }
@@ -213,9 +260,9 @@ namespace Kemas
             compact = on;
             var side = E<Border>("SideBar");
             ((Grid)side.Parent).ColumnDefinitions[0].Width = new GridLength(on ? 72 : 248);
-            ((DockPanel)side.Child).Margin = on ? new Thickness(10, 18, 10, 16) : new Thickness(16, 18, 16, 16);
+            ((DockPanel)side.Child).Margin = on ? new Thickness(2, 18, 10, 14) : new Thickness(8, 18, 14, 14);
             var brand = E<StackPanel>("Brand"); if (brand.Children.Count > 1) brand.Children[1].Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-            brand.Margin = on ? new Thickness(8, 4, 0, 24) : new Thickness(6, 4, 0, 30);
+            brand.Margin = on ? new Thickness(14, 6, 0, 22) : new Thickness(14, 6, 0, 22);
             foreach (var n in new[] { "SideStatus", "SideVersion" }) E<FrameworkElement>(n).Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             if (on) E<FrameworkElement>("UpdateChip").Visibility = Visibility.Collapsed;
             var navs = new List<RadioButton> { E<RadioButton>("NavDash"), E<RadioButton>("NavSettings"), E<RadioButton>("NavAbout") };
