@@ -136,6 +136,11 @@ namespace Kemas
             new[] { "SysInfo", "E7F4", "System Information", "Maklumat Sistem", "ut" },
             new[] { "Shredder", "E74D", "File Shredder", "Pemusnah Fail", "ut" },
             new[] { "Restore", "E777", "System Restore", "Pemulihan Sistem", "ut" },
+            new[] { "HubClean", "E74D", "Cleanup", "Pembersihan", "hub" },
+            new[] { "HubPerf", "EC4A", "Performance", "Prestasi", "hub" },
+            new[] { "HubStore", "EDA2", "Storage", "Storan", "hub" },
+            new[] { "HubPriv", "E72E", "Privacy & Security", "Privasi & Keselamatan", "hub" },
+            new[] { "HubUtil", "E90F", "Utilities", "Utiliti", "hub" },
         };
         readonly Dictionary<string, Grid> modPages = new Dictionary<string, Grid>();
         readonly List<Tuple<RadioButton, string, string>> modNavs = new List<Tuple<RadioButton, string, string>>();
@@ -158,38 +163,17 @@ namespace Kemas
                 el["Nav" + id] = nav;
                 modNavs.Add(Tuple.Create(nav, m[2], m[3]));
             }
-            // rebuild the sidebar in module order
-            var stack = E<StackPanel>("NavStack");
-            Func<string, RadioButton> ex = n => { var r = E<RadioButton>(n); var p = r.Parent as Panel; if (p != null) p.Children.Remove(r); return r; };
-            var order = new List<object>
-            {
-                "NavDash", "#OVERVIEW|RINGKASAN", "NavHealth", "NavDoctor", "NavTimeline",
-                "#CLEANUP|PEMBERSIHAN", "NavClean", "NavOrg", "NavDeepApp", "NavDupes", "NavLarge", "NavEmpty", "NavResidual", "NavBrowser", "NavDownloads",
-                "#PERFORMANCE|PRESTASI", "NavPerf", "NavRam", "NavBackground", "NavStartup", "NavGame", "NavProfiles", "NavBattery",
-                "#STORAGE|STORAN", "NavMap", "NavDiskHealth", "NavApps",
-                "#PRIVACY & SECURITY|PRIVASI & KESELAMATAN", "NavPrivacy", "NavWinHealth",
-                "#UTILITIES|UTILITI", "NavNetwork", "NavDrivers", "NavSysInfo", "NavShredder", "NavRestore", "NavRecover",
-            };
-            var items = order.Select(o => (string)o).ToList();
-            var built = new List<UIElement>();
-            foreach (var it in items)
-            {
-                if (it.StartsWith("#"))
-                {
-                    var a = it.Substring(1).Split('|');
-                    var t = new TextBlock { Style = (Style)W.FindResource("NavGroup"), Text = Tx(a[0], a[1]) };
-                    grpLabels.Add(Tuple.Create(t, a[0], a[1])); built.Add(t);
-                }
-                else built.Add(ex(it));
-            }
-            stack.Children.Clear();
-            foreach (var b in built) stack.Children.Add(b);
+            BuildSidebar();
+            // landing-page radios live hidden in the sidebar so the nav group stays exclusive
+            foreach (var h in new[] { "NavHubClean", "NavHubPerf", "NavHubStore", "NavHubPriv", "NavHubUtil" })
+            { var r = E<RadioButton>(h); r.Visibility = Visibility.Collapsed; E<StackPanel>("NavStack").Children.Add(r); }
         }
 
         void RefreshModuleTexts()
         {
             foreach (var n in modNavs) n.Item1.Content = Tx(n.Item2, n.Item3);
             foreach (var g in grpLabels) g.Item1.Text = Tx(g.Item2, g.Item3);
+            RefreshSidebarTexts();
         }
 
         // ------------------------------------------------------------ page kit
@@ -416,6 +400,7 @@ namespace Kemas
                 case "SysInfo": ModSysInfo(); break;
                 case "Shredder": ModShredder(); break;
                 case "Restore": ModRestore(); break;
+                default: ShowHub(id); break;
             }
         }
 

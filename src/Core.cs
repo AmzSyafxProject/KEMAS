@@ -107,6 +107,8 @@ namespace Kemas
         [DataMember] public bool WelcomeDone;               // first-run welcome finished
         [DataMember] public bool TrimRamOnSmart = false;     // memory trim is manual only (Windows manages RAM itself)
         [DataMember] public int SettingsRev;
+        [DataMember] public string NavOpen = "";            // sidebar categories left open, e.g. "ov,cl"
+        [DataMember] public bool SideCompact = false;      // icon-only sidebar
         [DataMember] public string AutoClean = "off";       // off | daily | weekly
         [DataMember] public bool AutoUpdate = true;
         [DataMember] public string SkippedVersion = "";

@@ -290,6 +290,7 @@ namespace Kemas
             BT("BtnClose").Click += (s, e) => W.Close();
 
             SetupModules();
+            BuildTopBar();
             foreach (var n in new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavApps", "NavDoctor", "NavMap", "NavRecover", "NavSettings", "NavAbout" })
             {
                 var name = n;
@@ -316,19 +317,6 @@ namespace Kemas
             E<Border>("SideStatus").MouseLeftButtonUp += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             var sb = E<TextBox>("SearchBox");
             sb.TextChanged += (s, e) => TB("SearchHint").Visibility = sb.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-            sb.KeyDown += (s, e) =>
-            {
-                if (e.Key != System.Windows.Input.Key.Enter) return;
-                string q = sb.Text.Trim(); if (q.Length == 0) return;
-                var pairs = new[] { "NavDash:nav_dash", "NavClean:nav_clean", "NavOrg:nav_org", "NavRam:nav_ram", "NavStartup:nav_startup", "NavDoctor:nav_doctor", "NavMap:nav_map", "NavApps:nav_apps", "NavRecover:nav_recover", "NavSettings:nav_settings", "NavAbout:nav_about" };
-                foreach (var pr in pairs)
-                {
-                    var a = pr.Split(':');
-                    if (L.T(a[1]).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 || a[0].Substring(3).IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
-                    { E<RadioButton>(a[0]).IsChecked = true; sb.Text = ""; Keyboard.ClearFocus(); return; }
-                }
-                Toast(L.T("search_none"), "E721");
-            };
             BT("QaRam").Click += (s, e) => E<RadioButton>("NavRam").IsChecked = true;
             BT("QaStartup").Click += (s, e) => E<RadioButton>("NavStartup").IsChecked = true;
             BT("BtnTheme").Click += (s, e) =>
@@ -643,6 +631,12 @@ namespace Kemas
             var map = new System.Collections.Generic.Dictionary<string, string> { { "PageDash", "nav_dash" }, { "PageClean", "nav_clean" }, { "PageOrg", "nav_org" }, { "PageRam", "nav_ram" }, { "PageStartup", "nav_startup" }, { "PageApps", "nav_apps" }, { "PageDoctor", "nav_doctor" }, { "PageMap", "nav_map" }, { "PageRecover", "nav_recover" }, { "PageSettings", "nav_settings" }, { "PageAbout", "nav_about" } };
             string k; if (map.TryGetValue(currentPage, out k)) TB("Crumb").Text = L.T(k);
             else if (currentPage.StartsWith("Page") && modPages.ContainsKey(currentPage.Substring(4))) TB("Crumb").Text = ModTitle(currentPage.Substring(4));
+            if (crumbCat != null)
+            {
+                var c = CatOf("Nav" + currentPage.Substring(4));
+                bool landing = c != null && c.Landing == "Nav" + currentPage.Substring(4);
+                crumbCat.Text = c == null || landing ? "KEMAS" : Tx(c.En, c.Ms);
+            }
         }
         void ShowPage(string nav)
         {
@@ -669,6 +663,7 @@ namespace Kemas
             if (page == "PageDoctor" && !busy) RunDoctor();
             if (page == "PageMap") ShowMapHistory();
             if (page == "PageStartup" && !startupLoaded && !busy) LoadStartup();
+            OnPageShown();
         }
 
         void OrgTab(int i)
@@ -696,6 +691,7 @@ namespace Kemas
         void Toast(string msg, string icon = "E946")
         {
             var t = E<Border>("Toast");
+            Note(msg, icon);
             TB("ToastText").Text = msg;
             TB("ToastIcon").Text = ((char)Convert.ToInt32(icon, 16)).ToString();
             t.Visibility = Visibility.Visible;

@@ -78,6 +78,23 @@
       <Setter Property="Foreground" Value="{StaticResource CyanBrush}"/>
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate></Setter.Value></Setter>
     </Style>
+    <Style x:Key="Row" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" CornerRadius="10" Background="Transparent" Padding="10,8">
+              <ContentPresenter HorizontalAlignment="Stretch"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource SelectBrush}"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style x:Key="Icon" TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
@@ -479,7 +496,7 @@
 
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="236"/>
+        <ColumnDefinition Width="248"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
@@ -579,7 +596,7 @@
           <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
 
           <!-- ================= DASHBOARD ================= -->
-          <Viewbox x:Name="PageDash" Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Top" HorizontalAlignment="Left">
+          <Viewbox x:Name="PageDash" Stretch="Uniform" StretchDirection="Both" VerticalAlignment="Top" HorizontalAlignment="Center">
           <Grid Width="1240" Margin="0,0,0,6">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <StackPanel Margin="0,0,0,12">
