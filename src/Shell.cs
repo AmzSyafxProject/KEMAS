@@ -24,7 +24,7 @@ namespace Kemas
             public string Id, Glyph, En, Ms, Landing, Color;     // Landing = nav name opened by the header (null = header only toggles)
             public string[] Items;
             public Border Header; public StackPanel Body; public TextBlock Chevron, Label, Icon;
-            public Border Hover, Sel, Bar, Ring, TileBg; public RotateTransform Rot; public ScaleTransform TileScale;
+            public Grid Root; public Border Hover, Sel, Bar, Ring, TileBg; public RotateTransform Rot; public ScaleTransform TileScale;
         }
         List<Cat> cats;
         static readonly Dictionary<string, string[]> CoreNav = new Dictionary<string, string[]>
@@ -122,7 +122,7 @@ namespace Kemas
                 {
                     var cat = cats.First(x => x.Id == id);
                     stack.Children.Add(MakeHeader(cat));
-                    cat.Body = new StackPanel { Margin = new Thickness(0, 0, 0, 6) };
+                    cat.Body = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
                     foreach (var n in cat.Items) { var r = take(n); r.Style = (Style)W.FindResource("NavSub"); cat.Body.Children.Add(r); }
                     stack.Children.Add(cat.Body);
                     cat.Body.Visibility = open.Contains(cat.Id) ? Visibility.Visible : Visibility.Collapsed;
@@ -143,9 +143,9 @@ namespace Kemas
         /// Small caps group label; in the icon-only sidebar it turns into a short divider.
         Grid SectionLabel(string en, string ms, bool first)
         {
-            var g = new Grid { Margin = new Thickness(16, first ? 2 : 20, 4, 8) };
+            var g = new Grid { Margin = new Thickness(16, first ? 0 : 14, 4, 5) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
-            var t = new TextBlock { FontSize = 12.5, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms), VerticalAlignment = VerticalAlignment.Center };
+            var t = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms), VerticalAlignment = VerticalAlignment.Center };
             t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             var line = new Border { Height = 1, Margin = new Thickness(12, 1, 0, 0), VerticalAlignment = VerticalAlignment.Center, Visibility = en == "MAIN" ? Visibility.Collapsed : Visibility.Visible };
             line.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(line, 1);
@@ -170,20 +170,20 @@ namespace Kemas
         /// Category row drawn like a sidebar item: fading hover, selection tint, gradient bar, rotating chevron.
         Border MakeHeader(Cat cat)
         {
-            var root = new Grid { Height = 50, Background = Brushes.Transparent };
-            cat.Bar = new Border { Width = 4, Height = 30, CornerRadius = new CornerRadius(2), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0, Background = (Brush)W.FindResource("BrandBar") };
-            cat.Hover = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), Opacity = 0 }; cat.Hover.SetResourceReference(Border.BackgroundProperty, "HoverBrush");
-            cat.Sel = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), Opacity = 0, Background = (Brush)W.FindResource("NavPill"),
+            var root = new Grid { Height = 44, Background = Brushes.Transparent }; cat.Root = root;
+            cat.Bar = new Border { Width = 4, Height = 26, CornerRadius = new CornerRadius(2), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0, Background = (Brush)W.FindResource("BrandBar") };
+            cat.Hover = new Border { CornerRadius = new CornerRadius(12), Margin = new Thickness(12, 0, 0, 0), Opacity = 0 }; cat.Hover.SetResourceReference(Border.BackgroundProperty, "HoverBrush");
+            cat.Sel = new Border { CornerRadius = new CornerRadius(12), Margin = new Thickness(12, 0, 0, 0), Opacity = 0, Background = (Brush)W.FindResource("NavPill"),
                 Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = Color.FromRgb(0x2F, 0x6B, 0xF0), BlurRadius = 18, ShadowDepth = 4, Direction = 270, Opacity = 0.38 } };
-            cat.Ring = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), BorderThickness = new Thickness(2), Opacity = 0 }; cat.Ring.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
+            cat.Ring = new Border { CornerRadius = new CornerRadius(12), Margin = new Thickness(12, 0, 0, 0), BorderThickness = new Thickness(2), Opacity = 0 }; cat.Ring.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
             root.Children.Add(cat.Bar); root.Children.Add(cat.Hover); root.Children.Add(cat.Sel); root.Children.Add(cat.Ring);
-            var g = new Grid { Margin = new Thickness(18, 0, 8, 0) };
+            var g = new Grid { Margin = new Thickness(19, 0, 8, 0) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             Border tb; TextBlock ic;
-            var tile = NavTile(cat.Glyph, cat.Color, 38, 18, out tb, out ic);
+            var tile = NavTile(cat.Glyph, cat.Color, 34, 17, out tb, out ic);
             cat.TileBg = tb; cat.Icon = ic;
             cat.TileScale = new ScaleTransform(1, 1); tile.RenderTransformOrigin = new Point(0.5, 0.5); tile.RenderTransform = cat.TileScale;
-            cat.Label = new TextBlock { FontSize = 15.5, FontWeight = FontWeights.Medium, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+            cat.Label = new TextBlock { FontSize = 15, FontWeight = FontWeights.Medium, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
             cat.Rot = new RotateTransform(0);
             cat.Chevron = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Width = 30, Height = 30, Padding = new Thickness(0, 9.5, 0, 0), TextAlignment = TextAlignment.Center, Background = Brushes.Transparent, Cursor = Cursors.Hand, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = cat.Rot, ToolTip = Tx("Show or hide pages", "Tunjuk atau sembunyi halaman") };
             Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
@@ -227,6 +227,9 @@ namespace Kemas
         void Toggle(Cat c, bool show)
         {
             if (c.Items.Length == 0) return;
+            // short windows: one category open at a time, so Settings and About never get pushed off screen
+            if (show && dense && !compact)
+                foreach (var o in cats) if (o != c && o.Body.Visibility == Visibility.Visible) { o.Body.Visibility = Visibility.Collapsed; o.Rot.BeginAnimation(RotateTransform.AngleProperty, null); o.Rot.Angle = 0; }
             c.Body.Visibility = show && !compact ? Visibility.Visible : Visibility.Collapsed;
             double to = c.Body.Visibility == Visibility.Visible ? 90 : 0;
             if (S.ReducedMotion) c.Rot.Angle = to; else c.Rot.BeginAnimation(RotateTransform.AngleProperty, Anim(c.Rot.Angle, to, 160));
@@ -251,7 +254,7 @@ namespace Kemas
                 sl.Item2.Text = Tx(sl.Item4, sl.Item5);
                 sl.Item2.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
                 sl.Item3.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
-                sl.Item1.Margin = compact ? new Thickness(23, sl.Item1.Margin.Top, 0, 8) : new Thickness(16, sl.Item1.Margin.Top, 4, 8);
+                sl.Item1.Margin = compact ? new Thickness(23, sl.Item1.Margin.Top, 0, 5) : new Thickness(16, sl.Item1.Margin.Top, 4, 5);
                 if (sl.Item4 != "MAIN") sl.Item1.Children[1].Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             }
             if (E<FrameworkElement>("SideVerState") != null) SetVerState(verState, verNew);
@@ -312,10 +315,10 @@ namespace Kemas
             double w = on ? 72 : 276;
             if (S.ReducedMotion || !side.IsLoaded) { side.BeginAnimation(FrameworkElement.WidthProperty, null); side.Width = w; }
             else side.BeginAnimation(FrameworkElement.WidthProperty, Anim(side.ActualWidth > 0 ? side.ActualWidth : side.Width, w, 240, new System.Windows.Media.Animation.QuarticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }));
-            E<DockPanel>("SideDock").Margin = on ? new Thickness(0, 22, 10, 18) : new Thickness(8, 22, 14, 18);
+            E<DockPanel>("SideDock").Margin = on ? new Thickness(0, 16, 10, 12) : new Thickness(8, 16, 14, 12);
             E<FrameworkElement>("SideDecor").Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             var brand = E<StackPanel>("Brand"); if (brand.Children.Count > 1) brand.Children[1].Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-            brand.Margin = on ? new Thickness(10, 0, 0, 24) : new Thickness(14, 0, 0, 24);
+            brand.Margin = new Thickness(14, 0, 0, dense ? 10 : 16);
             E<FrameworkElement>("VerCard").Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             if (on) E<FrameworkElement>("UpdateChip").Visibility = Visibility.Collapsed;
             else if (pendingUpdate != null) E<FrameworkElement>("UpdateChip").Visibility = Visibility.Visible;
@@ -359,6 +362,30 @@ namespace Kemas
             t.Text = txt; verState = kind; verNew = ver;
         }
         string verState = "none", verNew;
+        bool dense;
+        /// Tightens item heights on short windows (e.g. 1366 x 768) instead of making the user scroll.
+        void ApplyDensity(double height)
+        {
+            if (cats == null) return;
+            bool want = height < 820;
+            if (want == dense && E<RadioButton>("NavDash").Height > 0) return;
+            dense = want;
+            double h = dense ? 40 : 44;
+            foreach (var n in new[] { "NavDash", "NavSettings", "NavAbout" }) E<RadioButton>(n).Height = h;
+            foreach (var c in cats)
+            {
+                c.Root.Height = h;
+                foreach (var r in c.Body.Children.OfType<RadioButton>()) r.Height = dense ? 32 : 34;
+            }
+            foreach (var sl in sectionLabels) if (sl.Item4 != "MAIN") sl.Item1.Margin = new Thickness(sl.Item1.Margin.Left, dense ? 8 : 14, sl.Item1.Margin.Right, dense ? 3 : 5);
+            E<FrameworkElement>("VerTile").Visibility = dense ? Visibility.Collapsed : Visibility.Visible;
+            E<StackPanel>("Brand").Margin = new Thickness(14, 0, 0, dense ? 10 : 16);
+            if (dense && !compact)
+            {
+                var mine = CatOf("Nav" + currentPage.Substring(4));
+                foreach (var c in cats) if (c != mine && c.Body.Visibility == Visibility.Visible) { c.Body.Visibility = Visibility.Collapsed; c.Rot.BeginAnimation(RotateTransform.AngleProperty, null); c.Rot.Angle = 0; }
+            }
+        }
         void AutoCompact(double width)
         {
             bool want = S.SideCompact || width < 1000;
@@ -427,8 +454,8 @@ namespace Kemas
                 if (e.Key == Key.K && (Keyboard.Modifiers & ModifierKeys.Control) != 0) { sbox.Focus(); sbox.SelectAll(); e.Handled = true; }
             };
             W.PreviewMouseDown += (s, e) => { if (searchPop.IsOpen && !searchPop.IsMouseOver && !sbox.IsMouseOver) searchPop.IsOpen = false; };
-            W.SizeChanged += (s, e) => AutoCompact(e.NewSize.Width);
-            AutoCompact(W.Width);
+            W.SizeChanged += (s, e) => { AutoCompact(e.NewSize.Width); ApplyDensity(e.NewSize.Height); };
+            AutoCompact(W.Width); ApplyDensity(W.Height);
         }
         static DependencyObject VisualParentOf(DependencyObject d, int up)
         {
@@ -580,7 +607,7 @@ namespace Kemas
             set("SetCatHelp", "Help and report a problem", "Bantuan dan lapor masalah", "help support report bug bantuan", "E897");
             set("SetCatData", "Data and history", "Data dan sejarah", "data history export reset sejarah", "E8B7");
             Action<string, string, string, Action, string> act = (en, ms, keys, a, glyph) => l.Add(new Hit { Group = "a", Title = Tx(en, ms), Sub = Tx("Action", "Tindakan"), Glyph = glyph, Keys = keys, Do = a });
-            act("Scan for junk files", "Imbas fail sampah", "scan junk clean temp cache sampah imbas", () => { Go("NavClean"); StartScan(); }, "E721");
+            act("Scan for junk files", "Imbas fail sampah", "scan junk clean temp cache sampah imbas", () => { Go("NavClean"); StartScan(true); }, "E721");
             act("Check my PC", "Semak PC saya", "check doctor diagnose problem health semak", () => Go("NavDoctor"), "E9D2");
             act("Disable startup apps", "Matikan apps permulaan", "startup boot slow disable impact permulaan", () => Go("NavStartup"), "E7E8");
             act("Free up memory", "Kosongkan memori", "ram memory free slow memori", () => Go("NavRam"), "E9D9");
@@ -716,7 +743,7 @@ namespace Kemas
         void HubClean()
         {
             ModBegin("HubClean", Tx("Scans everything that is safe to remove. You review the list before anything is deleted.", "Mengimbas semua yang selamat dibuang. Anda semak senarai sebelum apa-apa dipadam."),
-                Btn(Tx("Scan now", "Imbas sekarang"), true, () => { Go("NavClean"); StartScan(); }));
+                Btn(Tx("Scan now", "Imbas sekarang"), true, () => { Go("NavClean"); StartScan(true); }));
             TextBlock v1, s1, v2, s2, v3, s3;
             var m1 = Metric(Tx("Can be removed", "Boleh dibuang"), out v1, out s1);
             var m2 = Metric(Tx("Last clean", "Pembersihan terakhir"), out v2, out s2);

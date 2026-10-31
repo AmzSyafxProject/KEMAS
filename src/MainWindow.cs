@@ -298,7 +298,7 @@ namespace Kemas
             }
 
             BT("BtnSmart").Click += (s, e) => RequestClean(true);
-            BT("BtnDashScan").Click += (s, e) => StartScan();
+            BT("BtnDashScan").Click += (s, e) => StartScan(true);
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
             BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
             LayoutDash(2000);
@@ -333,7 +333,7 @@ namespace Kemas
             BT("BtnViewAll").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             RefreshHistory();
             UpdateCrumb();
-            BT("BtnScan").Click += (s, e) => StartScan();
+            BT("BtnScan").Click += (s, e) => StartScan(true);
             BT("BtnClean").Click += (s, e) => RequestClean(false);
             BT("BtnDeep").Click += (s, e) => RequestDeepClean();
             BT("BtnHelp").Click += (s, e) => ShowSupport();
@@ -405,7 +405,8 @@ namespace Kemas
             };
 
             BT("BtnStop").Click += (s, e) => { cancelFlag = true; if (activeCleaner != null) activeCleaner.Cancel = true; BT("BtnStop").IsEnabled = false; BT("BtnStop").Content = L.T("stopping"); };
-            BT("BtnFinish").Click += (s, e) => HideOverlay();
+            BT("BtnFinish").Click += (s, e) => { if (engFinish != null) engFinish(); else HideOverlay(); };
+            SetupEngine();
             BT("BtnDialogNo").Click += (s, e) => CloseDialog(false);
             BT("BtnDialogYes").Click += (s, e) => CloseDialog(true);
             E<Border>("UpdateChip").MouseLeftButtonUp += (s, e) => { if (pendingUpdate != null) OfferUpdate(pendingUpdate); };
@@ -484,7 +485,7 @@ namespace Kemas
                     var navs = new[] { "NavDash", "NavClean", "NavOrg", "NavRam", "NavStartup", "NavDoctor", "NavMap", "NavApps", "NavRecover" };
                     E<RadioButton>(navs[e.Key - Key.D1]).IsChecked = true; e.Handled = true; return;
                 }
-                if (!overlay && !busy && e.Key == Key.F5) { StartScan(); e.Handled = true; return; }
+                if (!overlay && !busy && e.Key == Key.F5) { StartScan(true); e.Handled = true; return; }
                 if (e.Key == Key.Escape && E<Grid>("DialogLayer").Visibility == Visibility.Visible) { CloseDialog(false); e.Handled = true; }
                 else if (e.Key == Key.Escape && E<Grid>("SupportLayer").Visibility == Visibility.Visible) { CloseSupport(); e.Handled = true; }
                 else if (e.Key == Key.Escape && E<Grid>("WhatsNewLayer").Visibility == Visibility.Visible) { CloseWhatsNew(false); e.Handled = true; }

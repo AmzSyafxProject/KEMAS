@@ -119,7 +119,8 @@ namespace Kemas
         }
 
         // ================================================================ scan
-        void StartScan()
+        /// show = run inside the Scan Engine screen (user-started); the silent start-up scan stays inline.
+        void StartScan(bool show = false)
         {
             if (busy) { Toast(L.T("please_wait"), "E916"); return; }
             TB("JunkText").Text = "...";
@@ -128,25 +129,46 @@ namespace Kemas
             Log(L.T("scan_start"));
             var c = new Cleaner { SkipRecentTemp = S.SkipRecentTemp };
             activeCleaner = c;
-            int done = 0;
+            int done = 0; long found = 0; int withJunk = 0;
+            string err = null;
+            var measured = new HashSet<string>();
+            var watch = Stopwatch.StartNew();
+            if (show)
+            {
+                engMode = "scan";
+                ShowOverlay(Tx("Smart Scan", "Imbasan Pintar"), Tx("Measuring each cleanup category. Nothing is deleted during a scan.", "Mengukur setiap kategori pembersihan. Tiada apa dipadam semasa imbasan."),
+                    targets.Select(t => Tuple.Create(t.Key, L.T("t_" + t.Key))).ToList());
+            }
             Run(() =>
             {
-                // measure several locations at once: most of the time is spent waiting on the disk, not the CPU
-                var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Math.Max(2, Math.Min(4, Environment.ProcessorCount)) };
-                System.Threading.Tasks.Parallel.ForEach(targets, opts, (t, state) =>
+                try
                 {
-                    if (cancelFlag) { state.Stop(); return; }
-                    long size = c.Measure(t);
-                    var tt = t; int k = System.Threading.Interlocked.Increment(ref done);
-                    Ui(() =>
+                    // measure several locations at once: most of the time is spent waiting on the disk, not the CPU
+                    var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = Math.Max(2, Math.Min(4, Environment.ProcessorCount)) };
+                    System.Threading.Tasks.Parallel.ForEach(targets, opts, (t, state) =>
                     {
-                        tt.Size = size;
-                        scanned = true;
-                        SetTargetSize(tt);
-                        E<ProgressBar>("MainProgress").Value = k * 100.0 / targets.Count;
-                        TB("StatusText").Text = L.T("scanning") + "  " + L.T("t_" + tt.Key);
+                        if (cancelFlag) { state.Stop(); return; }
+                        var tt = t;
+                        if (show) Ui(() => { SetOvItem(tt.Key, ItemState.Working, L.T("scanning_short")); OvStep(string.Format(Tx("Scanning {0}...", "Mengimbas {0}..."), L.T("t_" + tt.Key).ToLower(L.Culture))); });
+                        long size = c.Measure(t);
+                        int k = System.Threading.Interlocked.Increment(ref done);
+                        Ui(() =>
+                        {
+                            tt.Size = size;
+                            scanned = true;
+                            SetTargetSize(tt);
+                            E<ProgressBar>("MainProgress").Value = k * 100.0 / targets.Count;
+                            TB("StatusText").Text = L.T("scanning") + "  " + L.T("t_" + tt.Key);
+                            if (!show) return;
+                            measured.Add(tt.Key);
+                            if (size > 0 && !tt.IsDns && !tt.MeasureByDrive) { found += size; withJunk++; }
+                            SetOvItem(tt.Key, ItemState.Done, tt.IsDns ? L.T("refresh_word") : tt.MeasureByDrive ? L.T("varies_word") : size > 0 ? Fmt.Size(size) : L.T("clean_word"));
+                            OvProgress(k * 100.0 / targets.Count);
+                            EngCount(k, Fmt.Size(found));
+                        });
                     });
-                });
+                }
+                catch (Exception ex) { err = ex is AggregateException && ex.InnerException != null ? ex.InnerException.Message : ex.Message; global::Kemas.Log.Error("Scan", ex); }
             }, () =>
             {
                 activeCleaner = null;
@@ -155,10 +177,31 @@ namespace Kemas
                 TB("JunkText").Text = Fmt.Size(junkTotal);
                 TB("JunkSub").Text = string.Format(L.T("across"), targets.Count);
                 lastScanAt = DateTime.Now;
+                if (show) { EngStage("analyze"); OvStep(Tx("Evaluating cleanup opportunities...", "Menilai peluang pembersihan...")); }
                 RecordHealthDay();
                 UpdateSelectedTotal();
                 UpdateStats();
                 Log(string.Format(L.T("scan_done"), Fmt.Size(junkTotal)));
+                if (!show) return;
+                // every category that never ran is marked, so a stopped scan is never shown as complete
+                foreach (var t in targets.Where(t => !measured.Contains(t.Key))) SetOvItem(t.Key, ItemState.Skipped, cancelFlag ? L.T("stopped") : L.T("skipped"));
+                engDetails.Clear();
+                foreach (var t in targets.OrderByDescending(t => measured.Contains(t.Key) ? t.Size : -1))
+                    engDetails.Add(Tuple.Create(L.T("t_" + t.Key), !measured.Contains(t.Key) ? L.T("skipped") : t.IsDns ? L.T("refresh_word") : t.MeasureByDrive ? L.T("varies_word") : t.Size > 0 ? Fmt.Size(t.Size) : L.T("clean_word"),
+                        !measured.Contains(t.Key) ? "skip" : t.Size > 0 ? "ok" : "zero"));
+                int skipped = targets.Count - measured.Count;
+                var chips = new List<Tuple<string, string>> { Tuple.Create(string.Format(Tx("{0} of {1} categories scanned", "{0} daripada {1} kategori diimbas"), measured.Count, targets.Count), skipped > 0 ? "warn" : "good") };
+                if (withJunk > 0) chips.Add(Tuple.Create(string.Format(Tx("{0} with junk", "{0} ada sampah"), withJunk), "cyan"));
+                chips.Add(Tuple.Create(watch.Elapsed.TotalSeconds.ToString("0.0") + "s", "plain"));
+                var notes = new List<Tuple<string, bool>>();
+                notes.Add(Tuple.Create(Tx("A scan only measures. Nothing has been deleted; you choose what to clean next.", "Imbasan hanya mengukur. Tiada apa dipadam; anda pilih apa yang hendak dibersihkan."), false));
+                if (skipped > 0) notes.Add(Tuple.Create(string.Format(Tx("{0} categories were not scanned{1}. The total covers only the scanned ones.", "{0} kategori tidak diimbas{1}. Jumlah hanya meliputi yang diimbas."), skipped, cancelFlag ? Tx(" because you stopped the scan", " kerana anda menghentikan imbasan") : ""), true));
+                if (err != null) notes.Add(Tuple.Create(Tx("Error: ", "Ralat: ") + err, true));
+                string outcome = err != null && measured.Count == 0 ? "error" : cancelFlag ? "cancel" : err != null || skipped > 0 ? "partial" : "done";
+                string title = outcome == "done" ? Tx("Analysis complete", "Analisis selesai") : outcome == "cancel" ? Tx("Scan stopped", "Imbasan dihentikan") : outcome == "error" ? Tx("Scan failed", "Imbasan gagal") : Tx("Scan partly complete", "Imbasan separa selesai");
+                string sub = found > 0 ? Tx("Cleanup opportunities found. Review them before anything is removed.", "Peluang pembersihan dijumpai. Semak dahulu sebelum apa-apa dibuang.") : Tx("Nothing worth cleaning right now.", "Tiada yang perlu dibersihkan buat masa ini.");
+                engAgain = () => StartScan(true);
+                ShowDone(title, outcome == "error" ? err : sub, found, false, Tx("Space identified", "Ruang dikenal pasti"), chips, notes, outcome);
             });
         }
 
@@ -387,7 +430,7 @@ namespace Kemas
             list.Children.Clear();
             if (!scanned)
             {
-                list.Children.Add(RoadRow("E721", L.T("road_scan"), L.T("road_scan_d"), 0, L.T("scan_again"), () => StartScan(), false));
+                list.Children.Add(RoadRow("E721", L.T("road_scan"), L.T("road_scan_d"), 0, L.T("scan_again"), () => StartScan(true), false));
                 return;
             }
             list.Children.Add(RoadRow("E74D", L.T("road_junk"), penJunkStd > 0 ? string.Format(L.T("road_junk_d"), Fmt.Size(junkStd)) : L.T("road_junk_ok"),
@@ -716,6 +759,7 @@ namespace Kemas
         {
             var items = sel.Select(t => Tuple.Create(t.Key, L.T("t_" + t.Key))).ToList();
             if (trim) items.Add(Tuple.Create("ram", L.T("free_ram_item")));
+            engMode = "clean";
             ShowOverlay(L.T("ov_clean"), L.T("ov_clean_d"), items);
             var c = new Cleaner { SkipRecentTemp = S.SkipRecentTemp, RemoveLockedAtRestart = S.RemoveLockedAtRestart };
             activeCleaner = c;
@@ -744,12 +788,14 @@ namespace Kemas
                     results.Add(r);
                     int k = ++i;
                     var rr = r;
+                    long soFar = results.Sum(x => x.Freed);
                     Ui(() =>
                     {
                         string detail = tt.IsDns ? L.T("refreshed") : string.Format(L.T("freed_x"), Fmt.Size(rr.Freed));
                         if (rr.State == ItemState.Skipped) detail = L.T("skipped");
                         SetOvItem(tt.Key, rr.State == ItemState.Done && rr.Locked > 0 ? ItemState.Done : rr.State, detail);
                         OvProgress(k * 100.0 / total);
+                        TB("EngFound").Text = Fmt.Size(soFar);
                         SetTargetSize(tt);
                         string line = "  " + L.T("t_" + tt.Key) + ": " + detail;
                         if (rr.Locked > 0) line += "  (" + string.Format(L.T("note_locked"), rr.Locked) + ")";
@@ -799,7 +845,11 @@ namespace Kemas
                 string title = L.T("done_title");
                 if (cleaned == 0 && skipped > 0) title = L.T("done_none");
                 else if (skipped > 0 || notes.Any(n => n.Item2)) title = L.T("done_skips");
-                ShowDone(title, L.T("done_sub"), freed, false, L.T("freed_up"), chips, notes);
+                engDetails.Clear();
+                foreach (var r in results) engDetails.Add(Tuple.Create(L.T("t_" + r.Key), r.State == ItemState.Skipped ? L.T("skipped") : Fmt.Size(r.Freed), r.State == ItemState.Skipped ? "skip" : r.Freed > 0 ? "ok" : "zero"));
+                TB("EngFound").Text = Fmt.Size(freed);
+                engAgain = () => StartScan(true);
+                ShowDone(title, L.T("done_sub"), freed, false, Tx("Space cleaned", "Ruang dibersihkan"), chips, notes);
                 junkTotal = targets.Sum(t => t.Size);
                 TB("JunkText").Text = Fmt.Size(junkTotal);
                 TB("JunkSub").Text = L.T("left_in_use");
@@ -829,25 +879,27 @@ namespace Kemas
         void ShowOverlay(string title, string sub, List<Tuple<string, string>> items)
         {
             TB("OvTitle").Text = title; TB("OvSub").Text = sub;
-            OvProgress(0); OvStep(L.T("starting"));
             var list = E<StackPanel>("OvList");
             list.Children.Clear(); ovRows.Clear();
             foreach (var it in items)
             {
-                var b = new Border { CornerRadius = new CornerRadius(11), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 0, 6) };
-                b.SetResourceReference(Border.BackgroundProperty, "GhostBrush");
+                var b = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(8, 6, 12, 6), Margin = new Thickness(0, 0, 0, 5), Background = new SolidColorBrush(Color.FromArgb(0x0C, 255, 255, 255)) };
                 var g = new Grid();
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(26) });
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 14.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
-                ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                var nm = new TextBlock { Text = it.Item2, FontSize = 15, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
+                Border tbg; TextBlock tic;
+                g.Children.Add(NavTile(ItemGlyph(it.Item1), "#4A93FF", 30, 14, out tbg, out tic));
+                tic.Foreground = new SolidColorBrush(Color.FromRgb(0x9F, 0xD8, 0xFF));
+                var nm = new TextBlock { Text = it.Item2, FontSize = 14.5, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
                 nm.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 13.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 8, 0) };
                 dt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                Grid.SetColumn(nm, 1); Grid.SetColumn(dt, 2);
-                g.Children.Add(ic); g.Children.Add(nm); g.Children.Add(dt);
+                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 13.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
+                ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                Grid.SetColumn(nm, 1); Grid.SetColumn(dt, 2); Grid.SetColumn(ic, 3);
+                g.Children.Add(nm); g.Children.Add(dt); g.Children.Add(ic);
                 b.Child = g;
                 list.Children.Add(b);
                 ovRows[it.Item1] = Tuple.Create(ic, dt);
@@ -855,13 +907,17 @@ namespace Kemas
             E<Grid>("WorkView").Visibility = Visibility.Visible;
             E<Grid>("DoneView").Visibility = Visibility.Collapsed;
             BT("BtnStop").IsEnabled = true; BT("BtnStop").Content = L.T("stop");
+            OvProgress(0);
             var ov = E<Grid>("Overlay");
             ov.Visibility = Visibility.Visible;
-            ov.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 220));
+            ov.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 320));
             var sc = (ScaleTransform)E<Border>("OverlayCard").RenderTransform;
-            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.94, 1, 320, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
-            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.94, 1, 320, new BackEase { Amplitude = 0.3, EasingMode = EasingMode.EaseOut }));
+            sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.97, 1, 380));
+            sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.97, 1, 380));
             StartScene();
+            EngBegin(items.Count);
+            OvStep(engMode == "scan" ? Tx("Preparing system analysis...", "Menyediakan analisis sistem...") : L.T("starting"));
+            BT("BtnStop").Focus();
         }
 
         void OvProgress(double p)
@@ -870,21 +926,22 @@ namespace Kemas
             TB("OvPct").Text = p.ToString("0") + "%";
             E<ProgressBar>("MainProgress").Value = p;
         }
-        DispatcherTimer ovTimer; string ovKey; DateTime ovStart; double ovBase, ovSpan, ovExpect = 8;
+        // A step with no measurable progress shows its running time and a light sweep; the percentage only moves when a step really finishes.
+        DispatcherTimer ovTimer; string ovKey; DateTime ovStart;
         void OvTrack(string key, double baseP, double span, bool slow)
         {
-            ovKey = key; ovStart = DateTime.UtcNow; ovBase = baseP; ovSpan = span; ovExpect = slow ? 600 : 8;
+            ovKey = key; ovStart = DateTime.UtcNow;
             if (ovTimer == null) { ovTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) }; ovTimer.Tick += OvTick; }
             ovTimer.Start();
+            Shimmer(true);
         }
-        void OvUntrack() { ovKey = null; if (ovTimer != null) ovTimer.Stop(); }
+        void OvUntrack() { ovKey = null; if (ovTimer != null) ovTimer.Stop(); Shimmer(false); }
         void OvTick(object s, EventArgs e)
         {
             if (ovKey == null) return;
             var el = DateTime.UtcNow - ovStart;
             Tuple<TextBlock, TextBlock> r;
             if (ovRows.TryGetValue(ovKey, out r)) r.Item2.Text = L.T("cleaning") + " " + ((int)el.TotalMinutes) + ":" + el.Seconds.ToString("00");
-            if (ovSpan > 0) { double f = 1 - Math.Exp(-el.TotalSeconds / ovExpect); OvProgress(ovBase + ovSpan * 0.92 * f); }
         }
         void OvStep(string s) { TB("OvStep").Text = s; TB("StatusText").Text = s; }
 
@@ -897,36 +954,54 @@ namespace Kemas
             rot.BeginAnimation(RotateTransform.AngleProperty, null);
             if (state != ItemState.Working && key == ovKey) OvUntrack();
             ic.FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets");
+            var row = (Border)((Grid)ic.Parent).Parent;
+            row.BorderThickness = new Thickness(1);
+            row.BorderBrush = state == ItemState.Working ? new SolidColorBrush(Color.FromArgb(0x66, 0x24, 0xC8, 0xF4)) : Brushes.Transparent;
+            row.Background = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x1A, 0x24, 0xC8, 0xF4) : Color.FromArgb(0x0C, 255, 255, 255));
             switch (state)
             {
                 case ItemState.Working:
+                    if (engStage == "init") EngStage(engMode == "scan" ? "scan" : engMode == "clean" ? "clean" : "op");
                     ic.Text = Glyph("E895"); ic.Foreground = (Brush)W.FindResource("CyanBrush");
-                    rot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1)) { RepeatBehavior = RepeatBehavior.Forever });
+                    if (!S.ReducedMotion) rot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1)) { RepeatBehavior = RepeatBehavior.Forever });
                     r.Item2.Foreground = (Brush)W.FindResource("CyanBrush"); break;
                 case ItemState.Done: ic.Text = Glyph("E73E"); ic.Foreground = (Brush)W.FindResource("GoodBrush"); r.Item2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); break;
                 case ItemState.Partial: ic.Text = Glyph("E7BA"); ic.Foreground = (Brush)W.FindResource("WarnBrush"); r.Item2.Foreground = (Brush)W.FindResource("WarnBrush"); break;
                 case ItemState.Skipped: ic.Text = Glyph("E7BA"); ic.Foreground = (Brush)W.FindResource("BadBrush"); r.Item2.Foreground = (Brush)W.FindResource("BadBrush"); break;
             }
-            if (state != ItemState.Working) ic.BeginAnimation(UIElement.OpacityProperty, Anim(0.2, 1, 250));
+            if (state != ItemState.Working)
+            {
+                ic.BeginAnimation(UIElement.OpacityProperty, Anim(0.2, 1, 250));
+                var name = ((TextBlock)((Grid)ic.Parent).Children[1]).Text;
+                Activity(name + ": " + detail, state == ItemState.Done ? "good" : state == ItemState.Partial ? "warn" : "bad");
+                if (engMode != "scan") EngCount(Math.Min(engTotal, engDone + 1), null);
+                if (engMode == "op") { engIssues += state == ItemState.Done ? 0 : 1; TB("EngFound").Text = engIssues.ToString(); }
+            }
             r.Item2.Text = detail;
         }
 
         double countTarget; bool countFiles; DateTime countStart;
-        void ShowDone(string title, string sub, double value, bool files, string bigSub, List<Tuple<string, string>> chips, List<Tuple<string, bool>> notes)
+        void ShowDone(string title, string sub, double value, bool files, string bigSub, List<Tuple<string, string>> chips, List<Tuple<string, bool>> notes, string outcome = null)
         {
+            OvUntrack();
+            if (outcome == null) outcome = cancelFlag ? "cancel" : notes.Any(n => n.Item2) || chips.Any(c => c.Item2 == "warn") ? "partial" : "done";
             E<Grid>("WorkView").Visibility = Visibility.Collapsed;
             var dv = E<Grid>("DoneView");
             dv.Visibility = Visibility.Visible;
-            dv.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 260));
+            dv.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 380));
             TB("DoneTitle").Text = title; TB("DoneSub").Text = sub; TB("DoneBigSub").Text = bigSub;
+            OvStep(outcome == "done" ? (engMode == "scan" ? Tx("System analysis completed.", "Analisis sistem selesai.") : Tx("All steps completed.", "Semua langkah selesai."))
+                 : outcome == "cancel" ? Tx("Stopped. Results so far are kept.", "Dihentikan. Hasil setakat ini disimpan.")
+                 : outcome == "error" ? Tx("The operation did not finish.", "Operasi tidak selesai.")
+                 : Tx("Finished with some items skipped.", "Selesai dengan beberapa item dilangkau."));
             var wrap = E<WrapPanel>("DoneChips"); wrap.Children.Clear();
             foreach (var c in chips)
             {
                 string fg = c.Item2 == "good" ? "#21C98A" : c.Item2 == "warn" ? "#F5A524" : c.Item2 == "cyan" ? "#22C4F0" : null;
                 var b = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(11, 5, 11, 5), Margin = new Thickness(0, 0, 8, 6) };
-                var t = new TextBlock { Text = c.Item1, FontSize = 14 };
+                var t = new TextBlock { Text = c.Item1, FontSize = 13.5 };
                 if (fg != null) { t.Foreground = Hex(fg); b.Background = Hex("#26" + fg.Substring(1)); }
-                else { t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); b.SetResourceReference(Border.BackgroundProperty, "GhostBrush"); }
+                else { t.Foreground = Hex("#C8D4EE"); b.Background = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)); }
                 b.Child = t; wrap.Children.Add(b);
             }
             var np = E<StackPanel>("DoneNotes"); np.Children.Clear();
@@ -938,13 +1013,16 @@ namespace Kemas
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 var ic = new TextBlock { Text = Glyph(n.Item2 ? "E7BA" : "E946"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 13.5, Margin = new Thickness(0, 2, 0, 0),
                     Foreground = (Brush)W.FindResource(n.Item2 ? "WarnBrush" : "CyanBrush") };
-                var tx = new TextBlock { Text = n.Item1, TextWrapping = TextWrapping.Wrap, FontSize = 14 };
-                tx.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                var tx = new TextBlock { Text = n.Item1, TextWrapping = TextWrapping.Wrap, FontSize = 13.5, Foreground = Hex("#B5C3E0") };
                 Grid.SetColumn(tx, 1); g.Children.Add(ic); g.Children.Add(tx); np.Children.Add(g);
             }
-            E<Ellipse>("DoneCircle").BeginAnimation(Shape.StrokeDashOffsetProperty, Anim(51, 0, 600));
-            var a2 = Anim(9, 0, 380); a2.BeginTime = TimeSpan.FromMilliseconds(450);
-            E<System.Windows.Shapes.Path>("DoneCheck").BeginAnimation(Shape.StrokeDashOffsetProperty, a2);
+            EngResult(outcome);
+            if (outcome == "done")
+            {
+                E<Ellipse>("DoneCircle").BeginAnimation(Shape.StrokeDashOffsetProperty, Anim(51, 0, 600));
+                var a2 = Anim(9, 0, 380); a2.BeginTime = TimeSpan.FromMilliseconds(450);
+                E<System.Windows.Shapes.Path>("DoneCheck").BeginAnimation(Shape.StrokeDashOffsetProperty, a2);
+            }
             countTarget = value; countFiles = files; countStart = DateTime.UtcNow;
             CompositionTarget.Rendering -= CountFrame; CompositionTarget.Rendering += CountFrame;
         }
@@ -960,28 +1038,11 @@ namespace Kemas
         void HideOverlay()
         {
             OvUntrack();
-            StopScene();
             var ov = E<Grid>("Overlay");
-            var a = Anim(1, 0, 180);
-            a.Completed += (s, e) => { ov.Visibility = Visibility.Collapsed; UpdateStats(); if (currentPage == "PageRam") LoadRam(); Native.TrimSelf(); };
+            var a = Anim(1, 0, 220);
+            a.Completed += (s, e) => { StopScene(); ov.Visibility = Visibility.Collapsed; UpdateStats(); if (currentPage == "PageRam") LoadRam(); Native.TrimSelf(); };
             ov.BeginAnimation(UIElement.OpacityProperty, a);
-        }
-
-        // ---- the maintenance animation: a self-contained vector scene (no downloads, seamless loops)
-        void StartScene()
-        {
-            var host = E<ContentControl>("SceneHost");
-            try
-            {
-                using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Scene.xaml"))
-                    host.Content = XamlReader.Load(s);
-            }
-            catch (Exception ex) { global::Kemas.Log.Error("Scene", ex); }
-        }
-
-        void StopScene()
-        {
-            E<ContentControl>("SceneHost").Content = null;   // drops the scene and its animations from memory
+            engMode = "op"; engAgain = null; engFinish = null;
         }
 
         /// Removes the video that older versions downloaded; KEMAS no longer fetches anything for its animation.
@@ -1391,7 +1452,7 @@ namespace Kemas
                 if (exe == null)
                 {
                     SetOvItem("dl", ItemState.Skipped, L.T("failed"));
-                    ShowDone(L.T("update_failed"), L.T("update_failed_d"), 0, true, "", new List<Tuple<string, string>>(), new List<Tuple<string, bool>> { Tuple.Create(L.T("update_failed_note"), true) });
+                    ShowDone(L.T("update_failed"), L.T("update_failed_d"), 0, true, "", new List<Tuple<string, string>>(), new List<Tuple<string, bool>> { Tuple.Create(L.T("update_failed_note"), true) }, "error");
                     return;
                 }
                 SetOvItem("dl", ItemState.Done, L.T("done_word")); SetOvItem("verify", ItemState.Done, L.T("done_word")); SetOvItem("install", ItemState.Done, L.T("done_word"));

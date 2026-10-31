@@ -128,10 +128,10 @@
       <Setter Property="Foreground" Value="{DynamicResource SideTextBrush}"/>
       <Setter Property="Background" Value="#1F7D8BA5"/>
       <Setter Property="BorderBrush" Value="#7D8BA5"/>
-      <Setter Property="FontSize" Value="15.5"/>
+      <Setter Property="FontSize" Value="15"/>
       <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="Height" Value="50"/>
-      <Setter Property="Margin" Value="0,2,0,2"/>
+      <Setter Property="Height" Value="44"/>
+      <Setter Property="Margin" Value="0,1,0,1"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="GroupName" Value="nav"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -139,20 +139,20 @@
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
             <Grid Background="Transparent">
-              <Border x:Name="bar" Width="4" Height="30" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource BrandBar}" Opacity="0"/>
-              <Border x:Name="hover" CornerRadius="14" Margin="12,0,0,0" Background="{DynamicResource HoverBrush}" Opacity="0"/>
-              <Border x:Name="sel" CornerRadius="14" Margin="12,0,0,0" Background="{StaticResource NavPill}" Opacity="0">
+              <Border x:Name="bar" Width="4" Height="26" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource BrandBar}" Opacity="0"/>
+              <Border x:Name="hover" CornerRadius="12" Margin="12,0,0,0" Background="{DynamicResource HoverBrush}" Opacity="0"/>
+              <Border x:Name="sel" CornerRadius="12" Margin="12,0,0,0" Background="{StaticResource NavPill}" Opacity="0">
                 <Border.Effect><DropShadowEffect Color="#2F6BF0" BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.38"/></Border.Effect>
               </Border>
-              <Border x:Name="ring" CornerRadius="14" Margin="12,0,0,0" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
-              <StackPanel Orientation="Horizontal" Margin="18,0,10,0" VerticalAlignment="Center">
-                <Grid x:Name="tile" Width="38" Height="38" RenderTransformOrigin="0.5,0.5">
+              <Border x:Name="ring" CornerRadius="12" Margin="12,0,0,0" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
+              <StackPanel Orientation="Horizontal" Margin="19,0,10,0" VerticalAlignment="Center">
+                <Grid x:Name="tile" Width="34" Height="34" RenderTransformOrigin="0.5,0.5">
                   <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
-                  <Border x:Name="tileBg" CornerRadius="11" Background="{TemplateBinding Background}"/>
-                  <Border x:Name="gloss" CornerRadius="11" Background="{StaticResource TileGloss}"/>
-                  <TextBlock x:Name="ic" Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{TemplateBinding BorderBrush}"/>
+                  <Border x:Name="tileBg" CornerRadius="10" Background="{TemplateBinding Background}"/>
+                  <Border x:Name="gloss" CornerRadius="10" Background="{StaticResource TileGloss}"/>
+                  <TextBlock x:Name="ic" Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{TemplateBinding BorderBrush}"/>
                 </Grid>
-                <ContentPresenter VerticalAlignment="Center" Margin="14,0,0,0"/>
+                <ContentPresenter VerticalAlignment="Center" Margin="12,0,0,0"/>
               </StackPanel>
             </Grid>
             <ControlTemplate.Triggers>
@@ -189,8 +189,8 @@
     <!-- child item: indented on a thin guide line from the parent's tile; the active child gets the same gradient pill -->
     <Style x:Key="NavSub" TargetType="RadioButton">
       <Setter Property="Foreground" Value="{DynamicResource SideTextBrush}"/>
-      <Setter Property="FontSize" Value="14.5"/>
-      <Setter Property="Height" Value="38"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Height" Value="34"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="GroupName" Value="nav"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -198,21 +198,21 @@
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
             <Grid Background="Transparent">
-              <Border Width="1.5" HorizontalAlignment="Left" Margin="36,0,0,0" Background="{DynamicResource LineBrush}"/>
-              <Border x:Name="seg" Width="3" Height="20" CornerRadius="1.5" HorizontalAlignment="Left" Margin="35.25,0,0,0" Background="{StaticResource BrandBar}" Opacity="0"/>
-              <Border x:Name="hover" CornerRadius="11" Margin="52,3,0,3" Background="{DynamicResource HoverBrush}" Opacity="0"/>
-              <Border x:Name="sel" CornerRadius="11" Margin="52,3,0,3" Background="{StaticResource NavPill}" Opacity="0">
+              <Border Width="1.5" HorizontalAlignment="Left" Margin="35.25,0,0,0" Background="{DynamicResource LineBrush}"/>
+              <Border x:Name="seg" Width="3" Height="18" CornerRadius="1.5" HorizontalAlignment="Left" Margin="34.5,0,0,0" Background="{StaticResource BrandBar}" Opacity="0"/>
+              <Border x:Name="hover" CornerRadius="11" Margin="52,2,0,2" Background="{DynamicResource HoverBrush}" Opacity="0"/>
+              <Border x:Name="sel" CornerRadius="11" Margin="52,2,0,2" Background="{StaticResource NavPill}" Opacity="0">
                 <Border.Effect><DropShadowEffect Color="#2F6BF0" BlurRadius="12" ShadowDepth="3" Direction="270" Opacity="0.3"/></Border.Effect>
               </Border>
-              <Border x:Name="ring" CornerRadius="11" Margin="52,3,0,3" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
-              <ContentPresenter x:Name="cp" VerticalAlignment="Center" Margin="68,0,8,0"/>
+              <Border x:Name="ring" CornerRadius="11" Margin="52,2,0,2" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
+              <ContentPresenter x:Name="cp" VerticalAlignment="Center" Margin="65,0,8,0"/>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
                 <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
                 <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                <Setter TargetName="cp" Property="Margin" Value="71,0,8,0"/>
+                <Setter TargetName="cp" Property="Margin" Value="68,0,8,0"/>
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="ring" Property="Opacity" Value="1"/>
@@ -222,7 +222,7 @@
                 <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/><DoubleAnimation Storyboard.TargetName="seg" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter TargetName="hover" Property="Visibility" Value="Collapsed"/>
-                <Setter TargetName="cp" Property="Margin" Value="68,0,8,0"/>
+                <Setter TargetName="cp" Property="Margin" Value="65,0,8,0"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
               </Trigger>
             </ControlTemplate.Triggers>
@@ -607,15 +607,15 @@
         <Path x:Name="SideWave" IsHitTestVisible="False" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Stretch="Fill" Height="70" Data="M 0,70 C 70,30 150,62 200,34 C 236,14 262,6 276,0 L 276,70 Z">
           <Path.Fill><LinearGradientBrush StartPoint="0,1" EndPoint="1,0"><GradientStop Color="#1024C8F4" Offset="0"/><GradientStop Color="#4424C8F4" Offset="0.5"/><GradientStop Color="#667B5CFF" Offset="1"/></LinearGradientBrush></Path.Fill>
         </Path>
-        <DockPanel x:Name="SideDock" Margin="8,22,14,18">
-          <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Margin="14,0,0,24" Background="Transparent">
-            <Grid Width="52" Height="52">
-              <Border CornerRadius="15" Margin="2,4,2,0" Background="#2F6BF0" Opacity="0.25"><Border.Effect><BlurEffect Radius="10"/></Border.Effect></Border>
-              <Image x:Name="SideLogo" Width="52" Height="52"/>
+        <DockPanel x:Name="SideDock" Margin="8,16,14,12">
+          <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Margin="14,0,0,16" Background="Transparent">
+            <Grid Width="44" Height="44">
+              <Border CornerRadius="13" Margin="2,4,2,0" Background="#2F6BF0" Opacity="0.25"><Border.Effect><BlurEffect Radius="9"/></Border.Effect></Border>
+              <Image x:Name="SideLogo" Width="44" Height="44"/>
             </Grid>
-            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-              <TextBlock Text="KEMAS" FontSize="25" FontWeight="Black" Foreground="{DynamicResource TextBrush}"/>
-              <TextBlock Text="{DynamicResource L_tagline}" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/>
+            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+              <TextBlock Text="KEMAS" FontSize="22" FontWeight="Black" Foreground="{DynamicResource TextBrush}"/>
+              <TextBlock Text="{DynamicResource L_tagline}" FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
             </StackPanel>
           </StackPanel>
 
@@ -632,22 +632,22 @@
             </Border>
             <RadioButton x:Name="NavSettings" Style="{StaticResource Nav}" Tag="&#xE713;" Content="{DynamicResource L_nav_settings}"/>
             <RadioButton x:Name="NavAbout" Style="{StaticResource Nav}" Tag="&#xE946;" Content="{DynamicResource L_nav_about}"/>
-            <Border x:Name="VerCard" CornerRadius="16" Padding="12,10,10,10" Margin="12,14,0,0" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+            <Border x:Name="VerCard" CornerRadius="14" Padding="10,7,8,7" Margin="12,8,0,0" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
               <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Grid Width="36" Height="36">
-                  <Border CornerRadius="10" Background="#1F7D8BA5"/>
-                  <Border CornerRadius="10" Background="{StaticResource TileGloss}"/>
-                  <TextBlock Style="{StaticResource Icon}" Text="&#xE81E;" FontSize="16" Foreground="#7D8BA5" HorizontalAlignment="Center"/>
+                <Grid x:Name="VerTile" Width="32" Height="32">
+                  <Border CornerRadius="9" Background="#1F7D8BA5"/>
+                  <Border CornerRadius="9" Background="{StaticResource TileGloss}"/>
+                  <TextBlock Style="{StaticResource Icon}" Text="&#xE81E;" FontSize="15" Foreground="#7D8BA5" HorizontalAlignment="Center"/>
                 </Grid>
-                <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
-                  <TextBlock x:Name="SideVersion" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                  <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                <StackPanel Grid.Column="1" Margin="10,0,6,0" VerticalAlignment="Center">
+                  <TextBlock x:Name="SideVersion" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                  <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
                     <Ellipse x:Name="SideVerDot" Width="7" Height="7" Fill="#9AA4B8" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="SideVerState" FontSize="13" Margin="6,0,0,0" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="SideVerState" FontSize="12.5" Margin="6,0,0,0" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
                 </StackPanel>
-                <Button x:Name="BtnVerCheck" Grid.Column="2" Style="{StaticResource IconBtn}" Content="&#xE72C;" FontSize="14" Width="34" Height="34"/>
+                <Button x:Name="BtnVerCheck" Grid.Column="2" Style="{StaticResource IconBtn}" Content="&#xE72C;" FontSize="13.5" Width="30" Height="30"/>
               </Grid>
             </Border>
           </StackPanel>
@@ -1581,68 +1581,222 @@
       </StackPanel>
     </Border>
 
-    <!-- ===== maintenance overlay ===== -->
-    <Grid x:Name="Overlay" Visibility="Collapsed" Background="{DynamicResource OverlayBrush}">
-      <Border x:Name="OverlayCard" Width="880" Height="500" CornerRadius="26" Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="30" RenderTransformOrigin="0.5,0.5">
+    <!-- ===== KEMAS Scan Engine: full-window operation screen (scan, clean and every other long task) ===== -->
+    <Grid x:Name="Overlay" Visibility="Collapsed" Background="#0A1022">
+      <Grid.Resources>
+        <!-- the engine is always dark, whatever the app theme -->
+        <SolidColorBrush x:Key="TextBrush" Color="#EEF3FF"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#8C9DC0"/>
+        <SolidColorBrush x:Key="TrackBrush" Color="#1AFFFFFF"/>
+        <SolidColorBrush x:Key="GhostBrush" Color="#0FFFFFFF"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#1FFFFFFF"/>
+        <SolidColorBrush x:Key="HoverBrush" Color="#1FFFFFFF"/>
+        <SolidColorBrush x:Key="SelectBrush" Color="#2AFFFFFF"/>
+        <LinearGradientBrush x:Key="EngText" StartPoint="0,0" EndPoint="1,0">
+          <GradientStop Color="#7FE3FF" Offset="0"/>
+          <GradientStop Color="#4A93FF" Offset="1"/>
+        </LinearGradientBrush>
+        <Style x:Key="EngLabel" TargetType="TextBlock">
+          <Setter Property="FontSize" Value="11.5"/>
+          <Setter Property="FontWeight" Value="SemiBold"/>
+          <Setter Property="Foreground" Value="#6F82A8"/>
+        </Style>
+        <Style x:Key="EngGhost" TargetType="Button">
+          <Setter Property="Foreground" Value="#EEF3FF"/>
+          <Setter Property="FontSize" Value="14.5"/>
+          <Setter Property="Height" Value="42"/>
+          <Setter Property="Padding" Value="20,0"/>
+          <Setter Property="Cursor" Value="Hand"/>
+          <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="Button">
+                <Border x:Name="bd" CornerRadius="12" Background="#12FFFFFF" BorderBrush="#2EFFFFFF" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#22FFFFFF"/></Trigger>
+                  <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Background" Value="#2EFFFFFF"/></Trigger>
+                  <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#7FE3FF"/></Trigger>
+                  <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.4"/></Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </Grid.Resources>
+      <!-- ambient light and a faint technical grid -->
+      <Rectangle IsHitTestVisible="False">
+        <Rectangle.Fill>
+          <RadialGradientBrush Center="0.32,0.5" GradientOrigin="0.32,0.5" RadiusX="0.6" RadiusY="0.8">
+            <GradientStop Color="#1E2F6BF0" Offset="0"/>
+            <GradientStop Color="#00000000" Offset="1"/>
+          </RadialGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle IsHitTestVisible="False">
+        <Rectangle.Fill>
+          <RadialGradientBrush Center="0.95,0.05" GradientOrigin="0.95,0.05" RadiusX="0.5" RadiusY="0.6">
+            <GradientStop Color="#1424C8F4" Offset="0"/>
+            <GradientStop Color="#00000000" Offset="1"/>
+          </RadialGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle IsHitTestVisible="False" Opacity="0.5">
+        <Rectangle.Fill>
+          <DrawingBrush TileMode="Tile" Viewport="0,0,44,44" ViewportUnits="Absolute">
+            <DrawingBrush.Drawing>
+              <GeometryDrawing Geometry="M 0,0 L 44,0 M 0,0 L 0,44">
+                <GeometryDrawing.Pen><Pen Brush="#0CFFFFFF" Thickness="1"/></GeometryDrawing.Pen>
+              </GeometryDrawing>
+            </DrawingBrush.Drawing>
+          </DrawingBrush>
+        </Rectangle.Fill>
+        <Rectangle.OpacityMask>
+          <RadialGradientBrush Center="0.35,0.5" GradientOrigin="0.35,0.5" RadiusX="0.7" RadiusY="0.9">
+            <GradientStop Color="#FF000000" Offset="0"/>
+            <GradientStop Color="#00000000" Offset="1"/>
+          </RadialGradientBrush>
+        </Rectangle.OpacityMask>
+      </Rectangle>
+
+      <Border x:Name="OverlayCard" RenderTransformOrigin="0.5,0.5">
         <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
         <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
-            <ColumnDefinition Width="30"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <Grid x:Name="Stage" Width="350" Height="350" VerticalAlignment="Center">
-            <Border CornerRadius="24" Background="#0D1020" BorderBrush="#1FFFFFFF" BorderThickness="1"/>
-            <ContentControl x:Name="SceneHost"/>
+          <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+          <!-- header -->
+          <Grid Margin="28,0,10,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Image x:Name="EngLogo" Width="30" Height="30"/>
+              <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="KEMAS SCAN ENGINE" FontSize="14" FontWeight="Bold" Foreground="#EEF3FF"/>
+                <TextBlock x:Name="EngTagline" Text="Intelligent PC Analysis" FontSize="12" Foreground="#7F93B8"/>
+              </StackPanel>
+            </StackPanel>
+            <Border x:Name="EngPill" Grid.Column="1" CornerRadius="15" Padding="14,6,16,7" VerticalAlignment="Center" Background="#1A3478F6" BorderBrush="#553478F6" BorderThickness="1">
+              <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="EngDot" Width="8" Height="8" Fill="#4A93FF" VerticalAlignment="Center"/>
+                <TextBlock x:Name="EngStatus" Text="INITIALIZING" Margin="9,0,0,0" FontSize="12.5" FontWeight="SemiBold" Foreground="#CFE0FF" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <TextBlock Style="{StaticResource Icon}" Text="&#xE7F4;" FontSize="14" Foreground="#7F93B8"/>
+              <TextBlock x:Name="EngDevice" Margin="8,0,14,0" FontSize="13" Foreground="#9FB0D0" VerticalAlignment="Center"/>
+              <Button x:Name="BtnEngMin" Style="{StaticResource WinBtn}" Content="&#xE921;" Foreground="#9FB0D0" Tag="#1FFFFFFF"/>
+            </StackPanel>
           </Grid>
 
-          <Grid x:Name="WorkView" Grid.Column="2">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel>
-              <TextBlock x:Name="OvTitle" FontSize="25" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-              <TextBlock x:Name="OvSub" Style="{StaticResource Sub}"/>
-            </StackPanel>
-            <StackPanel Grid.Row="1" Margin="0,18,0,14">
+          <!-- body -->
+          <Grid Grid.Row="1" Margin="28,0,28,26">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="440"/></Grid.ColumnDefinitions>
+
+            <!-- orbital scanner -->
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+              <Viewbox x:Name="Stage" MaxWidth="520" MaxHeight="520" Stretch="Uniform" Margin="0,0,0,8">
+                <ContentControl x:Name="SceneHost" Width="440" Height="440"/>
+              </Viewbox>
+              <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,8">
+                <TextBlock x:Name="OvTitle" FontSize="26" FontWeight="SemiBold" Foreground="#EEF3FF" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="OvStep" FontSize="15.5" Foreground="#9FD8FF" HorizontalAlignment="Center" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" MaxWidth="560"/>
+                <TextBlock x:Name="OvSub" FontSize="13.5" Foreground="#7F93B8" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="520" Margin="0,6,0,0"/>
+              </StackPanel>
+            </Grid>
+
+            <!-- glass panel -->
+            <Border Grid.Column="2" CornerRadius="22" Background="#0DFFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" Padding="24,22">
               <Grid>
-                <TextBlock x:Name="OvPct" Text="0%" FontSize="40" FontWeight="Bold" Foreground="{StaticResource AccentGrad}"/>
-                <TextBlock x:Name="OvStep" Foreground="{DynamicResource MutedBrush}" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="120,0,0,10" TextTrimming="CharacterEllipsis"/>
+              <Grid x:Name="WorkView">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel>
+                  <Grid>
+                    <TextBlock x:Name="OvPct" Text="0%" FontSize="42" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
+                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,9">
+                      <TextBlock Text="STAGE" Style="{StaticResource EngLabel}" HorizontalAlignment="Right"/>
+                      <TextBlock x:Name="EngStageName" FontSize="14" FontWeight="SemiBold" Foreground="#EEF3FF" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                  </Grid>
+                  <Grid Margin="0,6,0,0" ClipToBounds="True">
+                    <ProgressBar x:Name="OvBar" Height="8"/>
+                    <Border x:Name="EngShimmer" Width="90" Height="8" CornerRadius="4" HorizontalAlignment="Left" Opacity="0" IsHitTestVisible="False">
+                      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#007FE3FF" Offset="0"/><GradientStop Color="#AA7FE3FF" Offset="0.5"/><GradientStop Color="#007FE3FF" Offset="1"/></LinearGradientBrush></Border.Background>
+                      <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+                    </Border>
+                  </Grid>
+                </StackPanel>
+                <Grid Grid.Row="1" Margin="0,18,0,16">
+                  <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock x:Name="EngItems" Text="0 / 0" FontSize="19" FontWeight="SemiBold" Foreground="#EEF3FF"/>
+                    <TextBlock x:Name="EngItemsLbl" Text="Items processed" FontSize="12.5" Foreground="#7F93B8"/>
+                  </StackPanel>
+                  <Border Grid.Column="1" Width="1" Background="#1FFFFFFF" Margin="12,2"/>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock x:Name="EngFound" Text="-" FontSize="19" FontWeight="SemiBold" Foreground="#EEF3FF"/>
+                    <TextBlock x:Name="EngFoundLbl" Text="Identified" FontSize="12.5" Foreground="#7F93B8"/>
+                  </StackPanel>
+                  <Border Grid.Column="3" Width="1" Background="#1FFFFFFF" Margin="12,2"/>
+                  <StackPanel Grid.Column="4">
+                    <TextBlock x:Name="EngElapsed" Text="0:00" FontSize="19" FontWeight="SemiBold" Foreground="#EEF3FF"/>
+                    <TextBlock x:Name="EngElapsedLbl" Text="Elapsed" FontSize="12.5" Foreground="#7F93B8"/>
+                  </StackPanel>
+                </Grid>
+                <DockPanel Grid.Row="2">
+                  <TextBlock x:Name="EngCatLbl" DockPanel.Dock="Top" Text="CATEGORIES" Style="{StaticResource EngLabel}" Margin="0,0,0,8"/>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="OvList" Margin="0,0,6,0"/>
+                  </ScrollViewer>
+                </DockPanel>
+                <StackPanel Grid.Row="3" Margin="0,14,0,0">
+                  <TextBlock x:Name="EngActLbl" Text="LIVE ACTIVITY" Style="{StaticResource EngLabel}" Margin="0,0,0,6"/>
+                  <Border CornerRadius="12" Background="#33060B18" BorderBrush="#14FFFFFF" BorderThickness="1" Padding="12,8" MinHeight="70">
+                    <StackPanel x:Name="EngActivity"/>
+                  </Border>
+                </StackPanel>
+                <Button x:Name="BtnStop" Grid.Row="4" Content="{DynamicResource L_stop}" Style="{StaticResource EngGhost}" HorizontalAlignment="Right" Margin="0,14,0,0" Padding="28,0"/>
               </Grid>
-              <ProgressBar x:Name="OvBar" Height="10" Margin="0,6,0,0"/>
-            </StackPanel>
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-              <StackPanel x:Name="OvList" Margin="0,0,6,0"/>
-            </ScrollViewer>
-            <Button x:Name="BtnStop" Grid.Row="3" Content="{DynamicResource L_stop}" Style="{StaticResource Ghost}" HorizontalAlignment="Right" Margin="0,12,0,0" Padding="26,0"/>
-          </Grid>
 
-          <Grid x:Name="DoneView" Grid.Column="2" Visibility="Collapsed">
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal">
-              <Canvas Width="72" Height="72">
-                <Ellipse x:Name="DoneCircle" Width="64" Height="64" Canvas.Left="4" Canvas.Top="4" Stroke="{StaticResource GoodBrush}" StrokeThickness="4" StrokeDashArray="51 51" StrokeDashOffset="51"/>
-                <Path x:Name="DoneCheck" Data="M 22,37 L 32,47 L 52,27" Stroke="{StaticResource GoodBrush}" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeDashArray="9 9" StrokeDashOffset="9"/>
-              </Canvas>
-              <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                <TextBlock x:Name="DoneTitle" FontSize="25" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                <TextBlock x:Name="DoneSub" Style="{StaticResource Sub}"/>
-              </StackPanel>
-            </StackPanel>
-            <StackPanel Grid.Row="1" Margin="0,18,0,12">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="DoneBig" Text="0 B" FontSize="44" FontWeight="Bold" Foreground="{StaticResource AccentGrad}"/>
-                <TextBlock x:Name="DoneBigSub" FontSize="15" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Bottom" Margin="10,0,0,10"/>
-              </StackPanel>
-              <WrapPanel x:Name="DoneChips" Margin="0,8,0,0"/>
-            </StackPanel>
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-              <StackPanel x:Name="DoneNotes" Margin="0,0,6,0"/>
-            </ScrollViewer>
-            <Button x:Name="BtnFinish" Grid.Row="3" Style="{StaticResource Primary}" HorizontalAlignment="Right" Margin="0,12,0,0" Padding="34,0">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="14.5" Margin="0,0,10,0"/>
-                <TextBlock Text="{DynamicResource L_finish}" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Button>
+              <Grid x:Name="DoneView" Visibility="Collapsed">
+                <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal">
+                  <Canvas Width="60" Height="60">
+                    <Ellipse Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" x:Name="DoneDisc" Fill="#2222B573"/>
+                    <Ellipse x:Name="DoneCircle" Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" Stroke="{StaticResource GoodBrush}" StrokeThickness="3.5" StrokeDashArray="51 51" StrokeDashOffset="51"/>
+                    <Path x:Name="DoneCheck" Data="M 18,31 L 27,40 L 43,23" Stroke="{StaticResource GoodBrush}" StrokeThickness="4.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeDashArray="9 9" StrokeDashOffset="9"/>
+                    <TextBlock x:Name="DoneMark" Style="{StaticResource Icon}" Canvas.Left="0" Canvas.Top="0" Width="60" Height="60" Padding="0,19,0,0" TextAlignment="Center" FontSize="22" Visibility="Collapsed"/>
+                  </Canvas>
+                  <StackPanel Margin="14,0,0,0" VerticalAlignment="Center" MaxWidth="300">
+                    <TextBlock x:Name="DoneTitle" FontSize="23" FontWeight="SemiBold" Foreground="#EEF3FF" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="DoneSub" FontSize="14" Foreground="#9FB0D0" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Margin="0,20,0,10">
+                  <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
+                  <TextBlock x:Name="DoneBigSub" FontSize="14.5" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
+                  <WrapPanel x:Name="DoneChips" Margin="0,14,0,0"/>
+                </StackPanel>
+                <DockPanel Grid.Row="2">
+                  <TextBlock x:Name="DoneDetLbl" DockPanel.Dock="Top" Text="SUMMARY" Style="{StaticResource EngLabel}" Margin="0,6,0,8"/>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                      <StackPanel x:Name="DoneNotes" Margin="0,0,6,0"/>
+                      <StackPanel x:Name="DoneDetails" Margin="0,6,6,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                  </ScrollViewer>
+                </DockPanel>
+                <Grid Grid.Row="3" Margin="0,14,0,0">
+                  <StackPanel Orientation="Horizontal">
+                    <Button x:Name="BtnDoneDetails" Style="{StaticResource EngGhost}" Content="View details" Padding="16,0"/>
+                    <Button x:Name="BtnDoneAgain" Style="{StaticResource EngGhost}" Content="Scan again" Padding="16,0" Margin="8,0,0,0"/>
+                  </StackPanel>
+                  <Button x:Name="BtnFinish" Style="{StaticResource Primary}" HorizontalAlignment="Right" Padding="24,0" Height="42"/>
+                </Grid>
+              </Grid>
+              </Grid>
+            </Border>
           </Grid>
         </Grid>
       </Border>
