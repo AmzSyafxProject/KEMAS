@@ -230,9 +230,9 @@ namespace Kemas
             var g = new Grid(); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
             g.Children.Add(Donut(pct, c, center, caption, 130));
             var sp = new StackPanel { Margin = new Thickness(22, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            sp.Children.Add(Strong(title, 18)); var d = Muted(detail, 13); d.Margin = new Thickness(0, 6, 0, 0); sp.Children.Add(d);
+            sp.Children.Add(Strong(title, 20)); var d = Muted(detail, 14); d.Margin = new Thickness(0, 6, 0, 0); sp.Children.Add(d);
             Grid.SetColumn(sp, 1); g.Children.Add(sp);
-            var card = CardOf(g, 22); card.Margin = new Thickness(0, 0, 12, 12); return card;
+            var card = CardOf(g, 24); card.Margin = new Thickness(0, 0, 16, 16); return card;
         }
         Button Btn(string text, bool primary, Action onClick, bool danger = false)
         {
@@ -244,13 +244,16 @@ namespace Kemas
         {
             return new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(pad, pad - 4, pad, pad - 4), Child = child };
         }
+        static double Ts(double s) { return s >= 10.5 && s <= 14.5 ? s + 1.5 : s; }      // 4.0 type scale: nothing under 12 px
         TextBlock Muted(string t, double size = 12.5)
         {
+            size = Ts(size);
             var tb = new TextBlock { Text = t, FontSize = size, TextWrapping = TextWrapping.Wrap };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); return tb;
         }
         TextBlock Strong(string t, double size = 14)
         {
+            size = Ts(size);
             var tb = new TextBlock { Text = t, FontSize = size, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); return tb;
         }
@@ -264,7 +267,7 @@ namespace Kemas
                 f.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
                 dg.Columns.Add(new DataGridTemplateColumn { CellTemplate = new DataTemplate { VisualTree = f }, Width = new DataGridLength(44) });
             }
-            dg.RowHeight = 48;
+            dg.RowHeight = 54; dg.FontSize = 14.5;
             for (int i = 0; i < cols.Length; i++)
             {
                 var parts = cols[i].Split('|');
@@ -277,7 +280,7 @@ namespace Kemas
                     tile.SetValue(FrameworkElement.WidthProperty, 30.0); tile.SetValue(FrameworkElement.HeightProperty, 30.0); tile.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
                     tile.SetResourceReference(Border.BackgroundProperty, "SelectBrush"); tile.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
                     var gl = new FrameworkElementFactory(typeof(TextBlock)); gl.SetBinding(TextBlock.TextProperty, new Binding("Glyph"));
-                    gl.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")); gl.SetValue(TextBlock.FontSizeProperty, 13.0); gl.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
+                    gl.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets")); gl.SetValue(TextBlock.FontSizeProperty, 14.5); gl.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
                     gl.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); gl.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
                     tile.AppendChild(gl); sp.AppendChild(tile);
                     var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C0")); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
@@ -290,7 +293,7 @@ namespace Kemas
                     var bd = new FrameworkElementFactory(typeof(Border)); bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(10)); bd.SetValue(Border.PaddingProperty, new Thickness(10, 3, 10, 3));
                     bd.SetBinding(Border.BackgroundProperty, new Binding("PillBg")); bd.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
                     var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C" + i)); tx.SetBinding(TextBlock.ForegroundProperty, new Binding("PillFg"));
-                    tx.SetValue(TextBlock.FontSizeProperty, 11.5); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold); bd.AppendChild(tx);
+                    tx.SetValue(TextBlock.FontSizeProperty, 13); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold); bd.AppendChild(tx);
                     dg.Columns.Add(new DataGridTemplateColumn { Header = head, CellTemplate = new DataTemplate { VisualTree = bd }, Width = width, SortMemberPath = "C" + i });
                     dg.Tag = i;
                 }
@@ -330,15 +333,28 @@ namespace Kemas
         }
         UIElement Stat(string label, string value, string sub, string color)
         {
-            var row = new Grid();
-            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center }; row.Children.Add(sp);
-            var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            var v = new TextBlock { Text = value, FontSize = 22, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            // sentence case labels read calmer than ALL CAPS
+            if (label.Length > 1 && label == label.ToUpperInvariant()) label = label.Substring(0, 1) + label.Substring(1).ToLowerInvariant();
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(26, 18, 26, 18) };
+            var l = new TextBlock { Text = label, FontSize = 14.5, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            var v = new TextBlock { Text = value, FontSize = 30, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 2), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             sp.Children.Add(l); sp.Children.Add(v);
-            if (!string.IsNullOrEmpty(sub)) sp.Children.Add(Muted(sub, 11.5));
-            var c = CardOf(row, 18); c.Margin = new Thickness(0, 0, 12, 12); return c;
+            if (!string.IsNullOrEmpty(sub)) { var m = Muted(sub, 12.5); m.TextTrimming = TextTrimming.CharacterEllipsis; m.TextWrapping = TextWrapping.NoWrap; sp.Children.Add(m); }
+            return sp;
         }
-        UniformGrid Stats(int cols, params UIElement[] items) { var u = new UniformGrid { Columns = cols, Margin = new Thickness(0, 0, -12, 4) }; foreach (var i in items) u.Children.Add(i); return u; }
+        /// Related numbers share one panel with thin dividers (no card per number).
+        Border Stats(int cols, params UIElement[] items)
+        {
+            var u = new UniformGrid { Columns = cols };
+            for (int i = 0; i < items.Length; i++)
+            {
+                bool firstCol = i % cols == 0, firstRow = i < cols;
+                var cell = new Border { BorderThickness = new Thickness(firstCol ? 0 : 1, firstRow ? 0 : 1, 0, 0), Child = items[i] };
+                cell.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
+                u.Children.Add(cell);
+            }
+            return new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(0), Margin = new Thickness(0, 0, 0, 16), Child = u };
+        }
         Grid Rows(params UIElement[] items)
         {
             var g = new Grid();
@@ -356,12 +372,12 @@ namespace Kemas
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var col = ok ? "#27B77A" : "#F4AE43";
             var tile = new Border { Width = 32, Height = 32, CornerRadius = new CornerRadius(16), Background = Hex(ok ? "#2227B77A" : "#26F4AE43"), VerticalAlignment = VerticalAlignment.Center,
-                Child = new TextBlock { Text = Glyph(ok ? "E73E" : "E7BA"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 13, Foreground = Hex(col), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } };
+                Child = new TextBlock { Text = Glyph(ok ? "E73E" : "E7BA"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 14.5, Foreground = Hex(col), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } };
             g.Children.Add(tile);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
             mid.Children.Add(Strong(title, 13.5)); mid.Children.Add(Muted(detail, 12));
             Grid.SetColumn(mid, 1); g.Children.Add(mid);
-            if (action != null) { var b = Btn(action, false, onClick); b.Height = 32; b.FontSize = 12.5; b.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(b, 2); g.Children.Add(b); }
+            if (action != null) { var b = Btn(action, false, onClick); b.Height = 32; b.FontSize = 14; b.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(b, 2); g.Children.Add(b); }
             var line = new Border { BorderThickness = new Thickness(0, 0, 0, 1), Child = g }; line.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
             return line;
         }

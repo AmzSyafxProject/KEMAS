@@ -139,7 +139,7 @@ namespace Kemas
             A("ov_used", "{0} used  /  {1}", "{0} digunakan  /  {1}");
             A("perf_tips", "Performance Tips", "Tip Prestasi");
             A("view_tips", "View all tips", "Lihat semua tip");
-            A("search_hint", "Search pages and settings", "Cari halaman dan tetapan");
+            A("search_hint", "Search features, tools or settings", "Cari ciri, alat atau tetapan");
             A("last_scan_ago", "Last scan: {0}", "Imbasan terakhir: {0}");
             A("just_now", "just now", "baru sahaja");
             A("min_ago", "{0} min ago", "{0} minit lalu");

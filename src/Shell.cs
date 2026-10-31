@@ -115,20 +115,20 @@ namespace Kemas
             foreach (var c in cats)
             {
                 var cat = c;
-                var g = new Grid { Height = 34 };
+                var g = new Grid { Height = 42 };
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                cat.Icon = new TextBlock { Text = Glyph(c.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 16, VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
-                cat.Label = new TextBlock { FontSize = 11, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-                cat.Chevron = new TextBlock { FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 10, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0), Padding = new Thickness(6), Background = Brushes.Transparent, Cursor = Cursors.Hand };
+                cat.Icon = new TextBlock { Text = Glyph(c.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17.5, Width = 28, VerticalAlignment = VerticalAlignment.Center };
+                cat.Label = new TextBlock { FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+                cat.Chevron = new TextBlock { FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0), Padding = new Thickness(6), Background = Brushes.Transparent, Cursor = Cursors.Hand };
                 cat.Icon.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 cat.Label.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 cat.Chevron.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
                 g.Children.Add(cat.Icon); g.Children.Add(cat.Label);
                 if (c.Items.Length > 0) g.Children.Add(cat.Chevron);
-                cat.Header = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 0, 4, 0), Margin = new Thickness(0, 12, 0, 2), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
+                cat.Header = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 0, 4, 0), Margin = new Thickness(0, 0, 0, 2), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
                 System.Windows.Automation.AutomationProperties.SetName(cat.Header, c.En);
                 cat.Header.MouseEnter += (s, e) => { if (!HeaderActive(cat)) cat.Header.SetResourceReference(Border.BackgroundProperty, "HoverBrush"); };
                 cat.Header.MouseLeave += (s, e) => PaintHeaders();
@@ -141,12 +141,11 @@ namespace Kemas
                     else if (e.Key == Key.Left) { Toggle(cat, false); e.Handled = true; }
                 };
                 stack.Children.Add(cat.Header);
-                cat.Body = new StackPanel();
+                cat.Body = new StackPanel { Margin = new Thickness(14, 0, 0, 4) };
                 foreach (var n in c.Items) cat.Body.Children.Add(take(n));
                 stack.Children.Add(cat.Body);
                 cat.Body.Visibility = open.Contains(c.Id) ? Visibility.Visible : Visibility.Collapsed;
             }
-            if (string.IsNullOrEmpty(S.NavOpen)) cats[0].Body.Visibility = Visibility.Visible;
             RefreshSidebarTexts();
         }
         bool HeaderActive(Cat c) { return c.Landing != null && !c.Items.Contains(c.Landing) && currentPage == "Page" + c.Landing.Substring(3); }
@@ -173,7 +172,7 @@ namespace Kemas
             if (cats == null) return;
             foreach (var c in cats)
             {
-                c.Label.Text = Tx(c.En, c.Ms).ToUpperInvariant();
+                c.Label.Text = Tx(c.En, c.Ms);
                 c.Header.ToolTip = compact ? Tx(c.En, c.Ms) : null;
                 c.Chevron.Text = Glyph(c.Body.Visibility == Visibility.Visible ? "E70D" : "E76C");
             }
@@ -185,9 +184,15 @@ namespace Kemas
             foreach (var c in cats)
             {
                 bool act = HeaderActive(c), inside = c == mine;
-                if (act && compact) c.Header.SetResourceReference(Border.BackgroundProperty, "NavSelBrush"); else c.Header.Background = Brushes.Transparent;
-                c.Label.SetResourceReference(TextBlock.ForegroundProperty, act ? "CyanBrush" : "MutedBrush");
-                if (inside) c.Icon.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush"); else c.Icon.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                // overview page open = solid brand blue like a selected item; a page inside = label lit, the item itself carries the fill
+                bool fill = act || (compact && inside);
+                if (fill) c.Header.SetResourceReference(Border.BackgroundProperty, "NavActiveBrush"); else c.Header.Background = Brushes.Transparent;
+                foreach (var t in new[] { c.Label, c.Icon, c.Chevron })
+                {
+                    if (fill) t.Foreground = Brushes.White;
+                    else t.SetResourceReference(TextBlock.ForegroundProperty, inside ? "TextBrush" : "MutedBrush");
+                }
+                c.Label.FontWeight = fill || inside ? FontWeights.SemiBold : FontWeights.Normal;
 
             }
         }
@@ -222,10 +227,8 @@ namespace Kemas
             foreach (var c in cats)
             {
                 c.Label.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-                c.Icon.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
                 c.Chevron.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-                c.Header.Margin = on ? new Thickness(0, 4, 0, 2) : new Thickness(0, 12, 0, 2);
-                c.Header.Height = on ? 38 : double.NaN;
+                c.Header.Margin = new Thickness(0, 0, 0, 2);
                 if (on) c.Body.Visibility = Visibility.Collapsed;
             }
             if (!on)
@@ -252,7 +255,7 @@ namespace Kemas
         {
             var bar = E<Grid>("TitleBar");
             // sidebar toggle
-            var tog = new Button { Style = (Style)W.FindResource("WinBtn"), Content = Glyph("E700"), FontSize = 13, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(10, 0, 0, 0), ToolTip = Tx("Collapse or expand the sidebar", "Kecilkan atau besarkan bar sisi") };
+            var tog = new Button { Style = (Style)W.FindResource("WinBtn"), Content = Glyph("E700"), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0), FontSize = 16, ToolTip = Tx("Collapse or expand the sidebar", "Kecilkan atau besarkan bar sisi") };
             tog.SetResourceReference(Button.TagProperty, "HoverBrush");
             System.Windows.Automation.AutomationProperties.SetName(tog, "Toggle sidebar");
             tog.Click += (s, e) => { S.SideCompact = !compact; QueueSave(); SetCompact(S.SideCompact || W.ActualWidth < 1000); };
@@ -260,7 +263,8 @@ namespace Kemas
             bar.Children.Add(tog);
             // breadcrumb: first item becomes the category, clickable
             var crumbs = (StackPanel)TB("Crumb").Parent;
-            crumbs.Margin = new Thickness(56, 0, 0, 0);
+            crumbs.Margin = new Thickness(66, 0, 0, 0);
+            foreach (var t in crumbs.Children.OfType<TextBlock>()) t.FontSize = 15;
             crumbs.IsHitTestVisible = true;
             crumbCat = (TextBlock)crumbs.Children[0];
             crumbCat.Cursor = Cursors.Hand;
@@ -273,22 +277,23 @@ namespace Kemas
             };
             // bell with unread dot
             var right = (StackPanel)BT("BtnTheme").Parent;
-            var bg = new Grid { VerticalAlignment = VerticalAlignment.Top };
-            bell = new Button { Style = (Style)W.FindResource("WinBtn"), Content = Glyph("EA8F"), FontSize = 13, ToolTip = Tx("Notifications", "Pemberitahuan") };
+            var bg = new Grid { VerticalAlignment = VerticalAlignment.Center };
+            bell = new Button { Style = (Style)W.FindResource("WinBtn"), Content = Glyph("EA8F"), FontSize = 16, ToolTip = Tx("Notifications", "Pemberitahuan") };
             bell.SetResourceReference(Button.TagProperty, "HoverBrush");
             System.Windows.Automation.AutomationProperties.SetName(bell, "Notifications");
-            bellDot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Hex("#ED626B"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 11, 13, 0), IsHitTestVisible = false, Visibility = Visibility.Collapsed };
+            bellDot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Hex("#ED626B"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 7, 11, 0), IsHitTestVisible = false, Visibility = Visibility.Collapsed };
             bg.Children.Add(bell); bg.Children.Add(bellDot);
             right.Children.Insert(right.Children.IndexOf(BT("BtnTheme")), bg);
             foreach (UIElement el2 in new UIElement[] { bell, BT("BtnTheme"), (UIElement)VisualParentOf(E<TextBox>("SearchBox"), 2) })
                 WindowChrome.SetIsHitTestVisibleInChrome(el2, true);
             noteList = new StackPanel();
-            notePop = MakePopup(bell, 340, noteList);
-            bell.Click += (s, e) => { FillNotes(); notePop.IsOpen = true; unread = 0; bellDot.Visibility = Visibility.Collapsed; };
+            notePop = MakePopup(bell, 420, noteList);
+            notePop.Placement = PlacementMode.Bottom; notePop.HorizontalOffset = -360;
+            bell.Click += (s, e) => { FillNotes(); notePop.IsOpen = true; };
             // search
             searchList = new StackPanel();
             var sbox = E<TextBox>("SearchBox");
-            searchPop = MakePopup((FrameworkElement)VisualParentOf(sbox, 2), 380, searchList);
+            searchPop = MakePopup((FrameworkElement)VisualParentOf(sbox, 2), 460, searchList);
             searchPop.Placement = PlacementMode.Bottom; searchPop.StaysOpen = true;
             sbox.TextChanged += (s, e) => FillSearch(sbox.Text.Trim());
             sbox.LostKeyboardFocus += (s, e) => W.Dispatcher.BeginInvoke(new Action(() => { if (!searchPop.IsKeyboardFocusWithin && !searchPop.IsMouseOver) searchPop.IsOpen = false; }), DispatcherPriority.Background);
@@ -320,42 +325,111 @@ namespace Kemas
             return new Popup { PlacementTarget = target, Placement = PlacementMode.Bottom, StaysOpen = false, AllowsTransparency = true, Child = new Border { Padding = new Thickness(0, 0, 16, 20), Child = b }, PopupAnimation = PopupAnimation.Fade };
         }
 
-        /// Records a message for the notification history (toasts call this).
+        class NoteItem { public DateTime T; public string Cat, Title, Desc, Icon; public bool Read; }
+        readonly List<NoteItem> noteItems = new List<NoteItem>();
+        static readonly Dictionary<string, string[]> NoteCats = new Dictionary<string, string[]>
+        {
+            // category -> en, ms, colour
+            { "clean", new[] { "Cleaning", "Pembersihan", "#43C6C0" } },
+            { "perf", new[] { "Performance", "Prestasi", "#8B78F6" } },
+            { "store", new[] { "Storage", "Storan", "#F4AE43" } },
+            { "sys", new[] { "System", "Sistem", "#3978F6" } },
+            { "app", new[] { "Application", "Aplikasi", "#788195" } },
+        };
+        /// Records a message for the notification centre (toasts call this). Repeats within 20 s are dropped.
         void Note(string msg, string icon)
         {
             if (icon == "E916" || icon == "E721" || string.IsNullOrEmpty(msg)) return;      // "please wait" and search misses are not worth keeping
-            notes.Insert(0, Tuple.Create(DateTime.Now, msg, icon));
-            if (notes.Count > 50) notes.RemoveAt(notes.Count - 1);
-            if (bellDot != null && (notePop == null || !notePop.IsOpen)) { unread++; bellDot.Visibility = Visibility.Visible; }
+            if (noteItems.Count > 0 && noteItems[0].Title == msg && (DateTime.Now - noteItems[0].T).TotalSeconds < 20) return;
+            string nav = "Nav" + currentPage.Substring(4);
+            var c = CatOf(nav);
+            string cat = c == null ? "app" : c.Id == "cl" ? "clean" : c.Id == "pf" ? "perf" : c.Id == "st" ? "store" : "sys";
+            var low = msg.ToLowerInvariant();
+            if (low.Contains("freed") || low.Contains("clean") || low.Contains("dikosongkan") || low.Contains("bersih")) cat = "clean";
+            else if (low.Contains("update") || low.Contains("kemas kini")) cat = "app";
+            noteItems.Insert(0, new NoteItem { T = DateTime.Now, Cat = cat, Title = msg, Icon = icon, Desc = currentPage == "PageDash" ? Tx("From Home", "Dari Utama") : string.Format(Tx("From {0}", "Dari {0}"), NavTitle(nav)) });
+            if (noteItems.Count > 40) noteItems.RemoveAt(noteItems.Count - 1);
+            if (notePop != null && notePop.IsOpen) FillNotes();
+            PaintBell();
+        }
+        void PaintBell()
+        {
+            if (bellDot == null) return;
+            int n = noteItems.Count(x => !x.Read);
+            bellDot.Visibility = n > 0 ? Visibility.Visible : Visibility.Collapsed;
+            bell.ToolTip = n > 0 ? string.Format(Tx("Notifications ({0} unread)", "Pemberitahuan ({0} belum dibaca)"), n) : Tx("Notifications", "Pemberitahuan");
+            System.Windows.Automation.AutomationProperties.SetName(bell, (string)bell.ToolTip);
+        }
+        static string AgoText(DateTime t)
+        {
+            var d = DateTime.Now - t;
+            return d.TotalMinutes < 1 ? Tx("Just now", "Baru sahaja") : d.TotalHours < 1 ? string.Format(Tx("{0} min ago", "{0} min lalu"), (int)d.TotalMinutes) : d.TotalDays < 1 ? string.Format(Tx("{0} h ago", "{0} jam lalu"), (int)d.TotalHours) : t.ToString("d MMM");
         }
         void FillNotes()
         {
             noteList.Children.Clear();
-            var head = new Grid { Margin = new Thickness(8, 4, 8, 8) };
-            head.Children.Add(Strong(Tx("Notifications", "Pemberitahuan"), 14));
-            if (notes.Count > 0)
+            int unreadN = noteItems.Count(x => !x.Read);
+            var head = new Grid { Margin = new Thickness(10, 6, 10, 12) };
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var ht = new TextBlock { Text = Tx("Notifications", "Pemberitahuan"), FontSize = 19, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            ht.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); head.Children.Add(ht);
+            if (unreadN > 0)
             {
-                var clr = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Clear", "Kosongkan"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
-                clr.Click += (s, e) => { notes.Clear(); FillNotes(); };
-                head.Children.Add(clr);
+                var pill = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(8, 1, 8, 2), Margin = new Thickness(10, 2, 0, 0), VerticalAlignment = VerticalAlignment.Center,
+                    Child = new TextBlock { Text = unreadN.ToString(), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White } };
+                pill.SetResourceReference(Border.BackgroundProperty, "NavActiveBrush");
+                Grid.SetColumn(pill, 1); head.Children.Add(pill);
+            }
+            if (noteItems.Count > 0)
+            {
+                var acts = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+                if (unreadN > 0)
+                {
+                    var mark = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Mark all as read", "Tanda semua dibaca"), FontSize = 13.5 };
+                    mark.Click += (s, e) => { foreach (var x in noteItems) x.Read = true; FillNotes(); PaintBell(); };
+                    acts.Children.Add(mark);
+                }
+                var clr = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Clear all", "Kosongkan"), FontSize = 13.5, Margin = new Thickness(16, 0, 0, 0) };
+                clr.Click += (s, e) => { noteItems.Clear(); FillNotes(); PaintBell(); };
+                acts.Children.Add(clr);
+                Grid.SetColumn(acts, 2); head.Children.Add(acts);
             }
             noteList.Children.Add(head);
-            if (notes.Count == 0)
+            if (noteItems.Count == 0)
             {
-                var m = Muted(Tx("Nothing yet. Scan results, cleaning reports and warnings appear here.", "Belum ada. Keputusan imbasan, laporan pembersihan dan amaran akan muncul di sini."), 12.5);
-                m.Margin = new Thickness(8, 0, 8, 10); noteList.Children.Add(m); return;
+                var empty = new StackPanel { Margin = new Thickness(10, 16, 10, 24), HorizontalAlignment = HorizontalAlignment.Center };
+                var ic = new TextBlock { Text = Glyph("EA8F"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 28, HorizontalAlignment = HorizontalAlignment.Center };
+                ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                empty.Children.Add(ic);
+                var t1 = Strong(Tx("You're all caught up", "Tiada pemberitahuan baharu"), 15); t1.HorizontalAlignment = HorizontalAlignment.Center; t1.Margin = new Thickness(0, 10, 0, 4); empty.Children.Add(t1);
+                var t2 = Muted(Tx("Scan results, cleaning reports and warnings appear here.", "Keputusan imbasan, laporan pembersihan dan amaran muncul di sini."), 13); t2.TextAlignment = TextAlignment.Center; empty.Children.Add(t2);
+                noteList.Children.Add(empty); return;
             }
-            foreach (var n in notes)
+            foreach (var n in noteItems)
             {
-                var g = new Grid { Margin = new Thickness(8, 6, 8, 6) };
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
-                var ic = new TextBlock { Text = Glyph(n.Item3), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 14, Margin = new Thickness(0, 2, 12, 0), VerticalAlignment = VerticalAlignment.Top };
-                ic.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
-                g.Children.Add(ic);
+                var item = n;
+                var cc = NoteCats[n.Cat];
+                var g = new Grid();
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 7, 0, 0), Visibility = n.Read ? Visibility.Hidden : Visibility.Visible };
+                dot.SetResourceReference(Border.BackgroundProperty, "NavActiveBrush");
+                g.Children.Add(dot);
                 var sp = new StackPanel(); Grid.SetColumn(sp, 1);
-                sp.Children.Add(Strong(n.Item2, 12.5)); sp.Children.Add(Muted(n.Item1.ToString("HH:mm"), 11));
+                var top = new DockPanel();
+                var when = Muted(AgoText(n.T), 12); DockPanel.SetDock(when, Dock.Right); top.Children.Add(when);
+                top.Children.Add(new TextBlock { Text = Tx(cc[0], cc[1]).ToUpperInvariant(), FontSize = 11.5, FontWeight = FontWeights.SemiBold, Foreground = Hex(cc[2]) });
+                sp.Children.Add(top);
+                var ti = Strong(n.Title, 15); ti.Margin = new Thickness(0, 4, 0, 2); sp.Children.Add(ti);
+                sp.Children.Add(Muted(n.Desc, 12.5));
                 g.Children.Add(sp);
-                noteList.Children.Add(g);
+                var x = new Button { Style = (Style)W.FindResource("WinBtn"), Content = Glyph("E711"), FontSize = 11, Width = 30, Height = 30, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(8, -4, -4, 0), ToolTip = Tx("Dismiss", "Tutup") };
+                x.SetResourceReference(Button.TagProperty, "HoverBrush");
+                System.Windows.Automation.AutomationProperties.SetName(x, "Dismiss");
+                x.Click += (s, e) => { noteItems.Remove(item); FillNotes(); PaintBell(); };
+                Grid.SetColumn(x, 2); g.Children.Add(x);
+                var row = new Button { Content = g, Style = (Style)W.FindResource("Row"), HorizontalContentAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 0, 2) };
+                row.Click += (s, e) => { item.Read = true; FillNotes(); PaintBell(); };
+                noteList.Children.Add(row);
             }
         }
 
@@ -451,29 +525,33 @@ namespace Kemas
             t.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
             b.Child = t; return b;
         }
-        /// One horizontal row that opens a tool: icon, name, one line, optional status, arrow.
+        /// One horizontal row that opens a tool: icon, divider, name, one line, optional status, arrow.
         Border ToolRow(string nav, string status = null, string kind = "", string title = null)
         {
-            var g = new Grid { MinHeight = 44 };
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
+            var g = new Grid { MinHeight = 56 };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            g.Children.Add(FlatIcon(NavGlyph(nav), 40, 17));
-            var sp = new StackPanel { Margin = new Thickness(16, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
-            sp.Children.Add(Strong(title ?? NavTitle(nav), 14)); var d = Muted(NavDesc(nav), 12.5); d.Margin = new Thickness(0, 2, 0, 0); sp.Children.Add(d);
-            Grid.SetColumn(sp, 1); g.Children.Add(sp);
+            g.Children.Add(FlatIcon(NavGlyph(nav), 52, 21));
+            var div = new Border { Width = 1, Margin = new Thickness(22, 4, 22, 4) }; div.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(div, 1); g.Children.Add(div);
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
+            var t = new TextBlock { Text = title ?? NavTitle(nav), FontSize = 18, FontWeight = FontWeights.SemiBold }; t.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); sp.Children.Add(t);
+            var d = new TextBlock { Text = NavDesc(nav), FontSize = 15, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap }; d.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); sp.Children.Add(d);
+            Grid.SetColumn(sp, 2); g.Children.Add(sp);
             if (!string.IsNullOrEmpty(status))
             {
-                var st = new TextBlock { Text = status, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
-                st.SetResourceReference(TextBlock.ForegroundProperty, kind == "warn" ? "WarnBrush" : kind == "bad" ? "BadBrush" : "MutedBrush");
-                Grid.SetColumn(st, 2); g.Children.Add(st);
+                var stp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 28, 0) };
+                string res = kind == "warn" ? "WarnBrush" : kind == "bad" ? "BadBrush" : kind == "good" ? "GoodBrush" : "MutedBrush";
+                if (kind != "") { var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 1, 8, 0) }; dot.SetResourceReference(Border.BackgroundProperty, res); stp.Children.Add(dot); }
+                var st = new TextBlock { Text = status, FontSize = 14.5, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center }; st.SetResourceReference(TextBlock.ForegroundProperty, res);
+                stp.Children.Add(st); Grid.SetColumn(stp, 3); g.Children.Add(stp);
             }
-            var arrow = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-            arrow.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            Grid.SetColumn(arrow, 3); g.Children.Add(arrow);
-            var card = new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(16, 14, 18, 14), Margin = new Thickness(0, 0, 0, 8), Child = g, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
+            var arrow = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+            arrow.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            Grid.SetColumn(arrow, 4); g.Children.Add(arrow);
+            var card = new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(28, 18, 28, 18), Margin = new Thickness(0, 0, 0, 14), Child = g, Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
             System.Windows.Automation.AutomationProperties.SetName(card, title ?? NavTitle(nav));
             card.MouseEnter += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
-            card.MouseLeave += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
+            card.MouseLeave += (s, e) => { if (!card.IsKeyboardFocused) card.SetResourceReference(Border.BorderBrushProperty, "LineBrush"); };
             card.GotKeyboardFocus += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
             card.LostKeyboardFocus += (s, e) => card.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
             card.MouseLeftButtonUp += (s, e) => Go(nav);
@@ -482,26 +560,39 @@ namespace Kemas
         }
         TextBlock Section(string t)
         {
-            var tb = new TextBlock { Text = t, FontSize = 13, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 18, 0, 10) };
-            tb.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); return tb;
+            var tb = new TextBlock { Text = t, FontSize = 21, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 26, 0, 14) };
+            tb.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); return tb;
         }
         void HubBody(params UIElement[] parts)
         {
-            var sp = new StackPanel { Margin = new Thickness(0, 0, 12, 16), MaxWidth = 960, HorizontalAlignment = HorizontalAlignment.Left };
+            var sp = new StackPanel { Margin = new Thickness(0, 4, 14, 20), MaxWidth = 1240, HorizontalAlignment = HorizontalAlignment.Stretch };
             foreach (var p in parts) if (p != null) sp.Children.Add(p);
-            ModBody(new ScrollViewer { Content = sp, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, -12, 0) });
+            ModBody(new ScrollViewer { Content = sp, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 0, -14, 0) });
         }
-        /// Compact number: label over value, with a handle so landing pages can update it live.
-        Border Metric(string label, out TextBlock value, out TextBlock sub)
+        /// One metric inside a shared panel: label over a large value, with handles for live updates.
+        FrameworkElement Metric(string label, out TextBlock value, out TextBlock sub)
         {
-            var sp = new StackPanel();
-            var l = new TextBlock { Text = label, FontSize = 12, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            value = new TextBlock { Text = "…", FontSize = 24, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 4, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis }; value.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-            sub = Muted("", 12); sub.TextTrimming = TextTrimming.CharacterEllipsis; sub.TextWrapping = TextWrapping.NoWrap;
+            var sp = new StackPanel { Margin = new Thickness(28, 20, 28, 20) };
+            var l = new TextBlock { Text = label, FontSize = 15, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            value = new TextBlock { Text = "…", FontSize = 36, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 6, 0, 2), TextTrimming = TextTrimming.CharacterEllipsis }; value.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            sub = new TextBlock { FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis }; sub.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             sp.Children.Add(l); sp.Children.Add(value); sp.Children.Add(sub);
-            var c = CardOf(sp, 18); c.Margin = new Thickness(0, 0, 8, 0); return c;
+            return sp;
         }
-        UniformGrid Metrics(params UIElement[] items) { var u = new UniformGrid { Rows = 1, Margin = new Thickness(0, 0, -8, 0) }; foreach (var i in items) u.Children.Add(i); return u; }
+        /// Related numbers in one panel, separated by thin dividers instead of separate cards.
+        Border Metrics(params FrameworkElement[] items)
+        {
+            var g = new Grid();
+            for (int i = 0; i < items.Length; i++)
+            {
+                g.ColumnDefinitions.Add(new ColumnDefinition());
+                var cell = new Border { BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0), Margin = new Thickness(0, 14, 0, 14), Child = items[i] };
+                cell.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
+                ((FrameworkElement)items[i]).Margin = new Thickness(28, 6, 28, 6);
+                Grid.SetColumn(cell, i); g.Children.Add(cell);
+            }
+            return new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(0), Child = g };
+        }
         StackPanel List(params UIElement[] rows) { var sp = new StackPanel(); foreach (var r in rows) sp.Children.Add(r); return sp; }
 
         void HubClean()

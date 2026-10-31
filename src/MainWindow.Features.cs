@@ -44,7 +44,7 @@ namespace Kemas
                     ht.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
                     hl.Children.Add(ht);
                     head.Children.Add(hl);
-                    var hd = new TextBlock { FontSize = 12.5, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
+                    var hd = new TextBlock { FontSize = 14, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
                     hd.SetResourceReference(TextBlock.TextProperty, "L_deep_head_d");
                     hd.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                     head.Children.Add(hd);
@@ -62,17 +62,17 @@ namespace Kemas
                 g.Children.Add(tile);
                 var mid = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 bool lockedRow = false;
-                var cb = new CheckBox { FontSize = 13.5, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
+                var cb = new CheckBox { FontSize = 15, FontWeight = FontWeights.SemiBold, Style = (Style)W.FindResource("CB") };
                 cb.IsChecked = sel != null ? sel.Contains(t.Key) : t.Default;
                 if (Cleaner.StoreLocked(t.Key)) { cb.IsChecked = false; cb.IsEnabled = false; cb.ToolTip = L.T("note_admin_needed"); lockedRow = true; }
                 cb.Checked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
                 cb.Unchecked += (s, e) => { UpdateSelectedTotal(); QueueSave(); };
-                var desc = new TextBlock { FontSize = 12, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
+                var desc = new TextBlock { FontSize = 13.5, Margin = new Thickness(30, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
                 desc.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 mid.Children.Add(cb); mid.Children.Add(desc);
                 if (lockedRow)
                 {
-                    var ab = new Button { Content = L.T("admin_run_btn"), Margin = new Thickness(30, 6, 0, 0), Padding = new Thickness(12, 4, 12, 4), HorizontalAlignment = HorizontalAlignment.Left, FontSize = 12 };
+                    var ab = new Button { Content = L.T("admin_run_btn"), Margin = new Thickness(30, 6, 0, 0), Padding = new Thickness(12, 4, 12, 4), HorizontalAlignment = HorizontalAlignment.Left, FontSize = 13.5 };
                     ab.Click += (s2, e2) =>
                     {
                         if (MessageBox.Show(L.T("admin_run_q"), "KEMAS", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
@@ -83,8 +83,8 @@ namespace Kemas
                 }
                 Grid.SetColumn(mid, 1); g.Children.Add(mid);
                 var right = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0), MinWidth = 110 };
-                var size = new TextBlock { Text = "-", FontSize = 14.5, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
-                var tag = new TextBlock { FontSize = 11, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) };
+                var size = new TextBlock { Text = "-", FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush"), HorizontalAlignment = HorizontalAlignment.Right };
+                var tag = new TextBlock { FontSize = 12.5, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) };
                 tag.Foreground = t.Tag == "safe" ? (Brush)W.FindResource("GoodBrush") : t.Tag == "permanent" ? (Brush)W.FindResource("BadBrush") : t.Tag == "deep" ? Hex("#9C8BFF") : (Brush)W.FindResource("WarnBrush");
                 right.Children.Add(size); right.Children.Add(tag);
                 Grid.SetColumn(right, 2); g.Children.Add(right);
@@ -332,9 +332,9 @@ namespace Kemas
                 tile.Child = new TextBlock { Text = Glyph(it[0]), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 row.Children.Add(tile);
                 var txt = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-                var t1 = new TextBlock { Text = L.T(it[1] + "_t"), FontSize = 14.5, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
+                var t1 = new TextBlock { Text = L.T(it[1] + "_t"), FontSize = 16, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
                 t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                var t2 = new TextBlock { Text = L.T(it[1] + "_d"), FontSize = 12.5, Margin = new Thickness(0, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
+                var t2 = new TextBlock { Text = L.T(it[1] + "_d"), FontSize = 14, Margin = new Thickness(0, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
                 t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 txt.Children.Add(t1); txt.Children.Add(t2);
                 Grid.SetColumn(txt, 1); row.Children.Add(txt);
@@ -400,7 +400,7 @@ namespace Kemas
                 penRam, L.T("road_ram_btn"), () => E<RadioButton>("NavRam").IsChecked = true, penRam == 0));
             if (toGo <= 0)
             {
-                var done = new TextBlock { Text = L.T("road_perfect"), FontSize = 12.5, Margin = new Thickness(2, 10, 0, 0), TextWrapping = TextWrapping.Wrap };
+                var done = new TextBlock { Text = L.T("road_perfect"), FontSize = 14, Margin = new Thickness(2, 10, 0, 0), TextWrapping = TextWrapping.Wrap };
                 done.Foreground = (Brush)W.FindResource("GoodBrush");
                 list.Children.Add(done);
             }
@@ -414,13 +414,13 @@ namespace Kemas
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(17), VerticalAlignment = VerticalAlignment.Center };
             if (ok) tile.Background = Hex("#2621C98A"); else tile.SetResourceReference(Border.BackgroundProperty, "IconTile");
-            tile.Child = new TextBlock { Text = Glyph(ok ? "E73E" : icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 14,
+            tile.Child = new TextBlock { Text = Glyph(ok ? "E73E" : icon), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15.5,
                 Foreground = ok ? (Brush)W.FindResource("GoodBrush") : Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             g.Children.Add(tile);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-            var t1 = new TextBlock { Text = title, FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+            var t1 = new TextBlock { Text = title, FontSize = 15, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
             t1.SetResourceReference(TextBlock.ForegroundProperty, ok ? "MutedBrush" : "TextBrush");
-            var t2 = new TextBlock { Text = desc, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 0) };
+            var t2 = new TextBlock { Text = desc, FontSize = 13.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 0) };
             t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             mid.Children.Add(t1); mid.Children.Add(t2);
             Grid.SetColumn(mid, 1); g.Children.Add(mid);
@@ -429,8 +429,8 @@ namespace Kemas
                 var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 if (points > 0)
                     right.Children.Add(new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 3, 9, 3), Margin = new Thickness(0, 0, 10, 0), Background = Hex("#2622C4F0"), VerticalAlignment = VerticalAlignment.Center,
-                        Child = new TextBlock { Text = "+" + points, FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush") } });
-                var b = new Button { Content = action, Style = (Style)W.FindResource("Ghost"), Height = 32, Padding = new Thickness(14, 0, 14, 0), FontSize = 12.5, IsEnabled = !busy };
+                        Child = new TextBlock { Text = "+" + points, FontSize = 13.5, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush") } });
+                var b = new Button { Content = action, Style = (Style)W.FindResource("Ghost"), Height = 32, Padding = new Thickness(14, 0, 14, 0), FontSize = 14, IsEnabled = !busy };
                 b.Click += (s, e) => onClick();
                 right.Children.Add(b);
                 Grid.SetColumn(right, 2); g.Children.Add(right);
@@ -492,13 +492,13 @@ namespace Kemas
                 TB("MapSub").Text = string.Format(L.T("map_sub_d"), r.Drive, Fmt.Size(r.Used), Fmt.Size(r.Total));
                 DrawMap(); DrawOverview();
                 var big = E<StackPanel>("MapBigList"); big.Children.Clear();
-                if (r.Biggest.Count == 0) { var t = new TextBlock { Text = L.T("map_big_none"), FontSize = 12.5, TextWrapping = TextWrapping.Wrap }; t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); big.Children.Add(t); }
+                if (r.Biggest.Count == 0) { var t = new TextBlock { Text = L.T("map_big_none"), FontSize = 14, TextWrapping = TextWrapping.Wrap }; t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); big.Children.Add(t); }
                 foreach (var f in r.Biggest)
                 {
                     var g = new Grid { Margin = new Thickness(0, 6, 0, 6), Cursor = System.Windows.Input.Cursors.Hand, Background = Brushes.Transparent, ToolTip = f.Path };
-                    var n = new TextBlock { Text = f.Name, FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 0, 70, 0) };
+                    var n = new TextBlock { Text = f.Name, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 0, 70, 0) };
                     n.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                    var sz = new TextBlock { Text = Fmt.Size(f.Bytes), FontSize = 12.5, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Right };
+                    var sz = new TextBlock { Text = Fmt.Size(f.Bytes), FontSize = 14, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Right };
                     sz.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
                     g.Children.Add(n); g.Children.Add(sz);
                     var path = f.Path;
@@ -528,9 +528,9 @@ namespace Kemas
                     Background = new SolidColorBrush(Color.FromArgb((byte)(free ? 0x14 : Theme.IsDark ? 0x55 : 0x30), col.R, col.G, col.B)),
                     BorderBrush = new SolidColorBrush(Color.FromArgb(0x60, col.R, col.G, col.B)) };
                 var sp = new StackPanel();
-                var t1 = new TextBlock { Text = L.T("mb_" + b.Item1), FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+                var t1 = new TextBlock { Text = L.T("mb_" + b.Item1), FontSize = 15, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
                 t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                var t2 = new TextBlock { Text = Fmt.Size(b.Item2), FontSize = 12 };
+                var t2 = new TextBlock { Text = Fmt.Size(b.Item2), FontSize = 13.5 };
                 t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 sp.Children.Add(t1); if (rc.Height > 54) sp.Children.Add(t2);
                 bd.Child = sp;
@@ -603,13 +603,13 @@ namespace Kemas
             int c = 0;
             if (full)
             {
-                var tt = new TextBlock { Text = HistTime(h), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center };
+                var tt = new TextBlock { Text = HistTime(h), FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
                 tt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); g.Children.Add(tt); c = 1;
             }
             var mid = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            var t1 = new TextBlock { Text = h.Title, FontSize = 13.5, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+            var t1 = new TextBlock { Text = h.Title, FontSize = 15, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
             t1.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-            var t2 = new TextBlock { Text = h.Detail + (full ? "" : "  ·  " + HistTime(h)), FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
+            var t2 = new TextBlock { Text = h.Detail + (full ? "" : "  ·  " + HistTime(h)), FontSize = 13.5, TextTrimming = TextTrimming.CharacterEllipsis };
             t2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             mid.Children.Add(t1); mid.Children.Add(t2);
             Grid.SetColumn(mid, c); g.Children.Add(mid);
@@ -619,14 +619,14 @@ namespace Kemas
             bool canUndo = !h.Undone && ((h.Undo.StartsWith("org:") && h.Undo.Substring(4) == latestOrg && File.Exists(latestOrg)) || h.Undo.StartsWith("startup:"));
             string pill = h.Undone ? L.T("rec_undone") : canUndo ? L.T("rec_can_undo") : L.T("rec_no_undo");
             var pb = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-            var pt = new TextBlock { Text = pill, FontSize = 11.5, FontWeight = FontWeights.SemiBold };
+            var pt = new TextBlock { Text = pill, FontSize = 13, FontWeight = FontWeights.SemiBold };
             if (canUndo) { pb.Background = Hex("#2227B77A"); pt.Foreground = (Brush)W.FindResource("GoodBrush"); }
             else { pb.SetResourceReference(Border.BackgroundProperty, "HoverBrush"); pt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); }
             pb.Child = pt; right.Children.Add(pb);
             Button b = null;
             if (canUndo) { b = new Button { Content = L.T("rec_undo") }; b.Click += (s, e) => UndoHistory(h); }
             else if (!string.IsNullOrEmpty(h.Receipt)) { b = new Button { Content = L.T("rec_receipt") }; b.Click += (s, e) => Ask(h.Title + "  ·  " + HistTime(h), h.Detail + "\n\n" + h.Receipt.Trim(), "OK", "E9F9", false, null); }
-            if (b != null) { b.Style = (Style)W.FindResource("Ghost"); b.Height = 32; b.Padding = new Thickness(14, 0, 14, 0); b.FontSize = 12.5; b.IsEnabled = !busy; right.Children.Add(b); }
+            if (b != null) { b.Style = (Style)W.FindResource("Ghost"); b.Height = 32; b.Padding = new Thickness(14, 0, 14, 0); b.FontSize = 14; b.IsEnabled = !busy; right.Children.Add(b); }
             Grid.SetColumn(right, c + 1); g.Children.Add(right);
             return line;
         }
@@ -840,11 +840,11 @@ namespace Kemas
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(26) });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
+                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 14.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
                 ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                var nm = new TextBlock { Text = it.Item2, FontSize = 13.5, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+                var nm = new TextBlock { Text = it.Item2, FontSize = 15, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
                 nm.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 13.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
                 dt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 Grid.SetColumn(nm, 1); Grid.SetColumn(dt, 2);
                 g.Children.Add(ic); g.Children.Add(nm); g.Children.Add(dt);
@@ -924,7 +924,7 @@ namespace Kemas
             {
                 string fg = c.Item2 == "good" ? "#21C98A" : c.Item2 == "warn" ? "#F5A524" : c.Item2 == "cyan" ? "#22C4F0" : null;
                 var b = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(11, 5, 11, 5), Margin = new Thickness(0, 0, 8, 6) };
-                var t = new TextBlock { Text = c.Item1, FontSize = 12.5 };
+                var t = new TextBlock { Text = c.Item1, FontSize = 14 };
                 if (fg != null) { t.Foreground = Hex(fg); b.Background = Hex("#26" + fg.Substring(1)); }
                 else { t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); b.SetResourceReference(Border.BackgroundProperty, "GhostBrush"); }
                 b.Child = t; wrap.Children.Add(b);
@@ -936,9 +936,9 @@ namespace Kemas
                 var g = new Grid { Margin = new Thickness(0, 0, 0, 7) };
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
-                var ic = new TextBlock { Text = Glyph(n.Item2 ? "E7BA" : "E946"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 12, Margin = new Thickness(0, 2, 0, 0),
+                var ic = new TextBlock { Text = Glyph(n.Item2 ? "E7BA" : "E946"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 13.5, Margin = new Thickness(0, 2, 0, 0),
                     Foreground = (Brush)W.FindResource(n.Item2 ? "WarnBrush" : "CyanBrush") };
-                var tx = new TextBlock { Text = n.Item1, TextWrapping = TextWrapping.Wrap, FontSize = 12.5 };
+                var tx = new TextBlock { Text = n.Item1, TextWrapping = TextWrapping.Wrap, FontSize = 14 };
                 tx.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 Grid.SetColumn(tx, 1); g.Children.Add(ic); g.Children.Add(tx); np.Children.Add(g);
             }

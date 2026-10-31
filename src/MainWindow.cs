@@ -97,7 +97,7 @@ namespace Kemas
             Theme.Apply(W.Resources, S.Theme);
             L.Apply(W.Resources, S.Language);
 
-            var chrome = new WindowChrome { CaptionHeight = 42, ResizeBorderThickness = new Thickness(6), GlassFrameThickness = new Thickness(0, 0, 0, 1), CornerRadius = new CornerRadius(0), UseAeroCaptionButtons = false };
+            var chrome = new WindowChrome { CaptionHeight = 64, ResizeBorderThickness = new Thickness(6), GlassFrameThickness = new Thickness(0, 0, 0, 1), CornerRadius = new CornerRadius(0), UseAeroCaptionButtons = false };
             WindowChrome.SetWindowChrome(W, chrome);
             foreach (var n in new[] { "BtnHelp", "BtnMin", "BtnMax", "BtnClose", "Brand" })
                 WindowChrome.SetIsHitTestVisibleInChrome(E<IInputElement>(n), n != "Brand");
@@ -889,7 +889,7 @@ namespace Kemas
                 var lg = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 14, 6) };
                 var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
                 if (pt.Item3 != null) dot.Background = Hex(pt.Item3); else dot.SetResourceReference(Border.BackgroundProperty, "TrackBrush");
-                var tx = new TextBlock { Text = pt.Item1 + "  " + Fmt.Size(pt.Item2), FontSize = 11.5 }; tx.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                var tx = new TextBlock { Text = pt.Item1 + "  " + Fmt.Size(pt.Item2), FontSize = 13 }; tx.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 lg.Children.Add(dot); lg.Children.Add(tx); leg.Children.Add(lg);
             }
         }
