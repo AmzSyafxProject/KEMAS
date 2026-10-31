@@ -21,10 +21,10 @@ namespace Kemas
         // ------------------------------------------------------------ information architecture
         class Cat
         {
-            public string Id, Glyph, En, Ms, Landing;     // Landing = nav name opened by the header (null = header only toggles)
+            public string Id, Glyph, En, Ms, Landing, Color;     // Landing = nav name opened by the header (null = header only toggles)
             public string[] Items;
             public Border Header; public StackPanel Body; public TextBlock Chevron, Label, Icon;
-            public Border Hover, Sel, Bar, Ring; public RotateTransform Rot;
+            public Border Hover, Sel, Bar, Ring, TileBg; public RotateTransform Rot; public ScaleTransform TileScale;
         }
         List<Cat> cats;
         static readonly Dictionary<string, string[]> CoreNav = new Dictionary<string, string[]>
@@ -97,13 +97,13 @@ namespace Kemas
         {
             cats = new List<Cat>
             {
-                new Cat { Id = "ov", Glyph = "E95E", En = "Overview", Ms = "Ringkasan", Items = new[] { "NavHealth", "NavDoctor" } },
-                new Cat { Id = "cl", Glyph = "E74D", En = "Cleanup", Ms = "Pembersihan", Landing = "NavHubClean", Items = new[] { "NavHubClean", "NavClean", "NavDeepApp", "NavDupes", "NavLarge" } },
-                new Cat { Id = "pf", Glyph = "EC4A", En = "Performance", Ms = "Prestasi", Landing = "NavHubPerf", Items = new[] { "NavPerf", "NavStartup", "NavBackground", "NavGame" } },
-                new Cat { Id = "st", Glyph = "EDA2", En = "Storage", Ms = "Storan", Landing = "NavHubStore", Items = new[] { "NavMap", "NavDiskHealth", "NavApps" } },
-                new Cat { Id = "pr", Glyph = "E72E", En = "Privacy & Security", Ms = "Privasi & Keselamatan", Landing = "NavHubPriv", Items = new[] { "NavPrivacy", "NavBrowser", "NavWinHealth" } },
-                new Cat { Id = "ut", Glyph = "E90F", En = "Utilities", Ms = "Utiliti", Landing = "NavHubUtil", Items = new[] { "NavNetwork", "NavDrivers", "NavSysInfo", "NavShredder" } },
-                new Cat { Id = "rc", Glyph = "E777", En = "Recovery", Ms = "Pemulihan", Items = new[] { "NavRecover", "NavRestore" } },
+                new Cat { Id = "ov", Color = "#7C5CFF", Glyph = "E95E", En = "Overview", Ms = "Ringkasan", Items = new[] { "NavHealth", "NavDoctor" } },
+                new Cat { Id = "cl", Color = "#F0466B", Glyph = "E74D", En = "Cleanup", Ms = "Pembersihan", Landing = "NavHubClean", Items = new[] { "NavHubClean", "NavClean", "NavDeepApp", "NavDupes", "NavLarge" } },
+                new Cat { Id = "pf", Color = "#0EA5E9", Glyph = "EC4A", En = "Performance", Ms = "Prestasi", Landing = "NavHubPerf", Items = new[] { "NavPerf", "NavStartup", "NavBackground", "NavGame" } },
+                new Cat { Id = "st", Color = "#5B5BF0", Glyph = "EDA2", En = "Storage", Ms = "Storan", Landing = "NavHubStore", Items = new[] { "NavMap", "NavDiskHealth", "NavApps" } },
+                new Cat { Id = "pr", Color = "#22B573", Glyph = "E72E", En = "Privacy & Security", Ms = "Privasi & Keselamatan", Landing = "NavHubPriv", Items = new[] { "NavPrivacy", "NavBrowser", "NavWinHealth" } },
+                new Cat { Id = "ut", Color = "#2F6BF0", Glyph = "E90F", En = "Utilities", Ms = "Utiliti", Landing = "NavHubUtil", Items = new[] { "NavNetwork", "NavDrivers", "NavSysInfo", "NavShredder" } },
+                new Cat { Id = "rc", Color = "#F5822E", Glyph = "E777", En = "Recovery", Ms = "Pemulihan", Items = new[] { "NavRecover", "NavRestore" } },
             };
             // pages reached from a category overview rather than the sidebar
             Hidden = new Dictionary<string, string> { { "NavOrg", "cl" }, { "NavEmpty", "cl" }, { "NavResidual", "cl" }, { "NavDownloads", "cl" }, { "NavRam", "pf" }, { "NavProfiles", "pf" }, { "NavBattery", "pf" }, { "NavTimeline", "ov" } };
@@ -136,45 +136,64 @@ namespace Kemas
                 var pl = SectionLabel("PREFERENCES", "KEUTAMAAN", true); pl.Tag = "pref";
                 bottom.Children.Insert(bottom.Children.IndexOf(E<RadioButton>("NavSettings")), pl);
             }
+            SetupVerCard();
             RefreshSidebarTexts();
         }
         readonly List<Tuple<Grid, TextBlock, Border, string, string>> sectionLabels = new List<Tuple<Grid, TextBlock, Border, string, string>>();
         /// Small caps group label; in the icon-only sidebar it turns into a short divider.
         Grid SectionLabel(string en, string ms, bool first)
         {
-            var g = new Grid { Margin = new Thickness(20, first ? 4 : 18, 0, 6) };
-            var t = new TextBlock { FontSize = 11.5, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms) };
+            var g = new Grid { Margin = new Thickness(16, first ? 2 : 20, 4, 8) };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
+            var t = new TextBlock { FontSize = 12.5, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms), VerticalAlignment = VerticalAlignment.Center };
             t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            var d = new Border { Height = 1, Width = 24, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Collapsed };
+            var line = new Border { Height = 1, Margin = new Thickness(12, 1, 0, 0), VerticalAlignment = VerticalAlignment.Center, Visibility = en == "MAIN" ? Visibility.Collapsed : Visibility.Visible };
+            line.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(line, 1);
+            var d = new Border { Height = 1, Width = 26, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Collapsed };
             d.SetResourceReference(Border.BackgroundProperty, "LineBrush");
-            g.Children.Add(t); g.Children.Add(d);
+            g.Children.Add(t); g.Children.Add(line); g.Children.Add(d);
             System.Windows.Automation.AutomationProperties.SetName(g, en);
             sectionLabels.Add(Tuple.Create(g, t, d, en, ms));
             return g;
         }
+        /// Rounded icon tile tinted with the item's colour, with a glossy top highlight.
+        static Grid NavTile(string glyph, string hex, double size, double font, out Border bg, out TextBlock ic)
+        {
+            var tile = new Grid { Width = size, Height = size, VerticalAlignment = VerticalAlignment.Center };
+            var c = (Color)ColorConverter.ConvertFromString(hex);
+            bg = new Border { CornerRadius = new CornerRadius(size * 0.29), Background = new LinearGradientBrush(Color.FromArgb(0x30, c.R, c.G, c.B), Color.FromArgb(0x18, c.R, c.G, c.B), 90) };
+            var gloss = new Border { CornerRadius = new CornerRadius(size * 0.29) }; gloss.SetResourceReference(Border.BackgroundProperty, "TileGloss");
+            ic = new TextBlock { Text = Glyph(glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = font, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(c) };
+            tile.Children.Add(bg); tile.Children.Add(gloss); tile.Children.Add(ic);
+            return tile;
+        }
         /// Category row drawn like a sidebar item: fading hover, selection tint, gradient bar, rotating chevron.
         Border MakeHeader(Cat cat)
         {
-            var root = new Grid { Height = 40, Background = Brushes.Transparent };
-            Func<string, Border> layer = res => { var b = new Border { CornerRadius = new CornerRadius(8), Margin = new Thickness(8, 0, 0, 0), Opacity = 0 }; b.SetResourceReference(Border.BackgroundProperty, res); return b; };
-            cat.Hover = layer("HoverBrush"); cat.Sel = layer("NavSelBrush");
-            cat.Ring = new Border { CornerRadius = new CornerRadius(8), Margin = new Thickness(8, 0, 0, 0), BorderThickness = new Thickness(1.5), Opacity = 0 }; cat.Ring.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
-            cat.Bar = new Border { Width = 3, Height = 22, CornerRadius = new CornerRadius(0, 2, 2, 0), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0, Background = (Brush)W.FindResource("BrandBar") };
-            root.Children.Add(cat.Hover); root.Children.Add(cat.Sel); root.Children.Add(cat.Ring); root.Children.Add(cat.Bar);
-            var g = new Grid { Margin = new Thickness(20, 0, 8, 0) };
+            var root = new Grid { Height = 50, Background = Brushes.Transparent };
+            cat.Bar = new Border { Width = 4, Height = 30, CornerRadius = new CornerRadius(2), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0, Background = (Brush)W.FindResource("BrandBar") };
+            cat.Hover = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), Opacity = 0 }; cat.Hover.SetResourceReference(Border.BackgroundProperty, "HoverBrush");
+            cat.Sel = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), Opacity = 0, Background = (Brush)W.FindResource("NavPill"),
+                Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = Color.FromRgb(0x2F, 0x6B, 0xF0), BlurRadius = 18, ShadowDepth = 4, Direction = 270, Opacity = 0.38 } };
+            cat.Ring = new Border { CornerRadius = new CornerRadius(14), Margin = new Thickness(12, 0, 0, 0), BorderThickness = new Thickness(2), Opacity = 0 }; cat.Ring.SetResourceReference(Border.BorderBrushProperty, "CyanBrush");
+            root.Children.Add(cat.Bar); root.Children.Add(cat.Hover); root.Children.Add(cat.Sel); root.Children.Add(cat.Ring);
+            var g = new Grid { Margin = new Thickness(18, 0, 8, 0) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            cat.Icon = new TextBlock { Text = Glyph(cat.Glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 18, Width = 24, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            cat.Label = new TextBlock { FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+            Border tb; TextBlock ic;
+            var tile = NavTile(cat.Glyph, cat.Color, 38, 18, out tb, out ic);
+            cat.TileBg = tb; cat.Icon = ic;
+            cat.TileScale = new ScaleTransform(1, 1); tile.RenderTransformOrigin = new Point(0.5, 0.5); tile.RenderTransform = cat.TileScale;
+            cat.Label = new TextBlock { FontSize = 15.5, FontWeight = FontWeights.Medium, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
             cat.Rot = new RotateTransform(0);
-            cat.Chevron = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 10, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Width = 28, Height = 28, Padding = new Thickness(0, 9, 0, 0), TextAlignment = TextAlignment.Center, Background = Brushes.Transparent, Cursor = Cursors.Hand, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = cat.Rot, ToolTip = Tx("Show or hide pages", "Tunjuk atau sembunyi halaman") };
+            cat.Chevron = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, Width = 30, Height = 30, Padding = new Thickness(0, 9.5, 0, 0), TextAlignment = TextAlignment.Center, Background = Brushes.Transparent, Cursor = Cursors.Hand, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = cat.Rot, ToolTip = Tx("Show or hide pages", "Tunjuk atau sembunyi halaman") };
             Grid.SetColumn(cat.Label, 1); Grid.SetColumn(cat.Chevron, 2);
-            g.Children.Add(cat.Icon); g.Children.Add(cat.Label);
+            g.Children.Add(tile); g.Children.Add(cat.Label);
             if (cat.Items.Length > 0) g.Children.Add(cat.Chevron);
             root.Children.Add(g);
             cat.Header = new Border { Child = root, Margin = new Thickness(0, 1, 0, 1), Cursor = Cursors.Hand, Focusable = true, FocusVisualStyle = null };
             System.Windows.Automation.AutomationProperties.SetName(cat.Header, cat.En);
-            cat.Header.MouseEnter += (s, e) => cat.Hover.BeginAnimation(UIElement.OpacityProperty, Anim(cat.Hover.Opacity, 1, 120));
-            cat.Header.MouseLeave += (s, e) => cat.Hover.BeginAnimation(UIElement.OpacityProperty, Anim(cat.Hover.Opacity, 0, 180));
+            cat.Header.MouseEnter += (s, e) => HeaderHover(cat, true);
+            cat.Header.MouseLeave += (s, e) => HeaderHover(cat, false);
             cat.Header.GotKeyboardFocus += (s, e) => cat.Ring.Opacity = 1;
             cat.Header.LostKeyboardFocus += (s, e) => cat.Ring.Opacity = 0;
             cat.Chevron.MouseLeftButtonUp += (s, e) => { e.Handled = true; Toggle(cat, cat.Body.Visibility != Visibility.Visible); };
@@ -186,6 +205,17 @@ namespace Kemas
                 else if (e.Key == Key.Left) { Toggle(cat, false); e.Handled = true; }
             };
             return cat.Header;
+        }
+        void HeaderHover(Cat c, bool on)
+        {
+            bool sel = c.Sel.Opacity > 0.5;
+            c.Hover.BeginAnimation(UIElement.OpacityProperty, Anim(c.Hover.Opacity, on && !sel ? 1 : 0, on ? 160 : 200));
+            if (!on || sel) { if (!sel) c.Label.SetResourceReference(TextBlock.ForegroundProperty, c == CatOf("Nav" + currentPage.Substring(4)) ? "TextBrush" : "SideTextBrush"); }
+            else c.Label.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            if (S.ReducedMotion) return;
+            double to = on ? 1.07 : 1;
+            c.TileScale.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(c.TileScale.ScaleX, to, 160));
+            c.TileScale.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(c.TileScale.ScaleY, to, 160));
         }
         bool HeaderActive(Cat c) { return c.Landing != null && !c.Items.Contains(c.Landing) && currentPage == "Page" + c.Landing.Substring(3); }
         void HeaderClick(Cat c)
@@ -221,8 +251,18 @@ namespace Kemas
                 sl.Item2.Text = Tx(sl.Item4, sl.Item5);
                 sl.Item2.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
                 sl.Item3.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
-                sl.Item1.Margin = compact ? new Thickness(18, sl.Item1.Margin.Top, 0, 6) : new Thickness(20, sl.Item1.Margin.Top, 0, 6);
+                sl.Item1.Margin = compact ? new Thickness(23, sl.Item1.Margin.Top, 0, 8) : new Thickness(16, sl.Item1.Margin.Top, 4, 8);
+                if (sl.Item4 != "MAIN") sl.Item1.Children[1].Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             }
+            if (E<FrameworkElement>("SideVerState") != null) SetVerState(verState, verNew);
+        }
+        /// Wires the version card's refresh button; the store build updates through the Store.
+        void SetupVerCard()
+        {
+            if (!Updater.Configured) { SetVerState(AppInfo.IsStore ? "store" : "none"); if (AppInfo.IsStore) BT("BtnVerCheck").Visibility = Visibility.Collapsed; }
+            else SetVerState("none");
+            BT("BtnVerCheck").ToolTip = Tx("Check for updates", "Semak kemas kini"); System.Windows.Automation.AutomationProperties.SetName(BT("BtnVerCheck"), "Check for updates");
+            BT("BtnVerCheck").Click += (s, e) => CheckUpdate(true);
         }
         void PaintHeaders()
         {
@@ -233,14 +273,24 @@ namespace Kemas
                 bool act = HeaderActive(c), inside = c == mine;
                 // overview page open (or a page inside, in the icon-only sidebar) = the same selected look as an item
                 bool sel = act || (compact && inside);
-                c.Sel.BeginAnimation(UIElement.OpacityProperty, null); c.Bar.BeginAnimation(UIElement.OpacityProperty, null);
-                c.Sel.Opacity = sel ? 1 : 0; c.Bar.Opacity = sel ? 1 : 0;
-                // a page inside: the parent stays quiet but bold, so the child carries the colour
-                c.Label.SetResourceReference(TextBlock.ForegroundProperty, sel ? "AccentTextBrush" : inside ? "TextBrush" : "SideTextBrush");
-                c.Icon.SetResourceReference(TextBlock.ForegroundProperty, sel ? "AccentTextBrush" : inside ? "TextBrush" : "MutedBrush");
-                c.Chevron.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                c.Label.FontWeight = sel || inside ? FontWeights.SemiBold : FontWeights.Normal;
-
+                double to = sel ? 1 : 0;
+                if (S.ReducedMotion || Math.Abs(c.Sel.Opacity - to) < 0.01) { c.Sel.BeginAnimation(UIElement.OpacityProperty, null); c.Bar.BeginAnimation(UIElement.OpacityProperty, null); c.Sel.Opacity = to; c.Bar.Opacity = to; }
+                else { c.Sel.BeginAnimation(UIElement.OpacityProperty, Anim(c.Sel.Opacity, to, 200)); c.Bar.BeginAnimation(UIElement.OpacityProperty, Anim(c.Bar.Opacity, to, 200)); }
+                if (sel) c.Hover.Opacity = 0;
+                var col = (Color)ColorConverter.ConvertFromString(c.Color);
+                if (sel)
+                {
+                    c.Label.Foreground = Brushes.White; c.Icon.Foreground = Brushes.White; c.Chevron.Foreground = Brushes.White;
+                    c.TileBg.Background = new SolidColorBrush(Color.FromArgb(0x33, 255, 255, 255));
+                }
+                else
+                {
+                    c.Label.SetResourceReference(TextBlock.ForegroundProperty, inside ? "TextBrush" : "SideTextBrush");
+                    c.Icon.Foreground = new SolidColorBrush(col);
+                    c.Chevron.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+                    c.TileBg.Background = new LinearGradientBrush(Color.FromArgb(0x30, col.R, col.G, col.B), Color.FromArgb(0x18, col.R, col.G, col.B), 90);
+                }
+                c.Label.FontWeight = sel || inside ? FontWeights.SemiBold : FontWeights.Medium;
             }
         }
         /// Called after every page change: keeps the active category open and the breadcrumb right.
@@ -259,12 +309,16 @@ namespace Kemas
             if (cats == null || on == compact) return;
             compact = on;
             var side = E<Border>("SideBar");
-            ((Grid)side.Parent).ColumnDefinitions[0].Width = new GridLength(on ? 72 : 248);
-            ((DockPanel)side.Child).Margin = on ? new Thickness(2, 18, 10, 14) : new Thickness(8, 18, 14, 14);
+            double w = on ? 72 : 276;
+            if (S.ReducedMotion || !side.IsLoaded) { side.BeginAnimation(FrameworkElement.WidthProperty, null); side.Width = w; }
+            else side.BeginAnimation(FrameworkElement.WidthProperty, Anim(side.ActualWidth > 0 ? side.ActualWidth : side.Width, w, 240, new System.Windows.Media.Animation.QuarticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }));
+            E<DockPanel>("SideDock").Margin = on ? new Thickness(0, 22, 10, 18) : new Thickness(8, 22, 14, 18);
+            E<FrameworkElement>("SideDecor").Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             var brand = E<StackPanel>("Brand"); if (brand.Children.Count > 1) brand.Children[1].Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-            brand.Margin = on ? new Thickness(14, 6, 0, 22) : new Thickness(14, 6, 0, 22);
-            foreach (var n in new[] { "SideStatus", "SideVersion" }) E<FrameworkElement>(n).Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+            brand.Margin = on ? new Thickness(10, 0, 0, 24) : new Thickness(14, 0, 0, 24);
+            E<FrameworkElement>("VerCard").Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             if (on) E<FrameworkElement>("UpdateChip").Visibility = Visibility.Collapsed;
+            else if (pendingUpdate != null) E<FrameworkElement>("UpdateChip").Visibility = Visibility.Visible;
             var navs = new List<RadioButton> { E<RadioButton>("NavDash"), E<RadioButton>("NavSettings"), E<RadioButton>("NavAbout") };
             foreach (var r in navs)
             {
@@ -275,7 +329,7 @@ namespace Kemas
             {
                 c.Label.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
                 c.Chevron.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
-                c.Header.Margin = new Thickness(0, 0, 0, 2);
+                c.Header.ClipToBounds = on;
                 if (on) c.Body.Visibility = Visibility.Collapsed;
             }
             if (!on)
@@ -287,6 +341,24 @@ namespace Kemas
             RefreshSidebarTexts();
             PaintHeaders();
         }
+        /// Version card at the foot of the sidebar; only states what the update check actually returned.
+        void SetVerState(string kind, string ver = null)
+        {
+            var dot = E<System.Windows.Shapes.Ellipse>("SideVerDot"); var t = TB("SideVerState");
+            string hex = "#9AA4B8"; string txt;
+            switch (kind)
+            {
+                case "checking": txt = Tx("Checking...", "Menyemak..."); hex = "#3478F6"; break;
+                case "ok": txt = Tx("Up to date", "Terkini"); hex = "#22B573"; break;
+                case "offline": txt = Tx("Couldn't check", "Tidak dapat semak"); hex = "#F3A83B"; break;
+                case "new": txt = string.Format(Tx("v{0} available", "v{0} tersedia"), ver); hex = "#3478F6"; break;
+                case "store": txt = Tx("Updates via Microsoft Store", "Kemas kini melalui Microsoft Store"); break;
+                default: txt = Tx("Not checked yet", "Belum disemak"); break;
+            }
+            dot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            t.Text = txt; verState = kind; verNew = ver;
+        }
+        string verState = "none", verNew;
         void AutoCompact(double width)
         {
             bool want = S.SideCompact || width < 1000;
@@ -565,21 +637,19 @@ namespace Kemas
                 case "HubUtil": HubUtil(); break;
             }
         }
-        static Border FlatIcon(string glyph, double size, double font)
+        static Border FlatIcon(string glyph, double size, double font, string hex = "#2F6BF0")
         {
-            var b = new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size * 0.28), VerticalAlignment = VerticalAlignment.Center };
-            b.SetResourceReference(Border.BackgroundProperty, "SelectBrush");
-            var t = new TextBlock { Text = Glyph(glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = font, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            t.SetResourceReference(TextBlock.ForegroundProperty, "CyanBrush");
-            b.Child = t; return b;
+            Border bg; TextBlock ic;
+            return new Border { Child = NavTile(glyph, hex, size, font, out bg, out ic), VerticalAlignment = VerticalAlignment.Center };
         }
+        string CatColor(string nav) { var c = CatOf(nav); return c == null ? "#2F6BF0" : c.Color; }
         /// One horizontal row that opens a tool: icon, divider, name, one line, optional status, arrow.
         Border ToolRow(string nav, string status = null, string kind = "", string title = null)
         {
             var g = new Grid { MinHeight = 56 };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            g.Children.Add(FlatIcon(NavGlyph(nav), 52, 21));
+            g.Children.Add(FlatIcon(NavGlyph(nav), 52, 21, CatColor(nav)));
             var div = new Border { Width = 1, Margin = new Thickness(22, 4, 22, 4) }; div.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(div, 1); g.Children.Add(div);
             var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
             var t = new TextBlock { Text = title ?? NavTitle(nav), FontSize = 18, FontWeight = FontWeights.SemiBold }; t.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); sp.Children.Add(t);

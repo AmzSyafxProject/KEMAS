@@ -1344,16 +1344,16 @@ namespace Kemas
         void CheckUpdate(bool manual)
         {
             if (!Updater.Configured) { if (manual) Toast(L.T("update_not_configured"), "E946"); return; }
-            TB("UpdateStatus").Text = L.T("update_checking");
+            TB("UpdateStatus").Text = L.T("update_checking"); SetVerState("checking");
             UpdateInfo info = null; Exception err = null;
             System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
                 try { info = Updater.Check(); } catch (Exception ex) { err = ex; }
                 Ui(() =>
                 {
-                    if (err != null) { TB("UpdateStatus").Text = L.T("update_offline"); if (manual) Toast(L.T("update_offline"), "E7BA"); return; }
-                    if (info == null) { TB("UpdateStatus").Text = string.Format(L.T("update_latest"), DateTime.Now.ToString("HH:mm")); if (manual) Toast(L.T("update_none"), "E73E"); return; }
-                    pendingUpdate = info;
+                    if (err != null) { SetVerState("offline"); TB("UpdateStatus").Text = L.T("update_offline"); if (manual) Toast(L.T("update_offline"), "E7BA"); return; }
+                    if (info == null) { SetVerState("ok"); TB("UpdateStatus").Text = string.Format(L.T("update_latest"), DateTime.Now.ToString("HH:mm")); if (manual) Toast(L.T("update_none"), "E73E"); return; }
+                    pendingUpdate = info; SetVerState("new", info.Version.ToString());
                     TB("UpdateStatus").Text = string.Format(L.T("update_found"), info.Version);
                     TB("UpdateChipText").Text = "v" + info.Version;
                     var chip = E<Border>("UpdateChip");

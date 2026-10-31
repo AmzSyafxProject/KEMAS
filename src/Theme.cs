@@ -21,6 +21,7 @@ namespace Kemas
             return true;
         }
 
+        static Color C(string hex) { return (Color)ColorConverter.ConvertFromString(hex); }
         static SolidColorBrush B(string hex)
         {
             var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
@@ -49,7 +50,7 @@ namespace Kemas
             IsDark = dark;
             if (dark)
             {
-                r["BgBrush"] = B("#111522"); r["SideBrush"] = B("#151A29"); r["CardBrush"] = B("#191F30"); r["LineBrush"] = B("#30394D");
+                r["BgBrush"] = B("#111522"); r["SideBrush"] = new LinearGradientBrush(C("#171D2E"), C("#121726"), 90); r["CardBrush"] = B("#191F30"); r["LineBrush"] = B("#30394D");
                 r["TextBrush"] = B("#F4F6FC"); r["MutedBrush"] = B("#A4AEC2"); r["HoverBrush"] = B("#222B40"); r["SelectBrush"] = B("#26324D"); r["NavSelBrush"] = B("#22335A"); r["NavActiveBrush"] = B("#2F63E6"); r["SideTextBrush"] = B("#C5CCDC"); r["AccentTextBrush"] = B("#8DB0FF");
                 r["GhostBrush"] = B("#222B40"); r["TrackBrush"] = B("#30394D"); r["BoxBrush"] = B("#4A5570"); r["InputBrush"] = B("#222B40");
                 r["ThumbBrush"] = B("#3A4560"); r["AltRowBrush"] = B("#1C2335"); r["DialogBrush"] = B("#191F30"); r["OverlayBrush"] = B("#D9111522");
@@ -59,7 +60,7 @@ namespace Kemas
             }
             else
             {
-                r["BgBrush"] = B("#F5F6FA"); r["SideBrush"] = B("#FAFBFD"); r["CardBrush"] = B("#FFFFFF"); r["LineBrush"] = B("#E8EBF2");
+                r["BgBrush"] = B("#F5F6FA"); r["SideBrush"] = new LinearGradientBrush(C("#FBFCFF"), C("#EFF4FE"), 90); r["CardBrush"] = B("#FFFFFF"); r["LineBrush"] = B("#E8EBF2");
                 r["TextBrush"] = B("#172033"); r["MutedBrush"] = B("#788195"); r["HoverBrush"] = B("#F0F2F7"); r["SelectBrush"] = B("#EAF0FE"); r["NavSelBrush"] = B("#EBF1FF"); r["NavActiveBrush"] = B("#3978F6"); r["SideTextBrush"] = B("#3B4559"); r["AccentTextBrush"] = B("#2B63E3");
                 r["GhostBrush"] = B("#F0F2F7"); r["TrackBrush"] = B("#E8EBF2"); r["BoxBrush"] = B("#C9CFDC"); r["InputBrush"] = B("#FFFFFF");
                 r["ThumbBrush"] = B("#D3D8E3"); r["AltRowBrush"] = B("#F7F8FB"); r["DialogBrush"] = B("#FFFFFF"); r["OverlayBrush"] = B("#99172033");

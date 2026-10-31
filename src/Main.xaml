@@ -112,12 +112,26 @@
       <GradientStop Color="#3978F6" Offset="0"/>
       <GradientStop Color="#43C6C0" Offset="1"/>
     </LinearGradientBrush>
-    <!-- sidebar item: hover and selection fade in, a brand-gradient bar marks the active page -->
+    <!-- active sidebar pill: refined blue gradient -->
+    <LinearGradientBrush x:Key="NavPill" StartPoint="0,0" EndPoint="1,1">
+      <GradientStop Color="#4A93FF" Offset="0"/>
+      <GradientStop Color="#2563EB" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- glossy top highlight laid over every icon tile -->
+    <LinearGradientBrush x:Key="TileGloss" StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#55FFFFFF" Offset="0"/>
+      <GradientStop Color="#00FFFFFF" Offset="0.6"/>
+    </LinearGradientBrush>
+    <!-- sidebar item. Background = icon tile tint, BorderBrush = icon colour.
+         Hover: soft surface + tile grows a little. Active: gradient pill, white text, glow, bar on the left edge. -->
     <Style x:Key="Nav" TargetType="RadioButton">
       <Setter Property="Foreground" Value="{DynamicResource SideTextBrush}"/>
-      <Setter Property="FontSize" Value="15"/>
-      <Setter Property="Height" Value="40"/>
-      <Setter Property="Margin" Value="0,1,0,1"/>
+      <Setter Property="Background" Value="#1F7D8BA5"/>
+      <Setter Property="BorderBrush" Value="#7D8BA5"/>
+      <Setter Property="FontSize" Value="15.5"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+      <Setter Property="Height" Value="50"/>
+      <Setter Property="Margin" Value="0,2,0,2"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="GroupName" Value="nav"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -125,30 +139,46 @@
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
             <Grid Background="Transparent">
-              <Border x:Name="hover" CornerRadius="8" Margin="8,0,0,0" Background="{DynamicResource HoverBrush}" Opacity="0"/>
-              <Border x:Name="sel" CornerRadius="8" Margin="8,0,0,0" Background="{DynamicResource NavSelBrush}" Opacity="0"/>
-              <Border x:Name="ring" CornerRadius="8" Margin="8,0,0,0" BorderThickness="1.5" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
-              <Border x:Name="bar" Width="3" Height="22" CornerRadius="0,2,2,0" HorizontalAlignment="Left" Background="{StaticResource BrandBar}" Opacity="0"/>
-              <StackPanel Orientation="Horizontal" Margin="20,0,10,0" VerticalAlignment="Center">
-                <TextBlock x:Name="ic" Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" Width="24" TextAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
-                <ContentPresenter VerticalAlignment="Center" Margin="12,0,0,0"/>
+              <Border x:Name="bar" Width="4" Height="30" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource BrandBar}" Opacity="0"/>
+              <Border x:Name="hover" CornerRadius="14" Margin="12,0,0,0" Background="{DynamicResource HoverBrush}" Opacity="0"/>
+              <Border x:Name="sel" CornerRadius="14" Margin="12,0,0,0" Background="{StaticResource NavPill}" Opacity="0">
+                <Border.Effect><DropShadowEffect Color="#2F6BF0" BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.38"/></Border.Effect>
+              </Border>
+              <Border x:Name="ring" CornerRadius="14" Margin="12,0,0,0" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
+              <StackPanel Orientation="Horizontal" Margin="18,0,10,0" VerticalAlignment="Center">
+                <Grid x:Name="tile" Width="38" Height="38" RenderTransformOrigin="0.5,0.5">
+                  <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                  <Border x:Name="tileBg" CornerRadius="11" Background="{TemplateBinding Background}"/>
+                  <Border x:Name="gloss" CornerRadius="11" Background="{StaticResource TileGloss}"/>
+                  <TextBlock x:Name="ic" Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{TemplateBinding BorderBrush}"/>
+                </Grid>
+                <ContentPresenter VerticalAlignment="Center" Margin="14,0,0,0"/>
               </StackPanel>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
-                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+                <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                  <DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16"/>
+                  <DoubleAnimation Storyboard.TargetName="tile" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.07" Duration="0:0:0.16"/>
+                  <DoubleAnimation Storyboard.TargetName="tile" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.07" Duration="0:0:0.16"/>
+                </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                  <DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/>
+                  <DoubleAnimation Storyboard.TargetName="tile" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.2"/>
+                  <DoubleAnimation Storyboard.TargetName="tile" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.2"/>
+                </Storyboard></BeginStoryboard></Trigger.ExitActions>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                <Setter TargetName="ic" Property="Foreground" Value="{DynamicResource TextBrush}"/>
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="ring" Property="Opacity" Value="1"/>
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
-                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/><DoubleAnimation Storyboard.TargetName="bar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
-                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/><DoubleAnimation Storyboard.TargetName="bar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
-                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
-                <Setter TargetName="ic" Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/><DoubleAnimation Storyboard.TargetName="bar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/><DoubleAnimation Storyboard.TargetName="bar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter TargetName="ic" Property="Foreground" Value="White"/>
+                <Setter TargetName="tileBg" Property="Background" Value="#33FFFFFF"/>
+                <Setter TargetName="hover" Property="Visibility" Value="Collapsed"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
               </Trigger>
             </ControlTemplate.Triggers>
@@ -156,11 +186,11 @@
         </Setter.Value>
       </Setter>
     </Style>
-    <!-- child item: hangs off a thin guide line under its parent's icon; the active child lights its segment of the line -->
+    <!-- child item: indented on a thin guide line from the parent's tile; the active child gets the same gradient pill -->
     <Style x:Key="NavSub" TargetType="RadioButton">
       <Setter Property="Foreground" Value="{DynamicResource SideTextBrush}"/>
       <Setter Property="FontSize" Value="14.5"/>
-      <Setter Property="Height" Value="36"/>
+      <Setter Property="Height" Value="38"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="GroupName" Value="nav"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -168,26 +198,31 @@
         <Setter.Value>
           <ControlTemplate TargetType="RadioButton">
             <Grid Background="Transparent">
-              <Border Width="1" HorizontalAlignment="Left" Margin="31.5,0,0,0" Background="{DynamicResource LineBrush}"/>
-              <Border x:Name="seg" Width="2.5" Height="22" CornerRadius="1.25" HorizontalAlignment="Left" Margin="30.5,0,0,0" Background="{StaticResource BrandBar}" Opacity="0"/>
-              <Border x:Name="hover" CornerRadius="8" Margin="42,2,0,2" Background="{DynamicResource HoverBrush}" Opacity="0"/>
-              <Border x:Name="sel" CornerRadius="8" Margin="42,2,0,2" Background="{DynamicResource NavSelBrush}" Opacity="0"/>
-              <Border x:Name="ring" CornerRadius="8" Margin="42,2,0,2" BorderThickness="1.5" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
-              <ContentPresenter VerticalAlignment="Center" Margin="56,0,8,0"/>
+              <Border Width="1.5" HorizontalAlignment="Left" Margin="36,0,0,0" Background="{DynamicResource LineBrush}"/>
+              <Border x:Name="seg" Width="3" Height="20" CornerRadius="1.5" HorizontalAlignment="Left" Margin="35.25,0,0,0" Background="{StaticResource BrandBar}" Opacity="0"/>
+              <Border x:Name="hover" CornerRadius="11" Margin="52,3,0,3" Background="{DynamicResource HoverBrush}" Opacity="0"/>
+              <Border x:Name="sel" CornerRadius="11" Margin="52,3,0,3" Background="{StaticResource NavPill}" Opacity="0">
+                <Border.Effect><DropShadowEffect Color="#2F6BF0" BlurRadius="12" ShadowDepth="3" Direction="270" Opacity="0.3"/></Border.Effect>
+              </Border>
+              <Border x:Name="ring" CornerRadius="11" Margin="52,3,0,3" BorderThickness="2" BorderBrush="{StaticResource CyanBrush}" Opacity="0"/>
+              <ContentPresenter x:Name="cp" VerticalAlignment="Center" Margin="68,0,8,0"/>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
-                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                <Setter TargetName="cp" Property="Margin" Value="71,0,8,0"/>
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="ring" Property="Opacity" Value="1"/>
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
-                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/><DoubleAnimation Storyboard.TargetName="seg" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
-                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/><DoubleAnimation Storyboard.TargetName="seg" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
-                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/><DoubleAnimation Storyboard.TargetName="seg" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/><DoubleAnimation Storyboard.TargetName="seg" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter TargetName="hover" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="cp" Property="Margin" Value="68,0,8,0"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
               </Trigger>
             </ControlTemplate.Triggers>
@@ -208,12 +243,19 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="bd" CornerRadius="10" Background="{StaticResource AccentGrad}" Padding="{TemplateBinding Padding}">
-              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <Grid x:Name="bd">
+              <Grid.RenderTransform><TranslateTransform Y="0"/></Grid.RenderTransform>
+              <Border x:Name="sh" CornerRadius="12" Background="#2F6BF0" Margin="4,6,4,0" Opacity="0.28"><Border.Effect><BlurEffect Radius="12"/></Border.Effect></Border>
+              <Border CornerRadius="12" Background="{StaticResource NavPill}" Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Grid>
             <ControlTemplate.Triggers>
-              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.9"/></Trigger>
-              <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.75"/></Trigger>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="bd" Storyboard.TargetProperty="RenderTransform.Y" To="-1.5" Duration="0:0:0.15"/><DoubleAnimation Storyboard.TargetName="sh" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.15"/></Storyboard></BeginStoryboard></Trigger.EnterActions>
+                <Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="bd" Storyboard.TargetProperty="RenderTransform.Y" To="0" Duration="0:0:0.15"/><DoubleAnimation Storyboard.TargetName="sh" Storyboard.TargetProperty="Opacity" To="0.28" Duration="0:0:0.15"/></Storyboard></BeginStoryboard></Trigger.ExitActions>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.85"/></Trigger>
               <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.35"/></Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
@@ -546,35 +588,40 @@
 
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="248"/>
+        <ColumnDefinition Width="Auto"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
       <!-- ===== sidebar ===== -->
-      <Border x:Name="SideBar" Background="{DynamicResource SideBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,1,0">
-        <DockPanel Margin="8,18,14,14">
-          <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Margin="14,6,0,22" Background="Transparent">
-            <Image x:Name="SideLogo" Width="40" Height="40"/>
-            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="KEMAS" FontSize="20" FontWeight="Black" Foreground="{DynamicResource TextBrush}"/>
-                <Border CornerRadius="6" Padding="6,1,6,2" Margin="8,3,0,0" VerticalAlignment="Center" Background="{DynamicResource NavSelBrush}"><TextBlock Text="4.0" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource CyanBrush}"/></Border>
-              </StackPanel>
-              <TextBlock Text="{DynamicResource L_tagline}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
+      <Border x:Name="SideBar" Width="276" Background="{DynamicResource SideBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,1,0">
+        <Grid ClipToBounds="True">
+        <!-- soft brand waves; decoration only -->
+        <Canvas x:Name="SideDecor" IsHitTestVisible="False">
+          <Path Canvas.Left="96" Canvas.Top="0" Data="M 40,0 C 70,46 92,96 180,118 L 180,0 Z">
+            <Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#3324C8F4" Offset="0.55"/><GradientStop Color="#443478F6" Offset="1"/></LinearGradientBrush></Path.Fill>
+          </Path>
+          <Path Canvas.Left="96" Canvas.Top="0" Data="M 92,0 C 112,40 130,70 180,78 L 180,0 Z">
+            <Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#2224C8F4" Offset="0"/><GradientStop Color="#553478F6" Offset="1"/></LinearGradientBrush></Path.Fill>
+          </Path>
+        </Canvas>
+        <Path x:Name="SideWave" IsHitTestVisible="False" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Stretch="Fill" Height="70" Data="M 0,70 C 70,30 150,62 200,34 C 236,14 262,6 276,0 L 276,70 Z">
+          <Path.Fill><LinearGradientBrush StartPoint="0,1" EndPoint="1,0"><GradientStop Color="#1024C8F4" Offset="0"/><GradientStop Color="#4424C8F4" Offset="0.5"/><GradientStop Color="#667B5CFF" Offset="1"/></LinearGradientBrush></Path.Fill>
+        </Path>
+        <DockPanel x:Name="SideDock" Margin="8,22,14,18">
+          <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Margin="14,0,0,24" Background="Transparent">
+            <Grid Width="52" Height="52">
+              <Border CornerRadius="15" Margin="2,4,2,0" Background="#2F6BF0" Opacity="0.25"><Border.Effect><BlurEffect Radius="10"/></Border.Effect></Border>
+              <Image x:Name="SideLogo" Width="52" Height="52"/>
+            </Grid>
+            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+              <TextBlock Text="KEMAS" FontSize="25" FontWeight="Black" Foreground="{DynamicResource TextBrush}"/>
+              <TextBlock Text="{DynamicResource L_tagline}" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/>
             </StackPanel>
           </StackPanel>
 
           <StackPanel DockPanel.Dock="Bottom">
-            <Border x:Name="SideStatus" Visibility="Collapsed" CornerRadius="14" Padding="12,12" Margin="0,0,0,12" Background="{DynamicResource NavSelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Cursor="Hand">
-              <StackPanel Orientation="Horizontal">
-                <Border Width="34" Height="34" CornerRadius="17"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#43C6C0" Offset="0"/><GradientStop Color="#3978F6" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="15.5" Foreground="White" HorizontalAlignment="Center"/></Border>
-                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                  <TextBlock x:Name="SideStatusText" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                  <TextBlock x:Name="SideStatusSub" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                </StackPanel>
-              </StackPanel>
-            </Border>
-            <Border x:Name="UpdateChip" Visibility="Collapsed" CornerRadius="12" Background="#1F7B5CFF" BorderBrush="#557B5CFF" BorderThickness="1" Padding="12,10" Margin="0,0,0,10" Cursor="Hand">
+            <Border x:Name="SideStatus" Visibility="Collapsed"><StackPanel><TextBlock x:Name="SideStatusText"/><TextBlock x:Name="SideStatusSub"/></StackPanel></Border>
+            <Border x:Name="UpdateChip" Visibility="Collapsed" CornerRadius="14" Background="#1F3478F6" BorderBrush="#553478F6" BorderThickness="1" Padding="12,10" Margin="12,0,0,10" Cursor="Hand">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Style="{StaticResource Icon}" Text="&#xE896;" Foreground="{StaticResource CyanBrush}" FontSize="15.5"/>
                 <StackPanel Margin="10,0,0,0">
@@ -585,13 +632,29 @@
             </Border>
             <RadioButton x:Name="NavSettings" Style="{StaticResource Nav}" Tag="&#xE713;" Content="{DynamicResource L_nav_settings}"/>
             <RadioButton x:Name="NavAbout" Style="{StaticResource Nav}" Tag="&#xE946;" Content="{DynamicResource L_nav_about}"/>
-            <Border Height="1" Background="{DynamicResource LineBrush}" Margin="4,10,4,10"/>
-            <TextBlock x:Name="SideVersion" FontSize="13" Foreground="{DynamicResource MutedBrush}" Margin="14,0,0,0"/>
+            <Border x:Name="VerCard" CornerRadius="16" Padding="12,10,10,10" Margin="12,14,0,0" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Grid Width="36" Height="36">
+                  <Border CornerRadius="10" Background="#1F7D8BA5"/>
+                  <Border CornerRadius="10" Background="{StaticResource TileGloss}"/>
+                  <TextBlock Style="{StaticResource Icon}" Text="&#xE81E;" FontSize="16" Foreground="#7D8BA5" HorizontalAlignment="Center"/>
+                </Grid>
+                <StackPanel Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center">
+                  <TextBlock x:Name="SideVersion" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                  <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                    <Ellipse x:Name="SideVerDot" Width="7" Height="7" Fill="#9AA4B8" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="SideVerState" FontSize="13" Margin="6,0,0,0" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+                  </StackPanel>
+                </StackPanel>
+                <Button x:Name="BtnVerCheck" Grid.Column="2" Style="{StaticResource IconBtn}" Content="&#xE72C;" FontSize="14" Width="34" Height="34"/>
+              </Grid>
+            </Border>
           </StackPanel>
 
           <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,-10,0" Padding="0,0,10,0">
           <StackPanel x:Name="NavStack">
-            <RadioButton x:Name="NavDash" Style="{StaticResource Nav}" Tag="&#xE80F;" Content="{DynamicResource L_nav_dash}" IsChecked="True"/>
+            <RadioButton x:Name="NavDash" Style="{StaticResource Nav}" Background="#1F2F6BF0" BorderBrush="#2F6BF0" Tag="&#xE80F;" Content="{DynamicResource L_nav_dash}" IsChecked="True"/>
             <TextBlock Text="{DynamicResource L_grp_clean}" Style="{StaticResource NavGroup}"/>
             <RadioButton x:Name="NavClean" Style="{StaticResource Nav}" Tag="&#xE74D;" Content="{DynamicResource L_nav_clean}"/>
             <RadioButton x:Name="NavOrg" Style="{StaticResource Nav}" Tag="&#xE8B7;" Content="{DynamicResource L_nav_org}"/>
@@ -607,6 +670,7 @@
           </StackPanel>
           </ScrollViewer>
         </DockPanel>
+        </Grid>
       </Border>
 
       <!-- ===== main ===== -->
