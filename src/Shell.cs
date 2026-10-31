@@ -367,6 +367,7 @@ namespace Kemas
         {
             var b = new Border { Width = width, CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1), Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 0),
                 Child = new ScrollViewer { Content = content, MaxHeight = 440, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+            TextElement.SetFontFamily(b, new FontFamily("Inter, Segoe UI Variable Text, Segoe UI")); TextElement.SetFontSize(b, 14); TextElement.SetFontWeight(b, FontWeights.Normal);   // popups inherit the bell's icon font otherwise
             b.SetResourceReference(Border.BackgroundProperty, "DialogBrush"); b.SetResourceReference(Border.BorderBrushProperty, "LineBrush");
             b.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 24, ShadowDepth = 6, Opacity = 0.18, Direction = 270 };
             return new Popup { PlacementTarget = target, Placement = PlacementMode.Bottom, StaysOpen = false, AllowsTransparency = true, Child = new Border { Padding = new Thickness(0, 0, 16, 20), Child = b }, PopupAnimation = PopupAnimation.Fade };
