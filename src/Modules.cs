@@ -273,11 +273,14 @@ namespace Kemas
             }
         }
         /// Background load for a module page. The result is dropped if the page was rebuilt meanwhile.
+        readonly Dictionary<string, int> modLoading = new Dictionary<string, int>();
         void ModLoad(string id, Action work, Action done)
         {
             int gen = modGen[id];
+            int n; modLoading.TryGetValue(id, out n); modLoading[id] = n + 1;
             Bg(id, work, () =>
             {
+                modLoading[id] = Math.Max(0, modLoading[id] - 1);
                 if (!modGen.ContainsKey(id) || modGen[id] != gen) return;
                 curMod = modPages[id]; curModId = id;
                 done();
@@ -524,6 +527,7 @@ namespace Kemas
         {
             if (modTimer != null) { modTimer.Stop(); modTimer = null; }
             if (ModFresh(id)) return;      // came back within the page's lifetime: keep what is already on screen
+            int busyN; if (modLoading.TryGetValue(id, out busyN) && busyN > 0 && modPages[id].Children.Count > 1 && id != "Game") return;   // still loading: let that finish instead of starting again
             switch (id)
             {
                 case "Health": ModHealth(); break;
