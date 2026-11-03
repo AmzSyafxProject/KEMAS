@@ -57,6 +57,7 @@ namespace Kemas
                 r["IconTile"] = B("#22315A"); r["HeroText"] = B("#F4F6FC"); r["HeroMuted"] = B("#A4AEC2");
                 r["HeroBrush"] = B("#191F30"); r["RingGlow"] = B("#00000000");
                 r["AuroraA"] = B("#00000000"); r["AuroraB"] = B("#00000000"); r["AuroraC"] = B("#00000000");
+                r["ScrimBrush"] = B("#B80B0F1A"); r["EngText"] = H("#7FE3FF", "#4A93FF");
             }
             else
             {
@@ -67,7 +68,16 @@ namespace Kemas
                 r["IconTile"] = B("#EAF0FE"); r["HeroText"] = B("#172033"); r["HeroMuted"] = B("#788195");
                 r["HeroBrush"] = B("#FFFFFF"); r["RingGlow"] = B("#00000000");
                 r["AuroraA"] = B("#00000000"); r["AuroraB"] = B("#00000000"); r["AuroraC"] = B("#00000000");
+                r["ScrimBrush"] = B("#B8E9EDF5"); r["EngText"] = H("#14A5D8", "#2B63E3");
             }
+        }
+
+        /// Horizontal two-stop gradient (used for big numbers).
+        static Brush H(string a, string b)
+        {
+            var br = new LinearGradientBrush(C(a), C(b), new Point(0, 0), new Point(1, 0));
+            br.Freeze();
+            return br;
         }
     }
 

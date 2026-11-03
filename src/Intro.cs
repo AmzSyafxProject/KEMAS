@@ -22,16 +22,18 @@ namespace Kemas
             if (S.ReducedMotion) return;
             bool ms = S.Language == "ms";
             var root = E<Grid>("Root");
-            intro = new Grid { Background = new SolidColorBrush(Color.FromRgb(2, 3, 10)), ClipToBounds = true, Cursor = Cursors.Arrow };
+            bool dk = Theme.IsDark;      // the film follows the app theme like every other screen
+            Color bg = dk ? Color.FromRgb(2, 3, 10) : Color.FromRgb(0xF5, 0xF7, 0xFC);
+            intro = new Grid { Background = new SolidColorBrush(bg), ClipToBounds = true, Cursor = Cursors.Arrow };
             Panel.SetZIndex(intro, 1000);
             Grid.SetRowSpan(intro, 8); Grid.SetColumnSpan(intro, 8);
 
             // horizon glow
             var glow = new Ellipse { Width = 1800, Height = 900, VerticalAlignment = VerticalAlignment.Bottom, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, -520), Opacity = 0, IsHitTestVisible = false };
             var gb = new RadialGradientBrush { Center = new Point(.5, .5), RadiusX = .5, RadiusY = .5 };
-            gb.GradientStops.Add(new GradientStop(Color.FromArgb(150, 110, 130, 255), 0));
+            gb.GradientStops.Add(new GradientStop(Color.FromArgb((byte)(dk ? 150 : 90), 110, 130, 255), 0));
             gb.GradientStops.Add(new GradientStop(Color.FromArgb(60, 123, 92, 255), .55));
-            gb.GradientStops.Add(new GradientStop(Color.FromArgb(0, 2, 3, 10), 1));
+            gb.GradientStops.Add(new GradientStop(Color.FromArgb(0, bg.R, bg.G, bg.B), 1));
             glow.Fill = gb; intro.Children.Add(glow);
 
             // drifting particles
@@ -40,7 +42,7 @@ namespace Kemas
             for (int i = 0; i < 70; i++)
             {
                 double sz = 1.2 + rnd.NextDouble() * 2.2, z = .3 + rnd.NextDouble() * .7;
-                var dot = new Ellipse { Width = sz, Height = sz, Opacity = .15 + .55 * z, Fill = new SolidColorBrush(i % 5 == 0 ? Color.FromRgb(0x22, 0xD3, 0xF5) : i % 7 == 0 ? Color.FromRgb(0x9B, 0x7B, 0xFF) : Color.FromRgb(0xCF, 0xE0, 0xFF)) };
+                var dot = new Ellipse { Width = sz, Height = sz, Opacity = .15 + .55 * z, Fill = new SolidColorBrush(i % 5 == 0 ? Color.FromRgb(0x22, 0xD3, 0xF5) : i % 7 == 0 ? Color.FromRgb(0x9B, 0x7B, 0xFF) : dk ? Color.FromRgb(0xCF, 0xE0, 0xFF) : Color.FromRgb(0x6C, 0x95, 0xE8)) };
                 Canvas.SetLeft(dot, rnd.NextDouble() * 1300); Canvas.SetTop(dot, 820);
                 var tr = new TranslateTransform(); dot.RenderTransform = tr;
                 tr.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, -900, TimeSpan.FromSeconds(8 + 8 / z * rnd.NextDouble() + 3)) { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromSeconds(-rnd.NextDouble() * 10) });
@@ -50,13 +52,13 @@ namespace Kemas
 
             // centre stack
             var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center, IsHitTestVisible = false };
-            var logo = new Image { Source = Logo.Image(), Width = 150, Height = 150, Opacity = 0, RenderTransformOrigin = new Point(.5, .5), Effect = new DropShadowEffect { Color = Color.FromRgb(0x7B, 0x8C, 0xFF), BlurRadius = 60, ShadowDepth = 0, Opacity = .7 } };
+            var logo = new Image { Source = Logo.Image(), Width = 150, Height = 150, Opacity = 0, RenderTransformOrigin = new Point(.5, .5), Effect = new DropShadowEffect { Color = Color.FromRgb(0x7B, 0x8C, 0xFF), BlurRadius = 60, ShadowDepth = 0, Opacity = dk ? .7 : .35 } };
             var lsc = new ScaleTransform(1.3, 1.3); logo.RenderTransform = lsc;
-            var word = new TextBlock { Text = "K E M A S", FontSize = 46, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 26, 0, 0), Opacity = 0, RenderTransformOrigin = new Point(.5, .5) };
+            var word = new TextBlock { Text = "K E M A S", FontSize = 46, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(dk ? Colors.White : Color.FromRgb(0x17, 0x20, 0x33)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 26, 0, 0), Opacity = 0, RenderTransformOrigin = new Point(.5, .5) };
             var wsc = new ScaleTransform(1.12, 1); word.RenderTransform = wsc;
             bool store = AppInfo.IsStore;
-            var tag = new TextBlock { Text = store ? (ms ? "Selamat datang ke KEMAS" : "Welcome to KEMAS") : (ms ? "Pc awak, Kemas." : "Your PC, Kemas."), FontSize = 17, Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xC7, 0xE2)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 0), Opacity = 0 };
-            var rel = new TextBlock { Text = store ? (ms ? "DIPASANG DARI MICROSOFT STORE  ·  IMBAS, SEMAK, KEMUDIAN BERSIHKAN" : "INSTALLED FROM THE MICROSOFT STORE  ·  SCAN, REVIEW, THEN CLEAN") : (ms ? "PELEPASAN AWAM RASMI  ·  25 OKTOBER 2026" : "OFFICIAL PUBLIC RELEASE  ·  25 OCTOBER 2026"), FontSize = 12.5, Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xD3, 0xF5)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 34, 0, 0), Opacity = 0 };
+            var tag = new TextBlock { Text = store ? (ms ? "Selamat datang ke KEMAS" : "Welcome to KEMAS") : (ms ? "Pc awak, Kemas." : "Your PC, Kemas."), FontSize = 17, Foreground = new SolidColorBrush(dk ? Color.FromRgb(0xBF, 0xC7, 0xE2) : Color.FromRgb(0x5E, 0x6A, 0x82)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 0), Opacity = 0 };
+            var rel = new TextBlock { Text = store ? (ms ? "DIPASANG DARI MICROSOFT STORE  ·  IMBAS, SEMAK, KEMUDIAN BERSIHKAN" : "INSTALLED FROM THE MICROSOFT STORE  ·  SCAN, REVIEW, THEN CLEAN") : (ms ? "PELEPASAN AWAM RASMI  ·  25 OKTOBER 2026" : "OFFICIAL PUBLIC RELEASE  ·  25 OCTOBER 2026"), FontSize = 12.5, Foreground = new SolidColorBrush(dk ? Color.FromRgb(0x22, 0xD3, 0xF5) : Color.FromRgb(0x14, 0x91, 0xC4)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 34, 0, 0), Opacity = 0 };
             stack.Children.Add(logo); stack.Children.Add(word); stack.Children.Add(tag); stack.Children.Add(rel);
             intro.Children.Add(stack);
 
@@ -67,8 +69,9 @@ namespace Kemas
             sweep.Fill = sb; var str = new TranslateTransform(-600, 0); sweep.RenderTransform = str; intro.Children.Add(sweep);
 
             // letterbox
-            var top = new Border { Background = Brushes.Black, Height = 0, VerticalAlignment = VerticalAlignment.Top, IsHitTestVisible = false };
-            var bot = new Border { Background = Brushes.Black, Height = 0, VerticalAlignment = VerticalAlignment.Bottom, IsHitTestVisible = false };
+            var bar = new SolidColorBrush(dk ? Colors.Black : Color.FromRgb(0xE6, 0xEB, 0xF4));
+            var top = new Border { Background = bar, Height = 0, VerticalAlignment = VerticalAlignment.Top, IsHitTestVisible = false };
+            var bot = new Border { Background = bar, Height = 0, VerticalAlignment = VerticalAlignment.Bottom, IsHitTestVisible = false };
             intro.Children.Add(top); intro.Children.Add(bot);
             var skip = new TextBlock { Text = ms ? "Klik untuk langkau" : "Click to skip", FontSize = 12.5, Foreground = new SolidColorBrush(Color.FromRgb(0x8D, 0x95, 0xB3)), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 18, 12), Opacity = 0, IsHitTestVisible = false };
             intro.Children.Add(skip);
@@ -97,7 +100,7 @@ namespace Kemas
             {
                 if (closing) return; closing = true;
                 var fade = new DoubleAnimation(0, D(.9));
-                fade.Completed += (s, e) => { root.Children.Remove(intro); intro = null; };
+                fade.Completed += (s, e) => { StopAnims(cv); root.Children.Remove(intro); intro = null; };
                 intro.BeginAnimation(UIElement.OpacityProperty, fade);
             };
             intro.MouseDown += (s, e) => close();

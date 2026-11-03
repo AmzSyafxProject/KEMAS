@@ -1574,28 +1574,16 @@
       </StackPanel>
     </Border>
 
-    <!-- ===== KEMAS Scan Engine: full-window operation screen (scan, clean and every other long task) ===== -->
-    <Grid x:Name="Overlay" Visibility="Collapsed" Background="#0A1022">
+    <!-- ===== KEMAS Scan Engine: a floating sheet over the content area (sidebar and title bar stay usable). Follows the app theme. ===== -->
+    <Grid x:Name="Overlay" Visibility="Collapsed" Background="{DynamicResource ScrimBrush}">
       <Grid.Resources>
-        <!-- the engine is always dark, whatever the app theme -->
-        <SolidColorBrush x:Key="TextBrush" Color="#EEF3FF"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#8C9DC0"/>
-        <SolidColorBrush x:Key="TrackBrush" Color="#1AFFFFFF"/>
-        <SolidColorBrush x:Key="GhostBrush" Color="#0FFFFFFF"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#1FFFFFFF"/>
-        <SolidColorBrush x:Key="HoverBrush" Color="#1FFFFFFF"/>
-        <SolidColorBrush x:Key="SelectBrush" Color="#2AFFFFFF"/>
-        <LinearGradientBrush x:Key="EngText" StartPoint="0,0" EndPoint="1,0">
-          <GradientStop Color="#7FE3FF" Offset="0"/>
-          <GradientStop Color="#4A93FF" Offset="1"/>
-        </LinearGradientBrush>
         <Style x:Key="EngLabel" TargetType="TextBlock">
           <Setter Property="FontSize" Value="12.5"/>
           <Setter Property="FontWeight" Value="SemiBold"/>
-          <Setter Property="Foreground" Value="#6F82A8"/>
+          <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
         </Style>
         <Style x:Key="EngGhost" TargetType="Button">
-          <Setter Property="Foreground" Value="#EEF3FF"/>
+          <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
           <Setter Property="FontSize" Value="14"/>
           <Setter Property="Height" Value="42"/>
           <Setter Property="Padding" Value="20,0"/>
@@ -1604,13 +1592,13 @@
           <Setter Property="Template">
             <Setter.Value>
               <ControlTemplate TargetType="Button">
-                <Border x:Name="bd" CornerRadius="12" Background="#12FFFFFF" BorderBrush="#2EFFFFFF" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                <Border x:Name="bd" CornerRadius="12" Background="{DynamicResource GhostBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}">
                   <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <ControlTemplate.Triggers>
-                  <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#22FFFFFF"/></Trigger>
-                  <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Background" Value="#2EFFFFFF"/></Trigger>
-                  <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#7FE3FF"/></Trigger>
+                  <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+                  <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource SelectBrush}"/></Trigger>
+                  <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentTextBrush}"/></Trigger>
                   <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.4"/></Trigger>
                 </ControlTemplate.Triggers>
               </ControlTemplate>
@@ -1618,45 +1606,19 @@
           </Setter>
         </Style>
       </Grid.Resources>
-      <!-- ambient light and a faint technical grid -->
-      <Rectangle IsHitTestVisible="False">
-        <Rectangle.Fill>
-          <RadialGradientBrush Center="0.32,0.5" GradientOrigin="0.32,0.5" RadiusX="0.6" RadiusY="0.8">
-            <GradientStop Color="#1E2F6BF0" Offset="0"/>
-            <GradientStop Color="#00000000" Offset="1"/>
-          </RadialGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
-      <Rectangle IsHitTestVisible="False">
-        <Rectangle.Fill>
-          <RadialGradientBrush Center="0.95,0.05" GradientOrigin="0.95,0.05" RadiusX="0.5" RadiusY="0.6">
-            <GradientStop Color="#1424C8F4" Offset="0"/>
-            <GradientStop Color="#00000000" Offset="1"/>
-          </RadialGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
-      <Rectangle IsHitTestVisible="False" Opacity="0.5">
-        <Rectangle.Fill>
-          <DrawingBrush TileMode="Tile" Viewport="0,0,44,44" ViewportUnits="Absolute">
-            <DrawingBrush.Drawing>
-              <GeometryDrawing Geometry="M 0,0 L 44,0 M 0,0 L 0,44">
-                <GeometryDrawing.Pen><Pen Brush="#0CFFFFFF" Thickness="1"/></GeometryDrawing.Pen>
-              </GeometryDrawing>
-            </DrawingBrush.Drawing>
-          </DrawingBrush>
-        </Rectangle.Fill>
-        <Rectangle.OpacityMask>
-          <RadialGradientBrush Center="0.35,0.5" GradientOrigin="0.35,0.5" RadiusX="0.7" RadiusY="0.9">
-            <GradientStop Color="#FF000000" Offset="0"/>
-            <GradientStop Color="#00000000" Offset="1"/>
-          </RadialGradientBrush>
-        </Rectangle.OpacityMask>
-      </Rectangle>
-
-      <Border x:Name="OverlayCard" RenderTransformOrigin="0.5,0.5">
+      <Border x:Name="OverlayCard" RenderTransformOrigin="0.5,0.5" Margin="28,22" MaxWidth="1080" MaxHeight="700" CornerRadius="24" ClipToBounds="True"
+              Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
         <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
         <Grid>
           <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <Rectangle Grid.RowSpan="3" IsHitTestVisible="False">
+            <Rectangle.Fill>
+              <RadialGradientBrush Center="0.25,0.45" GradientOrigin="0.25,0.45" RadiusX="0.55" RadiusY="0.8">
+                <GradientStop Color="#162F6BF0" Offset="0"/>
+                <GradientStop Color="#002F6BF0" Offset="1"/>
+              </RadialGradientBrush>
+            </Rectangle.Fill>
+          </Rectangle>
 
           <!-- header -->
           <Grid Margin="28,0,10,0">
@@ -1664,20 +1626,20 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
               <Image x:Name="EngLogo" Width="30" Height="30"/>
               <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                <TextBlock Text="KEMAS SCAN ENGINE" FontSize="14" FontWeight="Bold" Foreground="#EEF3FF"/>
-                <TextBlock x:Name="EngTagline" Text="Intelligent PC Analysis" FontSize="12.5" Foreground="#7F93B8"/>
+                <TextBlock x:Name="EngBrand" Text="KEMAS SCAN ENGINE" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                <TextBlock x:Name="EngTagline" Text="Intelligent PC Analysis" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
               </StackPanel>
             </StackPanel>
             <Border x:Name="EngPill" Grid.Column="1" CornerRadius="15" Padding="14,6,16,7" VerticalAlignment="Center" Background="#1A3478F6" BorderBrush="#553478F6" BorderThickness="1">
               <StackPanel Orientation="Horizontal">
                 <Ellipse x:Name="EngDot" Width="8" Height="8" Fill="#4A93FF" VerticalAlignment="Center"/>
-                <TextBlock x:Name="EngStatus" Text="INITIALIZING" Margin="9,0,0,0" FontSize="12.5" FontWeight="SemiBold" Foreground="#CFE0FF" VerticalAlignment="Center"/>
+                <TextBlock x:Name="EngStatus" Text="INITIALIZING" Margin="9,0,0,0" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
               </StackPanel>
             </Border>
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-              <TextBlock Style="{StaticResource Icon}" Text="&#xE7F4;" FontSize="14" Foreground="#7F93B8"/>
-              <TextBlock x:Name="EngDevice" Margin="8,0,14,0" FontSize="12.5" Foreground="#9FB0D0" VerticalAlignment="Center"/>
-              <Button x:Name="BtnEngMin" Style="{StaticResource WinBtn}" Content="&#xE921;" Foreground="#9FB0D0" Tag="#1FFFFFFF"/>
+              <TextBlock Style="{StaticResource Icon}" Text="&#xE7F4;" FontSize="14" Foreground="{DynamicResource MutedBrush}"/>
+              <TextBlock x:Name="EngDevice" Margin="8,0,14,0" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+              <Button x:Name="BtnEngMin" Style="{StaticResource WinBtn}" Content="&#xE921;" Foreground="{DynamicResource MutedBrush}" Tag="{DynamicResource HoverBrush}"/>
             </StackPanel>
           </Grid>
 
@@ -1687,15 +1649,15 @@
 
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-              <Viewbox x:Name="Stage" MaxWidth="420" MaxHeight="420" Stretch="Uniform" Margin="0,0,0,6">
+              <Viewbox x:Name="Stage" MaxWidth="320" MaxHeight="320" Stretch="Uniform" Margin="0,0,0,6">
                 <ContentControl x:Name="SceneHost" Width="440" Height="440"/>
               </Viewbox>
               <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,14">
-                <TextBlock x:Name="OvTitle" FontSize="26" FontWeight="SemiBold" Foreground="#EEF3FF" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="OvStep" FontSize="15" Foreground="#9FD8FF" HorizontalAlignment="Center" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" MaxWidth="460"/>
-                <TextBlock x:Name="OvSub" FontSize="14" Foreground="#7F93B8" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="0,6,0,0"/>
+                <TextBlock x:Name="OvTitle" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="OvStep" FontSize="15" Foreground="{DynamicResource AccentTextBrush}" HorizontalAlignment="Center" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" MaxWidth="460"/>
+                <TextBlock x:Name="OvSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="0,6,0,0"/>
               </StackPanel>
-              <Border Grid.Row="2" CornerRadius="14" Background="#33060B18" BorderBrush="#14FFFFFF" BorderThickness="1" Padding="14,10" Margin="0,0,0,16" MaxWidth="460">
+              <Border Grid.Row="2" CornerRadius="14" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="14,10" Margin="0,0,0,16" MaxWidth="460">
                 <StackPanel>
                   <TextBlock x:Name="EngActLbl" Text="LIVE ACTIVITY" Style="{StaticResource EngLabel}" Margin="0,0,0,6"/>
                   <StackPanel x:Name="EngActivity"/>
@@ -1703,16 +1665,16 @@
               </Border>
             </Grid>
 
-            <Border Grid.Column="2" CornerRadius="22" Background="#0DFFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" Padding="22,20" Margin="0,0,0,16">
+            <Border Grid.Column="2" CornerRadius="20" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="22,20" Margin="0,0,0,16">
               <Grid>
                 <Grid x:Name="WorkView">
                   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                   <Grid Margin="0,0,0,14">
                     <TextBlock x:Name="EngCatLbl" Text="CATEGORIES" Style="{StaticResource EngLabel}" VerticalAlignment="Center"/>
-                    <Border CornerRadius="11" Background="#14FFFFFF" Padding="10,3,10,4" HorizontalAlignment="Right">
+                    <Border CornerRadius="11" Background="{DynamicResource GhostBrush}" Padding="10,3,10,4" HorizontalAlignment="Right">
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="EngItems" Text="0 / 0" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF"/>
-                        <TextBlock x:Name="EngItemsLbl" Text="Items processed" FontSize="12.5" Foreground="#7F93B8" Margin="6,0,0,0"/>
+                        <TextBlock x:Name="EngItems" Text="0 / 0" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                        <TextBlock x:Name="EngItemsLbl" Text="Items processed" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0"/>
                       </StackPanel>
                     </Border>
                   </Grid>
@@ -1733,15 +1695,15 @@
                       <TextBlock x:Name="DoneMark" Style="{StaticResource Icon}" Canvas.Left="0" Canvas.Top="0" Width="60" Height="60" Padding="0,19,0,0" TextAlignment="Center" FontSize="22" Visibility="Collapsed"/>
                     </Canvas>
                     <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
-                      <TextBlock x:Name="DoneTitle" FontSize="26" FontWeight="SemiBold" Foreground="#EEF3FF" TextWrapping="Wrap"/>
-                      <TextBlock x:Name="DoneSub" FontSize="14" Foreground="#9FB0D0" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                      <TextBlock x:Name="DoneTitle" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
+                      <TextBlock x:Name="DoneSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                     </StackPanel>
                   </Grid>
                   <Grid Grid.Row="1" Margin="0,18,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                     <StackPanel>
-                      <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
-                      <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
+                      <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{DynamicResource EngText}"/>
+                      <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,-2,0,0"/>
                     </StackPanel>
                     <WrapPanel x:Name="DoneChips" Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center"/>
                   </Grid>
@@ -1763,12 +1725,12 @@
           </Grid>
 
           <!-- footer: real progress, stage, numbers, Stop -->
-          <Border Grid.Row="2" Background="#0AFFFFFF" BorderBrush="#14FFFFFF" BorderThickness="0,1,0,0" Padding="28,14,28,16">
+          <Border Grid.Row="2" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="28,14,28,16">
             <Grid>
               <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
               <StackPanel VerticalAlignment="Center" MinWidth="120">
-                <TextBlock x:Name="OvPct" Text="0%" FontSize="36" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
-                <TextBlock x:Name="EngStageName" FontSize="12.5" FontWeight="SemiBold" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
+                <TextBlock x:Name="OvPct" Text="0%" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource EngText}"/>
+                <TextBlock x:Name="EngStageName" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" Margin="0,-2,0,0"/>
               </StackPanel>
               <StackPanel Grid.Column="1" Margin="24,0,24,0" VerticalAlignment="Center">
                 <Grid ClipToBounds="True">
@@ -1779,10 +1741,10 @@
                   </Border>
                 </Grid>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                  <TextBlock x:Name="EngFoundLbl" Text="Identified" FontSize="12.5" Foreground="#7F93B8"/>
-                  <TextBlock x:Name="EngFound" Text="-" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF" Margin="8,0,24,0"/>
-                  <TextBlock x:Name="EngElapsedLbl" Text="Elapsed" FontSize="12.5" Foreground="#7F93B8"/>
-                  <TextBlock x:Name="EngElapsed" Text="0:00" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF" Margin="8,0,0,0"/>
+                  <TextBlock x:Name="EngFoundLbl" Text="Identified" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
+                  <TextBlock x:Name="EngFound" Text="-" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="8,0,24,0"/>
+                  <TextBlock x:Name="EngElapsedLbl" Text="Elapsed" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
+                  <TextBlock x:Name="EngElapsed" Text="0:00" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="8,0,0,0"/>
                 </StackPanel>
               </StackPanel>
               <Button x:Name="BtnStop" Grid.Column="2" Content="{DynamicResource L_stop}" Style="{StaticResource EngGhost}" VerticalAlignment="Center" Padding="30,0"/>

@@ -34,8 +34,29 @@ namespace Kemas
         readonly List<UIElement> scnParticles = new List<UIElement>();
         const double SC = 220;               // scene centre (scene is 440 x 440)
 
-        static Color Col(string hex) { return (Color)ColorConverter.ConvertFromString(hex); }
+        // The engine, Game Mode and the result cards were drawn for a dark background. In light mode the same
+        // calls get a light-safe colour: neon tints become deeper blues and white text becomes ink.
+        static readonly Dictionary<string, string> LightTone = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "#EEF3FF", "#172033" }, { "#C8D4EE", "#172033" }, { "#CFE0FF", "#1E3A8A" }, { "#B5C3E0", "#3B4559" },
+            { "#7F93B8", "#6B7590" }, { "#6F82A8", "#6B7590" }, { "#9FB0D0", "#5E6A82" }, { "#8C9DC0", "#6B7590" },
+            { "#9FD8FF", "#2B63E3" }, { "#A7F3D0", "#15803D" }, { "#34D399", "#16A34A" },
+            { "#9FC4FF", "#5B8DEF" }, { "#7FE3FF", "#14A5D8" }, { "#BFD4FF", "#6C95E8" }, { "#BFF3FF", "#14A5D8" },
+            { "#7FB0FF", "#4C7FE8" }, { "#DFF8FF", "#2B8FE0" }, { "#BFE6FF", "#7FB0FF" }, { "#24C8F4", "#14A5D8" },
+            { "#0A1022", "#F7FAFF" }, { "#101C44", "#E8F0FF" }, { "#1B3A9E", "#C7D8FF" },
+        };
+        static Color Col(string hex)
+        {
+            string t;
+            if (!Theme.IsDark && hex != null && LightTone.TryGetValue(hex, out t)) hex = t;
+            return (Color)ColorConverter.ConvertFromString(hex);
+        }
         static Color A(string hex, byte a) { var c = Col(hex); return Color.FromArgb(a, c.R, c.G, c.B); }
+        /// A see-through layer that reads on both themes: white on dark, ink on light.
+        static Color Ink(byte a) { return Theme.IsDark ? Color.FromArgb(a, 255, 255, 255) : Color.FromArgb((byte)Math.Min(255, a * 0.8), 0x17, 0x20, 0x33); }
+        static Brush InkB(byte a) { var b = new SolidColorBrush(Ink(a)); b.Freeze(); return b; }
+        /// Main text colour for code-drawn parts.
+        static Brush Fg() { return new SolidColorBrush(Col("#EEF3FF")); }
 
         // ------------------------------------------------------------ scene
         void StartScene()
@@ -148,10 +169,34 @@ namespace Kemas
         void StopScene()
         {
             if (engClock != null) engClock.Stop();
-            E<ContentControl>("SceneHost").Content = null;     // drops the scene and its animations from memory
+            // Stop every running clock first: a detached element with a Forever animation keeps WPF rendering
+            // 60 frames a second until the garbage collector finds it, which made the app feel slow after a scan.
+            if (scn != null) StopAnims(scn);
+            if (scnGlowScale != null) { scnGlowScale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scnGlowScale.BeginAnimation(ScaleTransform.ScaleYProperty, null); }
+            if (scnBeamRot != null) scnBeamRot.BeginAnimation(RotateTransform.AngleProperty, null);
+            if (scnFloat != null) scnFloat.BeginAnimation(TranslateTransform.YProperty, null);
+            E<ContentControl>("SceneHost").Content = null;
             scn = null; scnSpins.Clear(); scnRings.Clear(); scnParticles.Clear();
             var sh = E<Border>("EngShimmer"); sh.BeginAnimation(UIElement.OpacityProperty, null); sh.Opacity = 0;
             ((TranslateTransform)sh.RenderTransform).BeginAnimation(TranslateTransform.XProperty, null);
+        }
+
+        /// Removes all animations from an element tree drawn in code (canvases, shapes, transforms).
+        static void StopAnims(UIElement el)
+        {
+            if (el == null) return;
+            el.BeginAnimation(UIElement.OpacityProperty, null);
+            StopTf(el.RenderTransform);
+            var p = el as Panel;
+            if (p != null) foreach (UIElement c in p.Children) StopAnims(c);
+            var b = el as Border; if (b != null) StopAnims(b.Child);
+        }
+        static void StopTf(Transform t)
+        {
+            var g = t as TransformGroup; if (g != null) { foreach (var c in g.Children) StopTf(c); return; }
+            var r = t as RotateTransform; if (r != null) { r.BeginAnimation(RotateTransform.AngleProperty, null); return; }
+            var tt = t as TranslateTransform; if (tt != null) { tt.BeginAnimation(TranslateTransform.XProperty, null); tt.BeginAnimation(TranslateTransform.YProperty, null); return; }
+            var s = t as ScaleTransform; if (s != null) { s.BeginAnimation(ScaleTransform.ScaleXProperty, null); s.BeginAnimation(ScaleTransform.ScaleYProperty, null); }
         }
 
         static T Place<T>(T el, double x, double y) where T : UIElement { Canvas.SetLeft(el, x); Canvas.SetTop(el, y); return el; }
@@ -356,7 +401,7 @@ namespace Kemas
                 var v = new TextBlock { Text = d.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(10, 0, 0, 0),
                     Foreground = new SolidColorBrush(Col(d.Item3 == "skip" ? "#F3A83B" : d.Item3 == "zero" ? "#7F93B8" : "#EEF3FF")) };
                 Grid.SetColumn(v, 2); g.Children.Add(v);
-                det.Children.Add(new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 8, 8), Background = new SolidColorBrush(A("#FFFFFF", 0x0C)) });
+                det.Children.Add(new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 8, 8), Background = InkB(0x0C) });
             }
             var bd = BT("BtnDoneDetails"); bd.Visibility = engDetails.Count > 0 ? Visibility.Visible : Visibility.Collapsed; bd.Content = Tx("View details", "Lihat butiran");
             var ag = BT("BtnDoneAgain"); ag.Visibility = engAgain != null ? Visibility.Visible : Visibility.Collapsed;
@@ -379,6 +424,8 @@ namespace Kemas
         {
             System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(BT("BtnEngMin"), true);
             BT("BtnEngMin").Click += (s, e) => W.WindowState = WindowState.Minimized;
+            BT("BtnEngMin").Visibility = Visibility.Collapsed;      // the window's own buttons stay visible above the sheet now
+            E<FrameworkElement>("SideBar").SizeChanged += (s, e) => { if (E<Grid>("Overlay").Visibility == Visibility.Visible) PlaceOverlay(); };
             BT("BtnEngMin").ToolTip = Tx("Minimize", "Kecilkan");
             BT("BtnDoneDetails").Click += (s, e) =>
             {

@@ -134,7 +134,7 @@ namespace Kemas
     [DataContract]
     public class Settings
     {
-        [DataMember] public string Theme = "light";          // dark | light | system
+        [DataMember] public string Theme = "system";         // dark | light | system (4.1: new installs follow Windows)
         [DataMember] public string Language = "en";         // en | ms
         [DataMember] public bool ReducedMotion = false;
         [DataMember] public string DisplayName = "";        // empty = detect from Windows
@@ -172,13 +172,13 @@ namespace Kemas
         [OnDeserializing]
         void Defaults(StreamingContext c)
         {
-            Theme = "light"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
+            Theme = "system"; Language = "en"; AutoClean = "off"; OrgOthersName = "Others"; DisplayName = "";
             CloseToTray = true; ScanOnStart = true; ConfirmClean = true; SkipRecentTemp = true; TrimRamOnSmart = false; AutoUpdate = true; RemoveLockedAtRestart = true;
         }
 
         public void FillDefaults()
         {
-            if (string.IsNullOrEmpty(Theme)) Theme = "light";
+            if (string.IsNullOrEmpty(Theme)) Theme = "system";
             if (string.IsNullOrEmpty(Language)) Language = "en";
             if (string.IsNullOrEmpty(AutoClean)) AutoClean = "off";
             if (string.IsNullOrEmpty(OrgOthersName)) OrgOthersName = "Others";

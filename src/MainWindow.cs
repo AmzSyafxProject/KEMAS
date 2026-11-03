@@ -123,6 +123,19 @@ namespace Kemas
                 PauseAnimations(W.WindowState == WindowState.Minimized);
             };
             W.Closing += OnClosing;
+            // "System" theme follows Windows live: switching Windows to light or dark switches KEMAS too, overlays included
+            Microsoft.Win32.UserPreferenceChangedEventHandler themeHook = (s, e) =>
+            {
+                if (e.Category != Microsoft.Win32.UserPreferenceCategory.General) return;
+                W.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (S.Theme != "system" || Theme.SystemPrefersDark() == Theme.IsDark) return;
+                    ApplyThemeAndLanguage();
+                    try { int dark = Theme.IsDark ? 1 : 0; DwmSetWindowAttribute(new System.Windows.Interop.WindowInteropHelper(W).Handle, 20, ref dark, 4); } catch { }
+                }));
+            };
+            Microsoft.Win32.SystemEvents.UserPreferenceChanged += themeHook;
+            W.Closed += (s, e) => Microsoft.Win32.SystemEvents.UserPreferenceChanged -= themeHook;
             Notify.Changed = QueueSave;
             SetupTray();
         }
@@ -154,11 +167,17 @@ namespace Kemas
             add("AuroraA", "X", -160, 16); add("AuroraA", "Y", 60, 16);
             add("AuroraB", "X", -220, 16); add("AuroraB", "Y", -90, 16);
             add("AuroraC", "X", 200, 16);
-            if (!S.ReducedMotion) aurora.Begin(W, true);
+            // not started: the aurora layers are fully transparent in both themes, so it only cost frames
 
 
-            var bob = new DoubleAnimation(0, -7, TimeSpan.FromSeconds(2.2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
-            if (!S.ReducedMotion) ((TranslateTransform)E<Image>("AboutLogo").RenderTransform).BeginAnimation(TranslateTransform.YProperty, bob);
+            // the About logo floats only while About is on screen (see AboutBob)
+        }
+
+        void AboutBob(bool on)
+        {
+            var t = (TranslateTransform)E<Image>("AboutLogo").RenderTransform;
+            if (!on || S.ReducedMotion) { t.BeginAnimation(TranslateTransform.YProperty, null); t.Y = 0; return; }
+            t.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, -7, TimeSpan.FromSeconds(2.2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
         }
 
         void PauseAnimations(bool pause)
@@ -179,9 +198,7 @@ namespace Kemas
             }
             else
             {
-                if (aurora != null) aurora.Begin(W, true);
-                var bob = new DoubleAnimation(0, -7, TimeSpan.FromSeconds(2.2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
-                logoT.BeginAnimation(TranslateTransform.YProperty, bob);
+                AboutBob(currentPage == "PageAbout");
             }
         }
 
@@ -660,6 +677,7 @@ namespace Kemas
                 tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 180, new QuinticEase { EasingMode = EasingMode.EaseOut }));
             }
             if (!busy) TB("StatusText").Text = "";      // an old message from another page must not linger
+            AboutBob(page == "PageAbout");
             if (page == "PageRam") LoadRam();
             if (page == "PageApps" && !appsLoaded) LoadApps();
             if (page == "PageRecover") RefreshHistory();

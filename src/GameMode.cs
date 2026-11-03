@@ -74,7 +74,7 @@ namespace Kemas
 
             // dial
             var dial = new Canvas { Width = DW, Height = DH };
-            dial.Children.Add(new Path { Data = DialArc(100), Stroke = new SolidColorBrush(A("#FFFFFF", 0x16)), StrokeThickness = 18, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round });
+            dial.Children.Add(new Path { Data = DialArc(100), Stroke = new SolidColorBrush(Ink(0x16)), StrokeThickness = 18, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round });
             var heat = new LinearGradientBrush { MappingMode = BrushMappingMode.Absolute, StartPoint = new Point(DCX - DR, 0), EndPoint = new Point(DCX + DR, 0),
                 GradientStops = { new GradientStop(Col("#24C8F4"), 0), new GradientStop(Col("#3478F6"), 0.45), new GradientStop(Col("#8B5CF6"), 0.75), new GradientStop(Col("#F0466B"), 1) } };
             var glow = new Path { Stroke = heat, StrokeThickness = 30, Opacity = 0.18, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round };
@@ -98,10 +98,10 @@ namespace Kemas
             var needleRot = new RotateTransform(180, DCX, DCY);
             // pointer rides just inside the arc, so the reading in the middle stays clear
             var needle = new Canvas { Width = DW, Height = DH, RenderTransform = needleRot };
-            needle.Children.Add(new Polygon { Points = new PointCollection { new Point(DCX + DR - 50, DCY - 6), new Point(DCX + DR - 13, DCY), new Point(DCX + DR - 50, DCY + 6) }, Fill = new LinearGradientBrush(A("#FFFFFF", 0x55), Colors.White, 0) });
+            needle.Children.Add(new Polygon { Points = new PointCollection { new Point(DCX + DR - 50, DCY - 6), new Point(DCX + DR - 13, DCY), new Point(DCX + DR - 50, DCY + 6) }, Fill = new LinearGradientBrush(Ink(0x55), Ink(0xFF), 0) });
             needle.Children.Add(Place(new Ellipse { Width = 26, Height = 26, Fill = new RadialGradientBrush(A("#BFF3FF", 0xAA), A("#7FE3FF", 0)) }, DCX + DR - 22, DCY - 13));
             dial.Children.Add(needle);
-            var val = new TextBlock { Text = "-", FontSize = 44, FontWeight = FontWeights.Bold, Foreground = Brushes.White, Width = 160, TextAlignment = TextAlignment.Center };
+            var val = new TextBlock { Text = "-", FontSize = 44, FontWeight = FontWeights.Bold, Foreground = Fg(), Width = 160, TextAlignment = TextAlignment.Center };
             Canvas.SetLeft(val, DCX - 80); Canvas.SetTop(val, DCY - 74); dial.Children.Add(val);
             var cap = new TextBlock { Text = Tx("CPU LOAD", "BEBAN CPU"), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Col("#9FB0D0")), Width = 160, TextAlignment = TextAlignment.Center };
             Canvas.SetLeft(cap, DCX - 80); Canvas.SetTop(cap, DCY - 16); dial.Children.Add(cap);
@@ -118,7 +118,7 @@ namespace Kemas
             chipSp.Children.Add(cdot);
             chipSp.Children.Add(new TextBlock { Text = boosted ? Tx("BOOST ON", "BOOST HIDUP") : Tx("STANDARD", "BIASA"), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Col(boosted ? "#A7F3D0" : "#CFE0FF")), Margin = new Thickness(8, 0, 0, 0) });
             chip.Child = chipSp; side.Children.Add(chip);
-            side.Children.Add(new TextBlock { Text = boosted ? Tx("Ready to play", "Sedia untuk bermain") : Tx("Boost your PC for games", "Boost PC anda untuk permainan"), FontSize = 26, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White, Margin = new Thickness(0, 12, 0, 4), TextWrapping = TextWrapping.Wrap });
+            side.Children.Add(new TextBlock { Text = boosted ? Tx("Ready to play", "Sedia untuk bermain") : Tx("Boost your PC for games", "Boost PC anda untuk permainan"), FontSize = 26, FontWeight = FontWeights.SemiBold, Foreground = Fg(), Margin = new Thickness(0, 12, 0, 4), TextWrapping = TextWrapping.Wrap });
             side.Children.Add(new TextBlock { Text = boosted ? Tx("Fastest power plan and Windows Game Mode are on. Turn Boost off to go back to your usual plan.", "Pelan kuasa terpantas dan Mod Permainan Windows hidup. Matikan Boost untuk kembali ke pelan biasa.")
                                                              : Tx("One switch: fastest power plan and Windows Game Mode. Nothing is closed for you.", "Satu suis: pelan kuasa terpantas dan Mod Permainan Windows. Tiada apps ditutup untuk anda."),
                 FontSize = 14, Foreground = new SolidColorBrush(Col("#9FB0D0")), TextWrapping = TextWrapping.Wrap, MaxWidth = 460, HorizontalAlignment = HorizontalAlignment.Left });
@@ -143,7 +143,7 @@ namespace Kemas
             }
             else
             {
-                var b = new Button { Style = (Style)W.FindResource("DarkGhost"), Content = MakeBtnContent("E777", Tx("Turn off Boost", "Matikan Boost")), Height = 48, Padding = new Thickness(24, 0, 24, 0) };
+                var b = new Button { Style = (Style)W.FindResource(Theme.IsDark ? "DarkGhost" : "Ghost"), Content = MakeBtnContent("E777", Tx("Turn off Boost", "Matikan Boost")), Height = 48, Padding = new Thickness(24, 0, 24, 0) };
                 b.Click += (s, e) => EndBoost(plans);
                 btns.Children.Add(b);
             }
@@ -184,7 +184,12 @@ namespace Kemas
             };
             arc.Data = DialArc(0); glow.Data = arc.Data;
             modTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            modTimer.Tick += (s, e) => { if (currentPage != "PageGame") { modTimer.Stop(); return; } tick(); };
+            modTimer.Tick += (s, e) =>
+            {
+                // leaving the page: stop the streaks (a hidden page keeps animating otherwise) and rebuild on return
+                if (currentPage != "PageGame") { modTimer.Stop(); StopAnims(arena); modBuilt.Remove("Game"); return; }
+                tick();
+            };
             modTimer.Start();
             Delay(250, () => { if (currentPage == "PageGame") tick(); });
         }
@@ -217,25 +222,25 @@ namespace Kemas
 
         Border Meter(string label, string glyph, out TextBlock value, out Border fill)
         {
-            var b = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(A("#FFFFFF", 0x0D)), BorderBrush = new SolidColorBrush(A("#FFFFFF", 0x1A)), BorderThickness = new Thickness(1), Padding = new Thickness(14, 10, 14, 12) };
+            var b = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(Ink(0x0D)), BorderBrush = new SolidColorBrush(Ink(0x1A)), BorderThickness = new Thickness(1), Padding = new Thickness(14, 10, 14, 12) };
             var sp = new StackPanel();
             var top = new Grid();
             top.Children.Add(new TextBlock { Text = label, FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Col("#9FB0D0")) });
-            value = new TextBlock { Text = "-", FontSize = 15, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Right };
+            value = new TextBlock { Text = "-", FontSize = 15, FontWeight = FontWeights.SemiBold, Foreground = Fg(), HorizontalAlignment = HorizontalAlignment.Right };
             top.Children.Add(value); sp.Children.Add(top);
-            var track = new Border { Height = 6, CornerRadius = new CornerRadius(3), Background = new SolidColorBrush(A("#FFFFFF", 0x1A)), Margin = new Thickness(0, 10, 0, 0), Width = 160, HorizontalAlignment = HorizontalAlignment.Left };
+            var track = new Border { Height = 6, CornerRadius = new CornerRadius(3), Background = new SolidColorBrush(Ink(0x1A)), Margin = new Thickness(0, 10, 0, 0), Width = 160, HorizontalAlignment = HorizontalAlignment.Left };
             fill = new Border { Height = 6, CornerRadius = new CornerRadius(3), Width = 4, HorizontalAlignment = HorizontalAlignment.Left, Background = new SolidColorBrush(Col("#24C8F4")) };
             track.Child = fill; sp.Children.Add(track);
             b.Child = sp; return b;
         }
         Border InfoTile(string label, string value, string dotHex)
         {
-            var b = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(A("#FFFFFF", 0x0D)), BorderBrush = new SolidColorBrush(A("#FFFFFF", 0x1A)), BorderThickness = new Thickness(1), Padding = new Thickness(14, 10, 14, 12) };
+            var b = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(Ink(0x0D)), BorderBrush = new SolidColorBrush(Ink(0x1A)), BorderThickness = new Thickness(1), Padding = new Thickness(14, 10, 14, 12) };
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = label, FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Col("#9FB0D0")) });
             var r = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
             r.Children.Add(new Ellipse { Width = 8, Height = 8, Fill = new SolidColorBrush(Col(dotHex)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) });
-            r.Children.Add(new TextBlock { Text = value, FontSize = 15, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 170 });
+            r.Children.Add(new TextBlock { Text = value, FontSize = 15, FontWeight = FontWeights.SemiBold, Foreground = Fg(), TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 170 });
             sp.Children.Add(r);
             b.Child = sp; return b;
         }

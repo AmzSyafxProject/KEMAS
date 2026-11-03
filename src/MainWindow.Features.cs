@@ -20,7 +20,7 @@ namespace Kemas
 {
     public partial class MainWin
     {
-        static Brush Hex(string h) { var b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(h)); b.Freeze(); return b; }
+        static Brush Hex(string h) { var b = new SolidColorBrush(Col(h)); b.Freeze(); return b; }
         static string Glyph(string hex) { return ((char)Convert.ToInt32(hex, 16)).ToString(); }
 
         // ================================================================ cleaner rows
@@ -911,14 +911,14 @@ namespace Kemas
             foreach (var it in items)
             {
                 var card = new Border { CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 12, 12, 12), Margin = new Thickness(0, 0, 8, 8), MinHeight = 76,
-                    Background = new SolidColorBrush(Color.FromArgb(0x0C, 255, 255, 255)), BorderBrush = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1) };
+                    Background = new SolidColorBrush(Ink(0x0C)), BorderBrush = new SolidColorBrush(Ink(0x14)), BorderThickness = new Thickness(1) };
                 var g = new Grid();
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 Border tbg; TextBlock tic;
                 var tile = NavTile(ItemGlyph(it.Item1), "#4A93FF", 36, 15, out tbg, out tic); tile.VerticalAlignment = VerticalAlignment.Top;
-                tic.Foreground = new SolidColorBrush(Color.FromRgb(0x9F, 0xD8, 0xFF));
+                tic.Foreground = new SolidColorBrush(Col("#9FD8FF"));
                 g.Children.Add(tile);
                 var mid = new StackPanel { Margin = new Thickness(12, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
                 var nm = new TextBlock { Text = it.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
@@ -927,7 +927,7 @@ namespace Kemas
                 dt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 mid.Children.Add(nm); mid.Children.Add(dt);
                 Grid.SetColumn(mid, 1); g.Children.Add(mid);
-                var pill = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), VerticalAlignment = VerticalAlignment.Top, Background = new SolidColorBrush(Color.FromArgb(0x10, 255, 255, 255)) };
+                var pill = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), VerticalAlignment = VerticalAlignment.Top, Background = new SolidColorBrush(Ink(0x10)) };
                 var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 12.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
                 ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 pill.Child = ic;
@@ -943,6 +943,7 @@ namespace Kemas
             BT("BtnStop").IsEnabled = true; BT("BtnStop").Content = L.T("stop");
             OvProgress(0);
             var ov = E<Grid>("Overlay");
+            PlaceOverlay();
             ov.Visibility = Visibility.Visible;
             ov.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 320));
             var sc = (ScaleTransform)E<Border>("OverlayCard").RenderTransform;
@@ -952,6 +953,13 @@ namespace Kemas
             EngBegin(items.Count);
             OvStep(engMode == "scan" ? Tx("Preparing system analysis...", "Menyediakan analisis sistem...") : L.T("starting"));
             BT("BtnStop").Focus();
+        }
+
+        /// The sheet covers the content area only: the sidebar, title bar and status bar stay visible.
+        void PlaceOverlay()
+        {
+            var side = E<FrameworkElement>("SideBar");
+            E<Grid>("Overlay").Margin = new Thickness(side.Visibility == Visibility.Visible ? side.ActualWidth : 0, 64, 0, 40);
         }
 
         void OvProgress(double p)
@@ -991,8 +999,8 @@ namespace Kemas
             var card = meta.Item1; var pill = meta.Item3;
             string hex = state == ItemState.Working ? "#24C8F4" : state == ItemState.Done ? "#22B573" : state == ItemState.Partial ? "#F3A83B" : "#E85D6A";
             var c = (Color)ColorConverter.ConvertFromString(hex);
-            card.BorderBrush = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x77, c.R, c.G, c.B) : Color.FromArgb(0x14, 255, 255, 255));
-            card.Background = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x1A, c.R, c.G, c.B) : Color.FromArgb(0x0C, 255, 255, 255));
+            card.BorderBrush = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x77, c.R, c.G, c.B) : Ink(0x14));
+            card.Background = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x1A, c.R, c.G, c.B) : Ink(0x0C));
             pill.Background = new SolidColorBrush(Color.FromArgb(0x26, c.R, c.G, c.B));
             ic.Foreground = new SolidColorBrush(c);
             switch (state)
@@ -1038,7 +1046,7 @@ namespace Kemas
                 var b = new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(11, 5, 11, 5), Margin = new Thickness(0, 0, 8, 6) };
                 var t = new TextBlock { Text = c.Item1, FontSize = 14 };
                 if (fg != null) { t.Foreground = Hex(fg); b.Background = Hex("#26" + fg.Substring(1)); }
-                else { t.Foreground = Hex("#C8D4EE"); b.Background = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)); }
+                else { t.Foreground = Hex("#C8D4EE"); b.Background = new SolidColorBrush(Ink(0x14)); }
                 b.Child = t; wrap.Children.Add(b);
             }
             var np = E<StackPanel>("DoneNotes"); np.Children.Clear();
