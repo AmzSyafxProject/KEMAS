@@ -71,6 +71,17 @@ namespace Kemas
         }
     }
 
+    /// The KEMAS type scale (tools/typescale.py enforces the same list at build time).
+    public static class TypeScale
+    {
+        public const double Caption = 12.5, Body = 14, Title = 15, Section = 17, Panel = 20, Page = 26, Metric = 36;
+        public static double Snap(double v)
+        {
+            if (v <= 13) return Caption; if (v <= 14.5) return Body; if (v <= 16) return Title; if (v <= 18.5) return Section;
+            if (v <= 23) return Panel; if (v <= 30) return Page; if (v <= 40) return Metric; return v;
+        }
+    }
+
     public static class Logo
     {
         static DrawingImage cached;

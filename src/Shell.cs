@@ -145,7 +145,7 @@ namespace Kemas
         {
             var g = new Grid { Margin = new Thickness(16, first ? 0 : 14, 4, 5) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
-            var t = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms), VerticalAlignment = VerticalAlignment.Center };
+            var t = new TextBlock { FontSize = 12.5, FontWeight = FontWeights.SemiBold, Text = Tx(en, ms), VerticalAlignment = VerticalAlignment.Center };
             t.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
             var line = new Border { Height = 1, Margin = new Thickness(12, 1, 0, 0), VerticalAlignment = VerticalAlignment.Center, Visibility = en == "MAIN" ? Visibility.Collapsed : Visibility.Visible };
             line.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(line, 1);
@@ -518,7 +518,7 @@ namespace Kemas
             int unreadN = noteItems.Count(x => !x.Read);
             var head = new Grid { Margin = new Thickness(10, 6, 10, 12) };
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var ht = new TextBlock { Text = Tx("Notifications", "Pemberitahuan"), FontSize = 19, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            var ht = new TextBlock { Text = Tx("Notifications", "Pemberitahuan"), FontSize = 17, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
             ht.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); head.Children.Add(ht);
             if (unreadN > 0)
             {
@@ -532,11 +532,11 @@ namespace Kemas
                 var acts = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 if (unreadN > 0)
                 {
-                    var mark = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Mark all as read", "Tanda semua dibaca"), FontSize = 13.5 };
+                    var mark = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Mark all as read", "Tanda semua dibaca"), FontSize = 14 };
                     mark.Click += (s, e) => { foreach (var x in noteItems) x.Read = true; FillNotes(); PaintBell(); };
                     acts.Children.Add(mark);
                 }
-                var clr = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Clear all", "Kosongkan"), FontSize = 13.5, Margin = new Thickness(16, 0, 0, 0) };
+                var clr = new Button { Style = (Style)W.FindResource("Link"), Content = Tx("Clear all", "Kosongkan"), FontSize = 14, Margin = new Thickness(16, 0, 0, 0) };
                 clr.Click += (s, e) => { noteItems.Clear(); FillNotes(); PaintBell(); };
                 acts.Children.Add(clr);
                 Grid.SetColumn(acts, 2); head.Children.Add(acts);
@@ -564,7 +564,7 @@ namespace Kemas
                 var sp = new StackPanel(); Grid.SetColumn(sp, 1);
                 var top = new DockPanel();
                 var when = Muted(AgoText(n.T), 12); DockPanel.SetDock(when, Dock.Right); top.Children.Add(when);
-                top.Children.Add(new TextBlock { Text = Tx(cc[0], cc[1]).ToUpperInvariant(), FontSize = 11.5, FontWeight = FontWeights.SemiBold, Foreground = Hex(cc[2]) });
+                top.Children.Add(new TextBlock { Text = Tx(cc[0], cc[1]).ToUpperInvariant(), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = Hex(cc[2]) });
                 sp.Children.Add(top);
                 var ti = Strong(n.Title, 15); ti.Margin = new Thickness(0, 4, 0, 2); sp.Children.Add(ti);
                 sp.Children.Add(Muted(n.Desc, 12.5));
@@ -633,7 +633,7 @@ namespace Kemas
             foreach (var grp in new[] { "p", "s", "a" })
             {
                 var g = hits.Where(h => h.Group == grp).Take(6).ToList(); if (g.Count == 0) continue;
-                var lbl = new TextBlock { Text = grp == "p" ? Tx("PAGES", "HALAMAN") : grp == "s" ? Tx("SETTINGS", "TETAPAN") : Tx("ACTIONS", "TINDAKAN"), FontSize = 10.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(10, 8, 0, 4) };
+                var lbl = new TextBlock { Text = grp == "p" ? Tx("PAGES", "HALAMAN") : grp == "s" ? Tx("SETTINGS", "TETAPAN") : Tx("ACTIONS", "TINDAKAN"), FontSize = 12.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(10, 8, 0, 4) };
                 lbl.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
                 searchList.Children.Add(lbl);
                 foreach (var h in g) searchList.Children.Add(HitRow(h));
@@ -679,7 +679,7 @@ namespace Kemas
             g.Children.Add(FlatIcon(NavGlyph(nav), 52, 21, CatColor(nav)));
             var div = new Border { Width = 1, Margin = new Thickness(22, 4, 22, 4) }; div.SetResourceReference(Border.BackgroundProperty, "LineBrush"); Grid.SetColumn(div, 1); g.Children.Add(div);
             var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
-            var t = new TextBlock { Text = title ?? NavTitle(nav), FontSize = 18, FontWeight = FontWeights.SemiBold }; t.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); sp.Children.Add(t);
+            var t = new TextBlock { Text = title ?? NavTitle(nav), FontSize = 17, FontWeight = FontWeights.SemiBold }; t.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); sp.Children.Add(t);
             var d = new TextBlock { Text = NavDesc(nav), FontSize = 15, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap }; d.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); sp.Children.Add(d);
             Grid.SetColumn(sp, 2); g.Children.Add(sp);
             if (!string.IsNullOrEmpty(status))
@@ -687,7 +687,7 @@ namespace Kemas
                 var stp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 28, 0) };
                 string res = kind == "warn" ? "WarnBrush" : kind == "bad" ? "BadBrush" : kind == "good" ? "GoodBrush" : "MutedBrush";
                 if (kind != "") { var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 1, 8, 0) }; dot.SetResourceReference(Border.BackgroundProperty, res); stp.Children.Add(dot); }
-                var st = new TextBlock { Text = status, FontSize = 14.5, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center }; st.SetResourceReference(TextBlock.ForegroundProperty, res);
+                var st = new TextBlock { Text = status, FontSize = 14, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center }; st.SetResourceReference(TextBlock.ForegroundProperty, res);
                 stp.Children.Add(st); Grid.SetColumn(stp, 3); g.Children.Add(stp);
             }
             var arrow = new TextBlock { Text = Glyph("E76C"), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 15, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
@@ -705,7 +705,7 @@ namespace Kemas
         }
         TextBlock Section(string t)
         {
-            var tb = new TextBlock { Text = t, FontSize = 21, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 26, 0, 14) };
+            var tb = new TextBlock { Text = t, FontSize = 20, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 26, 0, 14) };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush"); return tb;
         }
         void HubBody(params UIElement[] parts)

@@ -55,8 +55,8 @@ namespace Kemas
             var word = new TextBlock { Text = "K E M A S", FontSize = 46, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 26, 0, 0), Opacity = 0, RenderTransformOrigin = new Point(.5, .5) };
             var wsc = new ScaleTransform(1.12, 1); word.RenderTransform = wsc;
             bool store = AppInfo.IsStore;
-            var tag = new TextBlock { Text = store ? (ms ? "Selamat datang ke KEMAS" : "Welcome to KEMAS") : (ms ? "Pc awak, Kemas." : "Your PC, Kemas."), FontSize = 18, Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xC7, 0xE2)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 0), Opacity = 0 };
-            var rel = new TextBlock { Text = store ? (ms ? "DIPASANG DARI MICROSOFT STORE  ·  IMBAS, SEMAK, KEMUDIAN BERSIHKAN" : "INSTALLED FROM THE MICROSOFT STORE  ·  SCAN, REVIEW, THEN CLEAN") : (ms ? "PELEPASAN AWAM RASMI  ·  25 OKTOBER 2026" : "OFFICIAL PUBLIC RELEASE  ·  25 OCTOBER 2026"), FontSize = 12, Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xD3, 0xF5)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 34, 0, 0), Opacity = 0 };
+            var tag = new TextBlock { Text = store ? (ms ? "Selamat datang ke KEMAS" : "Welcome to KEMAS") : (ms ? "Pc awak, Kemas." : "Your PC, Kemas."), FontSize = 17, Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xC7, 0xE2)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 0), Opacity = 0 };
+            var rel = new TextBlock { Text = store ? (ms ? "DIPASANG DARI MICROSOFT STORE  ·  IMBAS, SEMAK, KEMUDIAN BERSIHKAN" : "INSTALLED FROM THE MICROSOFT STORE  ·  SCAN, REVIEW, THEN CLEAN") : (ms ? "PELEPASAN AWAM RASMI  ·  25 OKTOBER 2026" : "OFFICIAL PUBLIC RELEASE  ·  25 OCTOBER 2026"), FontSize = 12.5, Foreground = new SolidColorBrush(Color.FromRgb(0x22, 0xD3, 0xF5)), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 34, 0, 0), Opacity = 0 };
             stack.Children.Add(logo); stack.Children.Add(word); stack.Children.Add(tag); stack.Children.Add(rel);
             intro.Children.Add(stack);
 
@@ -70,7 +70,7 @@ namespace Kemas
             var top = new Border { Background = Brushes.Black, Height = 0, VerticalAlignment = VerticalAlignment.Top, IsHitTestVisible = false };
             var bot = new Border { Background = Brushes.Black, Height = 0, VerticalAlignment = VerticalAlignment.Bottom, IsHitTestVisible = false };
             intro.Children.Add(top); intro.Children.Add(bot);
-            var skip = new TextBlock { Text = ms ? "Klik untuk langkau" : "Click to skip", FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(0x8D, 0x95, 0xB3)), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 18, 12), Opacity = 0, IsHitTestVisible = false };
+            var skip = new TextBlock { Text = ms ? "Klik untuk langkau" : "Click to skip", FontSize = 12.5, Foreground = new SolidColorBrush(Color.FromRgb(0x8D, 0x95, 0xB3)), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 18, 12), Opacity = 0, IsHitTestVisible = false };
             intro.Children.Add(skip);
             root.Children.Add(intro);
 

@@ -292,9 +292,9 @@ namespace Kemas
             var g = new Grid { Margin = new Thickness(0, 2, 0, 2) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             g.Children.Add(new Ellipse { Width = 6, Height = 6, Fill = new SolidColorBrush(Col(hex)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 1, 10, 0) });
-            var t = new TextBlock { Text = text, FontSize = 13, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis };
+            var t = new TextBlock { Text = text, FontSize = 12.5, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis };
             Grid.SetColumn(t, 1); g.Children.Add(t);
-            var w = new TextBlock { Text = Clock(DateTime.Now - engStart), FontSize = 12, Foreground = new SolidColorBrush(Col("#6F82A8")), Margin = new Thickness(10, 0, 0, 0) };
+            var w = new TextBlock { Text = Clock(DateTime.Now - engStart), FontSize = 12.5, Foreground = new SolidColorBrush(Col("#6F82A8")), Margin = new Thickness(10, 0, 0, 0) };
             Grid.SetColumn(w, 2); g.Children.Add(w);
             list.Children.Insert(0, g);
             while (list.Children.Count > 5) list.Children.RemoveAt(list.Children.Count - 1);
@@ -348,8 +348,8 @@ namespace Kemas
             {
                 var g = new Grid { Margin = new Thickness(0, 0, 0, 6) };
                 g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                g.Children.Add(new TextBlock { Text = d.Item1, FontSize = 13.5, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis });
-                var v = new TextBlock { Text = d.Item2, FontSize = 13.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(12, 0, 0, 0),
+                g.Children.Add(new TextBlock { Text = d.Item1, FontSize = 14, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis });
+                var v = new TextBlock { Text = d.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(12, 0, 0, 0),
                     Foreground = new SolidColorBrush(Col(d.Item3 == "skip" ? "#F3A83B" : d.Item3 == "zero" ? "#7F93B8" : "#EEF3FF")) };
                 Grid.SetColumn(v, 1); g.Children.Add(v); det.Children.Add(g);
             }

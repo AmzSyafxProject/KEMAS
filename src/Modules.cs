@@ -298,7 +298,8 @@ namespace Kemas
         {
             return new Border { Style = (Style)W.FindResource("Card"), Padding = new Thickness(pad, pad - 4, pad, pad - 4), Child = child };
         }
-        static double Ts(double s) { return s >= 10.5 && s <= 14.5 ? s + 1.5 : s; }      // 4.0 type scale: nothing under 12 px
+        /// Older callers passed pre-4.0 sizes; they are lifted once and then snapped onto the type scale.
+        static double Ts(double s) { return TypeScale.Snap(s >= 10.5 && s <= 14.5 ? s + 1.5 : s); }
         TextBlock Muted(string t, double size = 12.5)
         {
             size = Ts(size);
@@ -321,7 +322,7 @@ namespace Kemas
                 f.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
                 dg.Columns.Add(new DataGridTemplateColumn { CellTemplate = new DataTemplate { VisualTree = f }, Width = new DataGridLength(44) });
             }
-            dg.RowHeight = 54; dg.FontSize = 14.5;
+            dg.RowHeight = 54; dg.FontSize = 14;
             for (int i = 0; i < cols.Length; i++)
             {
                 var parts = cols[i].Split('|');
@@ -347,7 +348,7 @@ namespace Kemas
                     var bd = new FrameworkElementFactory(typeof(Border)); bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(10)); bd.SetValue(Border.PaddingProperty, new Thickness(10, 3, 10, 3));
                     bd.SetBinding(Border.BackgroundProperty, new Binding("PillBg")); bd.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
                     var tx = new FrameworkElementFactory(typeof(TextBlock)); tx.SetBinding(TextBlock.TextProperty, new Binding("C" + i)); tx.SetBinding(TextBlock.ForegroundProperty, new Binding("PillFg"));
-                    tx.SetValue(TextBlock.FontSizeProperty, 13); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold); bd.AppendChild(tx);
+                    tx.SetValue(TextBlock.FontSizeProperty, 12.5); tx.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold); bd.AppendChild(tx);
                     dg.Columns.Add(new DataGridTemplateColumn { Header = head, CellTemplate = new DataTemplate { VisualTree = bd }, Width = width, SortMemberPath = "C" + i });
                     dg.Tag = i;
                 }
@@ -390,8 +391,8 @@ namespace Kemas
             // sentence case labels read calmer than ALL CAPS
             if (label.Length > 1 && label == label.ToUpperInvariant()) label = label.Substring(0, 1) + label.Substring(1).ToLowerInvariant();
             var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(26, 18, 26, 18) };
-            var l = new TextBlock { Text = label, FontSize = 14.5, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-            var v = new TextBlock { Text = value, FontSize = 30, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 2), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+            var l = new TextBlock { Text = label, FontSize = 12.5, FontWeight = FontWeights.SemiBold }; l.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
+            var v = new TextBlock { Text = value, FontSize = 26, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 2), TextTrimming = TextTrimming.CharacterEllipsis }; v.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             sp.Children.Add(l); sp.Children.Add(v);
             if (!string.IsNullOrEmpty(sub)) { var m = Muted(sub, 12.5); m.TextTrimming = TextTrimming.CharacterEllipsis; m.TextWrapping = TextWrapping.NoWrap; sp.Children.Add(m); }
             return sp;
@@ -848,7 +849,7 @@ namespace Kemas
                 hist[i] = new List<double>();
                 var sp = new StackPanel();
                 var l = Muted(names[i], 12); l.FontWeight = FontWeights.SemiBold; sp.Children.Add(l);
-                vals[i] = new TextBlock { FontSize = 24, FontWeight = FontWeights.Bold, Foreground = Hex(cols[i]), Text = "-" }; sp.Children.Add(vals[i]);
+                vals[i] = new TextBlock { FontSize = 26, FontWeight = FontWeights.Bold, Foreground = Hex(cols[i]), Text = "-" }; sp.Children.Add(vals[i]);
                 subs[i] = Muted("", 11.5); sp.Children.Add(subs[i]);
                 var c = new Canvas { Width = 200, Height = 40, ClipToBounds = true }; lines[i] = new System.Windows.Shapes.Polyline { Stroke = Hex(cols[i]), StrokeThickness = 2 }; c.Children.Add(lines[i]);
                 sp.Children.Add(new Viewbox { Stretch = Stretch.Fill, Height = 40, Margin = new Thickness(0, 8, 0, 0), Child = c });
