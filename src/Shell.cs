@@ -315,7 +315,7 @@ namespace Kemas
             double w = on ? 72 : 276;
             if (S.ReducedMotion || !side.IsLoaded) { side.BeginAnimation(FrameworkElement.WidthProperty, null); side.Width = w; }
             else side.BeginAnimation(FrameworkElement.WidthProperty, Anim(side.ActualWidth > 0 ? side.ActualWidth : side.Width, w, 240, new System.Windows.Media.Animation.QuarticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }));
-            E<DockPanel>("SideDock").Margin = on ? new Thickness(0, 16, 10, 12) : new Thickness(8, 16, 14, 12);
+            E<DockPanel>("SideDock").Margin = on ? new Thickness(0, dense ? 12 : 16, 10, dense ? 8 : 12) : new Thickness(8, dense ? 12 : 16, 14, dense ? 8 : 12);
             E<FrameworkElement>("SideDecor").Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             var brand = E<StackPanel>("Brand"); if (brand.Children.Count > 1) brand.Children[1].Visibility = on ? Visibility.Collapsed : Visibility.Visible;
             brand.Margin = new Thickness(14, 0, 0, dense ? 10 : 16);
@@ -367,19 +367,22 @@ namespace Kemas
         void ApplyDensity(double height)
         {
             if (cats == null) return;
-            bool want = height < 820;
+            bool want = height < 860;
             if (want == dense && E<RadioButton>("NavDash").Height > 0) return;
             dense = want;
-            double h = dense ? 40 : 44;
+            double h = dense ? 38 : 44;
             foreach (var n in new[] { "NavDash", "NavSettings", "NavAbout" }) E<RadioButton>(n).Height = h;
             foreach (var c in cats)
             {
                 c.Root.Height = h;
-                foreach (var r in c.Body.Children.OfType<RadioButton>()) r.Height = dense ? 32 : 34;
+                foreach (var r in c.Body.Children.OfType<RadioButton>()) r.Height = dense ? 30 : 34;
             }
-            foreach (var sl in sectionLabels) if (sl.Item4 != "MAIN") sl.Item1.Margin = new Thickness(sl.Item1.Margin.Left, dense ? 8 : 14, sl.Item1.Margin.Right, dense ? 3 : 5);
+            foreach (var sl in sectionLabels) if (sl.Item4 != "MAIN") sl.Item1.Margin = new Thickness(sl.Item1.Margin.Left, dense ? 6 : 14, sl.Item1.Margin.Right, dense ? 2 : 5);
             E<FrameworkElement>("VerTile").Visibility = dense ? Visibility.Collapsed : Visibility.Visible;
-            E<StackPanel>("Brand").Margin = new Thickness(14, 0, 0, dense ? 10 : 16);
+            var vc = E<Border>("VerCard"); vc.Padding = dense ? new Thickness(10, 5, 6, 5) : new Thickness(10, 7, 8, 7); vc.Margin = new Thickness(12, dense ? 6 : 8, 0, 0);
+            var brand = E<StackPanel>("Brand"); brand.Margin = new Thickness(14, 0, 0, dense ? 8 : 16);
+            var logo = brand.Children[0] as FrameworkElement; if (logo != null) { logo.Width = logo.Height = dense ? 36 : 44; E<Image>("SideLogo").Width = E<Image>("SideLogo").Height = dense ? 36 : 44; }
+            E<DockPanel>("SideDock").Margin = compact ? new Thickness(0, dense ? 12 : 16, 10, dense ? 8 : 12) : new Thickness(8, dense ? 12 : 16, 14, dense ? 8 : 12);
             if (dense && !compact)
             {
                 var mine = CatOf("Nav" + currentPage.Substring(4));

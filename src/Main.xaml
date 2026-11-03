@@ -714,23 +714,44 @@
         <Grid x:Name="Pages" Grid.Row="1" Margin="40,8,40,4">
           <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
 
-          <!-- ================= DASHBOARD ================= -->
-          <Viewbox x:Name="PageDash" Stretch="Uniform" StretchDirection="Both" VerticalAlignment="Top" HorizontalAlignment="Center">
-          <Grid Width="1240" Margin="0,0,0,6">
+          <!-- ================= HOME ================= -->
+          <ScrollViewer x:Name="PageDash" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+          <Grid x:Name="DashRoot" MaxWidth="1240" Margin="0,0,0,16">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel Margin="0,0,0,12">
+            <StackPanel Margin="0,4,0,18">
               <TextBlock x:Name="Greeting" Style="{StaticResource H1}"/>
               <TextBlock x:Name="DateText" Style="{StaticResource Sub}"/>
             </StackPanel>
 
-            <Grid x:Name="DashTop" Grid.Row="1" Margin="0,0,0,12">
-              <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-              <Border Style="{StaticResource Card}" Padding="24,16">
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <Viewbox Width="150" Height="150" VerticalAlignment="Center">
+            <!-- hero: health score, what it means, the two main actions -->
+            <Border x:Name="HeroCard" Grid.Row="1" CornerRadius="22" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Margin="0,0,0,16">
+              <Grid>
+                <Border CornerRadius="21" IsHitTestVisible="False">
+                  <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                      <GradientStop Color="#003478F6" Offset="0.35"/>
+                      <GradientStop Color="#143478F6" Offset="0.8"/>
+                      <GradientStop Color="#2224C8F4" Offset="1"/>
+                    </LinearGradientBrush>
+                  </Border.Background>
+                </Border>
+                <!-- orbit decoration, same language as the Scan Engine -->
+                <Canvas x:Name="HeroOrbit" Width="300" Height="220" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False" ClipToBounds="True">
+                  <Ellipse Canvas.Left="120" Canvas.Top="-90" Width="300" Height="300" Stroke="#263478F6" StrokeThickness="1"/>
+                  <Ellipse Canvas.Left="165" Canvas.Top="-45" Width="210" Height="210" Stroke="#3324C8F4" StrokeThickness="1.5" StrokeDashArray="1 5"/>
+                  <Ellipse Canvas.Left="210" Canvas.Top="0" Width="120" Height="120" Stroke="#223478F6" StrokeThickness="1"/>
+                  <Ellipse Canvas.Left="160" Canvas.Top="58" Width="7" Height="7" Fill="#5524C8F4"/>
+                  <Ellipse Canvas.Left="262" Canvas.Top="160" Width="5" Height="5" Fill="#553478F6"/>
+                  <Ellipse Canvas.Left="215" Canvas.Top="-30" Width="130" Height="130">
+                    <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#2224C8F4" Offset="0"/><GradientStop Color="#0024C8F4" Offset="1"/></RadialGradientBrush></Ellipse.Fill>
+                  </Ellipse>
+                </Canvas>
+                <Grid x:Name="HeroGrid" Margin="28,24,28,24">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <Viewbox Width="164" Height="164" VerticalAlignment="Center">
                     <Grid Width="196" Height="196">
+                      <Ellipse Width="196" Height="196"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#183478F6" Offset="0.62"/><GradientStop Color="#003478F6" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
                       <Ellipse Width="171" Height="171" Stroke="{DynamicResource TrackBrush}" StrokeThickness="14"/>
                       <Path x:Name="RingArc" Stroke="{StaticResource RingGrad}" StrokeThickness="14" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -740,182 +761,130 @@
                       </StackPanel>
                     </Grid>
                   </Viewbox>
-                  <StackPanel Grid.Column="1" Margin="28,0,0,0" VerticalAlignment="Center">
+                  <StackPanel x:Name="HeroText" Grid.Column="1" Margin="28,0,20,0" VerticalAlignment="Center">
                     <TextBlock x:Name="ScorePillText" FontSize="26" FontWeight="Bold" Foreground="{StaticResource GoodBrush}"/>
-                    <TextBlock x:Name="ScoreTitle" Text="{DynamicResource L_checking}" FontSize="15" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
-                    <TextBlock x:Name="ScoreDesc" Text="{DynamicResource L_checking_desc}" Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                    <Button x:Name="BtnSmart" Style="{StaticResource Primary}" Height="44" Padding="24,0" Margin="0,18,0,0" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
-                      <Button.RenderTransform><ScaleTransform/></Button.RenderTransform>
+                    <TextBlock x:Name="ScoreTitle" Text="{DynamicResource L_checking}" FontSize="15" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="ScoreDesc" Text="{DynamicResource L_checking_desc}" Foreground="{DynamicResource MutedBrush}" FontSize="14" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                    <!-- Smart Assistant, one line, rule-based on real measurements -->
+                    <Border x:Name="AssistCard" CornerRadius="12" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12,10" Margin="0,16,0,0" HorizontalAlignment="Left">
+                      <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Border Width="30" Height="30" CornerRadius="9" Background="#1F3478F6"><TextBlock Style="{StaticResource Icon}" Text="&#xE99A;" FontSize="14" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
+                        <TextBlock x:Name="AssistText" Grid.Column="1" FontSize="14" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,0,14,0"/>
+                        <Button x:Name="BtnAssist" Grid.Column="2" Style="{StaticResource Link}" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal"><TextBlock Text="{DynamicResource L_assist_btn}"/><TextBlock Style="{StaticResource Icon}" Text="&#xE72A;" FontSize="12" Margin="8,0,0,0"/></StackPanel>
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                  <StackPanel x:Name="HeroActions" Grid.Column="2" VerticalAlignment="Center" MinWidth="210">
+                    <Button x:Name="BtnDashScan" Style="{StaticResource Primary}" Height="48" Padding="26,0" HorizontalAlignment="Stretch">
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{DynamicResource L_smart_now}" VerticalAlignment="Center"/>
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE72A;" FontSize="13.5" Margin="10,0,0,0"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE721;" FontSize="15" Margin="0,0,10,0"/>
+                        <TextBlock Text="{DynamicResource L_smart_scan}" VerticalAlignment="Center"/>
                       </StackPanel>
                     </Button>
-                    <TextBlock x:Name="LastScanText" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,10,0,0"/>
+                    <Button x:Name="BtnSmart" Style="{StaticResource Ghost}" Height="44" Padding="22,0" Margin="0,10,0,0" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5">
+                      <Button.RenderTransform><ScaleTransform/></Button.RenderTransform>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="14" Margin="0,0,10,0" Foreground="{StaticResource CyanBrush}"/>
+                        <TextBlock Text="{DynamicResource L_smart_now}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                      </StackPanel>
+                    </Button>
+                    <TextBlock x:Name="LastScanText" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,0" HorizontalAlignment="Center"/>
                   </StackPanel>
                 </Grid>
-              </Border>
-              <Border x:Name="AssistCard" Grid.Column="2" Style="{StaticResource Card}" Padding="22,16">
-                <DockPanel>
-                  <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                    <Border Width="46" Height="46" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE99A;" FontSize="20" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                    <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                      <TextBlock Text="{DynamicResource L_assist_title}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                      <TextBlock Text="{DynamicResource L_assist_sub}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                  </StackPanel>
-                  <Button x:Name="BtnAssist" DockPanel.Dock="Bottom" Style="{StaticResource Ghost}" Height="40" HorizontalAlignment="Left" Padding="18,0" Margin="0,14,0,0">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="{DynamicResource L_assist_btn}" FontWeight="SemiBold" Foreground="{StaticResource CyanBrush}"/><TextBlock Style="{StaticResource Icon}" Text="&#xE72A;" FontSize="13.5" Foreground="{StaticResource CyanBrush}" Margin="10,0,0,0"/></StackPanel>
-                  </Button>
-                  <TextBlock x:Name="AssistText" FontSize="15" LineHeight="20" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
-                </DockPanel>
-              </Border>
-            </Grid>
+              </Grid>
+            </Border>
 
-            <UniformGrid x:Name="DashMetrics" Grid.Row="2" Columns="4" Margin="0,0,-14,2">
-              <Border Style="{StaticResource Card}" Padding="26,20" Margin="0,0,14,14">
+            <!-- live CPU and memory: wide strips, one per row on narrow windows -->
+            <UniformGrid x:Name="DashMetrics" Grid.Row="2" Columns="2" Margin="0,0,-16,0">
+              <Border Style="{StaticResource Card}" Padding="22,18" Margin="0,0,16,16" CornerRadius="18">
                 <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="170"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                  <Border Width="48" Height="48" CornerRadius="13" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE950;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                  <StackPanel Grid.Column="1" Margin="16,0,6,0" VerticalAlignment="Center">
-                    <TextBlock Text="CPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="140"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                  <Border Width="46" Height="46" CornerRadius="13" Background="#1F3478F6" VerticalAlignment="Top"><TextBlock Style="{StaticResource Icon}" Text="&#xE950;" FontSize="19" Foreground="#3478F6" HorizontalAlignment="Center"/></Border>
+                  <StackPanel Grid.Column="1" Margin="16,0,10,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Text="CPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+                      <Ellipse x:Name="LiveDot" Width="6" Height="6" Fill="#22B573" Margin="8,1,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBlock x:Name="CpuText" Text="-" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="CpuSub" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Column="2" Stretch="Fill" Height="72" Margin="20,0,0,0" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Column="2" Stretch="Fill" Height="70" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaCpu"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#405BA8FF" Offset="0"/><GradientStop Color="#005BA8FF" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
-                    <Polyline x:Name="SparkCpu" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#3978F6" Offset="0"/><GradientStop Color="#5BA8FF" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
+                    <Polyline x:Name="SparkCpu" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#3978F6" Offset="0"/><GradientStop Color="#24C8F4" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
                 </Grid>
               </Border>
-              <Border Style="{StaticResource Card}" Padding="26,20" Margin="0,0,14,14">
+              <Border Style="{StaticResource Card}" Padding="22,18" Margin="0,0,16,16" CornerRadius="18">
                 <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="170"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                  <Border Width="48" Height="48" CornerRadius="13" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE964;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                  <StackPanel Grid.Column="1" Margin="16,0,6,0" VerticalAlignment="Center">
-                    <TextBlock Text="RAM" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="140"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                  <Border Width="46" Height="46" CornerRadius="13" Background="#1F8B78F6" VerticalAlignment="Top"><TextBlock Style="{StaticResource Icon}" Text="&#xE964;" FontSize="19" Foreground="#8B78F6" HorizontalAlignment="Center"/></Border>
+                  <StackPanel Grid.Column="1" Margin="16,0,10,0" VerticalAlignment="Center">
+                    <TextBlock Text="RAM" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
                     <TextBlock x:Name="RamUsedText" Text="-" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="RamFreeText" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
                   </StackPanel>
-                  <Viewbox Grid.Column="2" Stretch="Fill" Height="72" Margin="20,0,0,0" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
+                  <Viewbox Grid.Column="2" Stretch="Fill" Height="70" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
                     <Polygon x:Name="AreaRam"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#40C08BFF" Offset="0"/><GradientStop Color="#00C08BFF" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
                     <Polyline x:Name="SparkRam" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#8B78F6" Offset="0"/><GradientStop Color="#C08BFF" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
                   </Canvas></Viewbox>
                 </Grid>
               </Border>
-              <Border Style="{StaticResource Card}" Padding="26,20" Margin="0,0,14,14">
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="170"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                  <Border Width="48" Height="48" CornerRadius="13" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                  <StackPanel Grid.Column="1" Margin="16,0,6,0" VerticalAlignment="Center">
-                    <TextBlock x:Name="DiskLabel" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                    <TextBlock x:Name="DiskUsedText" Text="-" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
-                    <TextBlock x:Name="DiskFreeText" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                  </StackPanel>
-                  <Viewbox Grid.Column="2" Stretch="Fill" Height="72" Margin="20,0,0,0" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
-                    <Polygon x:Name="AreaDisk"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#40F7C873" Offset="0"/><GradientStop Color="#00F7C873" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
-                    <Polyline x:Name="SparkDisk" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#F4AE43" Offset="0"/><GradientStop Color="#F7C873" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
-                  </Canvas></Viewbox>
-                </Grid>
-              </Border>
-              <Border Style="{StaticResource Card}" Padding="26,20" Margin="0,0,14,14">
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="170"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                  <Border Width="48" Height="48" CornerRadius="13" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="17" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                  <StackPanel Grid.Column="1" Margin="16,0,6,0" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource L_tile_junk}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                    <TextBlock x:Name="JunkText" Text="-" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
-                    <TextBlock x:Name="JunkSub" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                  </StackPanel>
-                  <Viewbox Grid.Column="2" Stretch="Fill" Height="72" Margin="20,0,0,0" VerticalAlignment="Center"><Canvas Width="96" Height="44" ClipToBounds="True">
-                    <Polygon x:Name="AreaJunk"><Polygon.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4043C6C0" Offset="0"/><GradientStop Color="#0043C6C0" Offset="1"/></LinearGradientBrush></Polygon.Fill></Polygon>
-                    <Polyline x:Name="SparkJunk" StrokeThickness="2" StrokeLineJoin="Round"><Polyline.Stroke><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#27B77A" Offset="0"/><GradientStop Color="#43C6C0" Offset="1"/></LinearGradientBrush></Polyline.Stroke></Polyline>
-                  </Canvas></Viewbox>
-                </Grid>
-              </Border>
             </UniformGrid>
 
-            <Grid x:Name="DashBottom" Grid.Row="3" Margin="0,0,0,0">
-              <Grid.ColumnDefinitions><ColumnDefinition Width="5*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="5*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="5*"/></Grid.ColumnDefinitions>
-              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-              <Border x:Name="QaCard" Style="{StaticResource Card}" Padding="20,16,12,10">
+            <Grid x:Name="DashBottom" Grid.Row="3">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+              <Border x:Name="StoCard" Style="{StaticResource Card}" Padding="24,20" CornerRadius="18">
                 <StackPanel>
-                  <TextBlock Text="{DynamicResource L_quick_actions_t}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,12"/>
-                  <UniformGrid Columns="2">
-                    <Button x:Name="QaClean" Style="{StaticResource Tile}" Margin="0,0,8,8">
-                      <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                          <TextBlock Text="{DynamicResource L_qa_clean}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
-                          <TextBlock Text="{DynamicResource L_qa_clean_d}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                      </StackPanel>
-                    </Button>
-                    <Button x:Name="QaRam" Style="{StaticResource Tile}" Margin="0,0,8,8">
-                      <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                          <TextBlock Text="{DynamicResource L_qa_ram}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
-                          <TextBlock Text="{DynamicResource L_qa_ram_d}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                      </StackPanel>
-                    </Button>
-                    <Button x:Name="QaStartup" Style="{StaticResource Tile}" Margin="0,0,8,8">
-                      <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                          <TextBlock Text="{DynamicResource L_nav_startup}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
-                          <TextBlock Text="{DynamicResource L_qa_startup_d}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                      </StackPanel>
-                    </Button>
-                    <Button x:Name="QaOrg" Style="{StaticResource Tile}" Margin="0,0,8,8">
-                      <StackPanel Orientation="Horizontal">
-                        <Border Width="36" Height="36" CornerRadius="11" Background="{DynamicResource SelectBrush}"><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="15" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Center"/></Border>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                          <TextBlock Text="{DynamicResource L_qa_map}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
-                          <TextBlock Text="{DynamicResource L_qa_map_d}" FontSize="12.5" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                      </StackPanel>
-                    </Button>
-                  </UniformGrid>
-                </StackPanel>
-              </Border>
-              <Border x:Name="StoCard" Grid.Column="2" Style="{StaticResource Card}" Padding="20,16">
-                <StackPanel>
-                  <TextBlock Text="{DynamicResource L_storage_ov}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                  <Grid Margin="0,14,0,0">
-                    <TextBlock x:Name="OvDrive" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                  <Grid>
+                    <StackPanel Orientation="Horizontal">
+                      <Border Width="34" Height="34" CornerRadius="10" Background="#1F5B5BF0"><TextBlock Style="{StaticResource Icon}" Text="&#xEDA2;" FontSize="15" Foreground="#5B5BF0" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_storage_ov}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="BtnOvMap" Style="{StaticResource Link}" Content="{DynamicResource L_ov_map}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Grid Margin="0,18,0,0">
+                    <TextBlock x:Name="OvDrive" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock x:Name="OvUsed" FontSize="14" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                   </Grid>
-                  <Border CornerRadius="5" Height="10" Margin="0,10,0,14" ClipToBounds="True" Background="{DynamicResource TrackBrush}">
+                  <Border CornerRadius="6" Height="12" Margin="0,12,0,14" ClipToBounds="True" Background="{DynamicResource TrackBrush}">
                     <Grid x:Name="StoBar"/>
                   </Border>
                   <WrapPanel x:Name="OvLegend"/>
-                  <Button x:Name="BtnOvMap" Style="{StaticResource Link}" Content="{DynamicResource L_ov_map}" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                 </StackPanel>
               </Border>
-              <Border x:Name="TipsCard" Grid.Column="4" Style="{StaticResource Card}" Padding="20,16">
+              <Border x:Name="TipsCard" Grid.Column="2" Style="{StaticResource Card}" Padding="24,20" CornerRadius="18">
                 <DockPanel>
-                  <Grid DockPanel.Dock="Top" Margin="0,0,0,4">
-                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Icon}" Text="&#xEA80;" FontSize="15.5" Foreground="{StaticResource WarnBrush}" Margin="0,0,8,0"/><TextBlock Text="{DynamicResource L_perf_tips}" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/></StackPanel>
+                  <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <StackPanel Orientation="Horizontal">
+                      <Border Width="34" Height="34" CornerRadius="10" Background="#1FF3A83B"><TextBlock Style="{StaticResource Icon}" Text="&#xEA80;" FontSize="15" Foreground="#E0961F" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_perf_tips}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBlock x:Name="RoadToGo" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource CyanBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                   </Grid>
-                  <Button x:Name="BtnViewAll" DockPanel.Dock="Bottom" Style="{StaticResource Link}" Content="{DynamicResource L_view_tips}" HorizontalAlignment="Right" Margin="0,6,0,0"/>
+                  <Button x:Name="BtnViewAll" DockPanel.Dock="Bottom" Style="{StaticResource Link}" Content="{DynamicResource L_view_tips}" HorizontalAlignment="Right" Margin="0,8,0,0"/>
                   <StackPanel x:Name="RoadList"/>
                 </DockPanel>
               </Border>
             </Grid>
 
-            <!-- kept for the engine log and history; shown in Recovery Centre -->
+            <!-- kept for the engine log, history and older code paths; not shown on Home -->
             <StackPanel Visibility="Collapsed">
               <TextBlock x:Name="LastCleanText"/><TextBlock x:Name="RecentEmpty"/><StackPanel x:Name="RecentList"/>
-              <TextBox x:Name="LogBox"/><Button x:Name="BtnDashScan"/>
+              <TextBox x:Name="LogBox"/>
               <Border x:Name="ScorePill"/><TextBlock x:Name="TileJunk"/><TextBlock x:Name="TileDisk"/><TextBlock x:Name="TileRam"/>
               <ProgressBar x:Name="DiskBar"/><ProgressBar x:Name="RamBar"/>
+              <TextBlock x:Name="DiskLabel"/><TextBlock x:Name="DiskUsedText"/><TextBlock x:Name="DiskFreeText"/>
+              <Canvas><Polygon x:Name="AreaDisk"/><Polyline x:Name="SparkDisk"/><Polygon x:Name="AreaJunk"/><Polyline x:Name="SparkJunk"/></Canvas>
+              <TextBlock x:Name="JunkText"/><TextBlock x:Name="JunkSub"/>
+              <Border x:Name="QaCard"/><Grid x:Name="DashTop"/>
+              <Button x:Name="QaClean"/><Button x:Name="QaRam"/><Button x:Name="QaStartup"/><Button x:Name="QaOrg"/>
             </StackPanel>
           </Grid>
-          </Viewbox>
+          </ScrollViewer>
 
           <!-- ================= CLEANER ================= -->
           <Grid x:Name="PageClean" Visibility="Collapsed">

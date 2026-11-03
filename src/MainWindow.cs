@@ -156,9 +156,6 @@ namespace Kemas
             add("AuroraC", "X", 200, 16);
             if (!S.ReducedMotion) aurora.Begin(W, true);
 
-            var pulse = new DoubleAnimation(1, 1.035, TimeSpan.FromMilliseconds(1200)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() };
-            var st = (ScaleTransform)BT("BtnSmart").RenderTransform;
-            if (!S.ReducedMotion) { st.BeginAnimation(ScaleTransform.ScaleXProperty, pulse); st.BeginAnimation(ScaleTransform.ScaleYProperty, pulse); }
 
             var bob = new DoubleAnimation(0, -7, TimeSpan.FromSeconds(2.2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
             if (!S.ReducedMotion) ((TranslateTransform)E<Image>("AboutLogo").RenderTransform).BeginAnimation(TranslateTransform.YProperty, bob);
@@ -182,9 +179,7 @@ namespace Kemas
             }
             else
             {
-                aurora.Begin(W, true);
-                var pulse = new DoubleAnimation(1, 1.035, TimeSpan.FromMilliseconds(1200)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() };
-                st.BeginAnimation(ScaleTransform.ScaleXProperty, pulse); st.BeginAnimation(ScaleTransform.ScaleYProperty, pulse);
+                if (aurora != null) aurora.Begin(W, true);
                 var bob = new DoubleAnimation(0, -7, TimeSpan.FromSeconds(2.2)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
                 logoT.BeginAnimation(TranslateTransform.YProperty, bob);
             }
@@ -307,7 +302,7 @@ namespace Kemas
             BT("BtnDashScan").Click += (s, e) => StartScan(true);
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
             BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
-            LayoutDash(2000);
+            E<FrameworkElement>("DashRoot").SizeChanged += (s2, e2) => LayoutDash(e2.NewSize.Width);
             foreach (var pr in new[] { "SetCatApp:SecApp", "SetCatGen:SecGen", "SetCatClean:SecClean", "SetCatUpd:SecUpd", "SetCatHelp:SecHelp", "SetCatData:SecData" })
             {
                 var a = pr.Split(':');
@@ -856,44 +851,32 @@ namespace Kemas
         DateTime lastScanAt = DateTime.MinValue;
         long diskUsedB, diskTotalB;
         int dashMode = -1;
+        /// Home reflows with the real width instead of scaling text down: wide = hero in one row and two columns below,
+        /// narrow = actions under the text and everything in one column. Text sizes never change.
         void LayoutDash(double w)
         {
-            int mode = w >= 1350 ? 2 : w >= 900 ? 1 : 0;
+            if (w <= 0) return;
+            int mode = w >= 1000 ? 2 : w >= 760 ? 1 : 0;
             if (mode == dashMode) return; dashMode = mode;
-            var assist = E<FrameworkElement>("AssistCard");
-            if (mode == 0) { Grid.SetRow(assist, 1); Grid.SetColumn(assist, 0); Grid.SetColumnSpan(assist, 3); assist.Margin = new Thickness(0, 16, 0, 0); }
-            else { Grid.SetRow(assist, 0); Grid.SetColumn(assist, 2); Grid.SetColumnSpan(assist, 1); assist.Margin = new Thickness(0); }
-            foreach (FrameworkElement c in E<Grid>("DashTop").Children) if (c != assist) Grid.SetColumnSpan(c, mode == 0 ? 3 : 1);
-            E<UniformGrid>("DashMetrics").Columns = mode == 2 ? 4 : 2;
-            var qa = E<FrameworkElement>("QaCard"); var sto = E<FrameworkElement>("StoCard"); var tips = E<FrameworkElement>("TipsCard");
-            if (mode == 2)
+            var actions = E<FrameworkElement>("HeroActions");
+            var text = E<FrameworkElement>("HeroText");
+            if (mode == 2) { Grid.SetRow(actions, 0); Grid.SetColumn(actions, 2); actions.Margin = new Thickness(0); actions.HorizontalAlignment = HorizontalAlignment.Stretch; }
+            else { Grid.SetRow(actions, 1); Grid.SetColumn(actions, 1); actions.Margin = new Thickness(28, 18, 0, 0); actions.HorizontalAlignment = HorizontalAlignment.Left; }
+            text.Margin = new Thickness(28, 0, mode == 2 ? 20 : 0, 0);
+            E<FrameworkElement>("HeroOrbit").Visibility = mode == 0 ? Visibility.Collapsed : Visibility.Visible;
+            E<UniformGrid>("DashMetrics").Columns = mode == 0 ? 1 : 2;
+            var sto = E<FrameworkElement>("StoCard"); var tips = E<FrameworkElement>("TipsCard"); var bottom = E<Grid>("DashBottom");
+            if (mode == 0)
             {
-                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 1);
-                Grid.SetRow(sto, 0); Grid.SetColumn(sto, 2); Grid.SetColumnSpan(sto, 1); sto.Margin = new Thickness(0);
-                Grid.SetRow(tips, 0); Grid.SetColumn(tips, 4); Grid.SetColumnSpan(tips, 1); tips.Margin = new Thickness(0);
-            }
-            else if (mode == 1)
-            {
-                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 1);
-                Grid.SetRow(sto, 0); Grid.SetColumn(sto, 2); Grid.SetColumnSpan(sto, 3); sto.Margin = new Thickness(0);
-                Grid.SetRow(tips, 1); Grid.SetColumn(tips, 0); Grid.SetColumnSpan(tips, 5); tips.Margin = new Thickness(0, 14, 0, 0);
+                bottom.ColumnDefinitions[1].Width = new GridLength(0); bottom.ColumnDefinitions[2].Width = new GridLength(0);
+                Grid.SetRow(tips, 1); Grid.SetColumn(tips, 0); tips.Margin = new Thickness(0, 16, 0, 0);
             }
             else
             {
-                Grid.SetRow(qa, 0); Grid.SetColumn(qa, 0); Grid.SetColumnSpan(qa, 5);
-                Grid.SetRow(sto, 1); Grid.SetColumn(sto, 0); Grid.SetColumnSpan(sto, 5); sto.Margin = new Thickness(0, 14, 0, 0);
-                Grid.SetRow(tips, 2); Grid.SetColumn(tips, 0); Grid.SetColumnSpan(tips, 5); tips.Margin = new Thickness(0, 14, 0, 0);
+                bottom.ColumnDefinitions[1].Width = new GridLength(16); bottom.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
+                Grid.SetRow(tips, 0); Grid.SetColumn(tips, 2); tips.Margin = new Thickness(0);
             }
-            // 4.0 calm Home: CPU and RAM only (storage has its own card, junk sits in the health text); no quick-action grid
-            var mets = E<UniformGrid>("DashMetrics");
-            for (int i = 2; i < mets.Children.Count; i++) mets.Children[i].Visibility = Visibility.Collapsed;
-            mets.Columns = 2;
-            qa.Visibility = Visibility.Collapsed;
-            var bottom = E<Grid>("DashBottom");
-            bottom.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star); bottom.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
-            bottom.ColumnDefinitions[3].Width = new GridLength(0); bottom.ColumnDefinitions[4].Width = new GridLength(0);
-            Grid.SetRow(sto, 0); Grid.SetColumn(sto, 0); Grid.SetColumnSpan(sto, 1); sto.Margin = new Thickness(0);
-            Grid.SetRow(tips, 0); Grid.SetColumn(tips, 2); Grid.SetColumnSpan(tips, 1); tips.Margin = new Thickness(0);
+            Grid.SetRow(sto, 0); Grid.SetColumn(sto, 0);
         }
 
         void DrawOverview()

@@ -496,7 +496,7 @@ namespace Kemas
                 var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 if (points > 0)
                     right.Children.Add(new Border { CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 3, 9, 3), Margin = new Thickness(0, 0, 10, 0), Background = Hex("#2622C4F0"), VerticalAlignment = VerticalAlignment.Center,
-                        Child = new TextBlock { Text = "+" + points, FontSize = 14, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush") } });
+                        Child = new TextBlock { Text = "+" + points, FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = (Brush)W.FindResource("CyanBrush") } });
                 var b = new Button { Content = action, Style = (Style)W.FindResource("Ghost"), Height = 32, Padding = new Thickness(14, 0, 14, 0), FontSize = 14, IsEnabled = !busy };
                 b.Click += (s, e) => onClick();
                 right.Children.Add(b);

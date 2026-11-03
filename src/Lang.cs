@@ -122,6 +122,7 @@ namespace Kemas
             A("sel_label", "SELECTED TO CLEAN", "DIPILIH UNTUK DIBERSIHKAN");
             A("sel_safe", "Only temporary files and caches. Your documents, photos and passwords are never touched.", "Hanya fail sementara dan cache. Dokumen, gambar dan kata laluan anda tidak disentuh.");
             A("smart_now", "Smart Clean Now", "Bersihkan Sekarang");
+            A("smart_scan", "Smart Scan", "Imbasan Pintar");
             A("assist_title", "Smart Assistant", "Pembantu Pintar");
             A("assist_sub", "Based on real measurements on this PC", "Berdasarkan ukuran sebenar pada PC ini");
             A("assist_btn", "View recommendations", "Lihat cadangan");
