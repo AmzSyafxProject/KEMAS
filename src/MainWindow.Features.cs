@@ -324,9 +324,12 @@ namespace Kemas
             {
                 var p = E<FrameworkElement>("WStep" + k);
                 p.Visibility = k == i ? Visibility.Visible : Visibility.Collapsed;
-                var dot = E<Border>("WDot" + k);
-                dot.Width = k == i ? 22 : 7;
-                if (k == i) dot.Background = (Brush)W.FindResource("AccentGrad"); else dot.SetResourceReference(Border.BackgroundProperty, "LineBrush");
+                // brand rail: done steps get a check, the current one the gradient, the rest stay quiet
+                var num = E<Border>("WNum" + k); var nt = TB("WNumT" + k); var lbl = TB("WStepT" + k);
+                if (k < i) { num.Background = Hex("#22B573"); nt.FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"); nt.Text = "\uE73E"; nt.FontSize = 12.5; }
+                else { num.Background = k == i ? (Brush)W.FindResource("NavPill") : new SolidColorBrush(Color.FromArgb(0x26, 255, 255, 255)); nt.FontFamily = W.FontFamily; nt.Text = (k + 1).ToString(); nt.FontSize = 14; }
+                num.BorderThickness = new Thickness(k == i ? 0 : 0);
+                lbl.Foreground = new SolidColorBrush(k == i ? Colors.White : k < i ? Color.FromRgb(0xC8, 0xD4, 0xEE) : Color.FromRgb(0x7F, 0x93, 0xB8));
             }
             var cur = E<FrameworkElement>("WStep" + i);
             if (!S.ReducedMotion && dir != 0)
@@ -342,6 +345,8 @@ namespace Kemas
                 sc.BeginAnimation(ScaleTransform.ScaleXProperty, Anim(0.4, 1, 520, new BackEase { Amplitude = 0.5, EasingMode = EasingMode.EaseOut }));
                 sc.BeginAnimation(ScaleTransform.ScaleYProperty, Anim(0.4, 1, 520, new BackEase { Amplitude = 0.5, EasingMode = EasingMode.EaseOut }));
             }
+            var prog = E<Border>("WProgress"); double pw = 40 * (i + 1);
+            if (S.ReducedMotion) prog.Width = pw; else prog.BeginAnimation(FrameworkElement.WidthProperty, Anim(double.IsNaN(prog.Width) ? 40 : prog.ActualWidth > 0 ? prog.ActualWidth : prog.Width, pw, 320));
             BT("BtnWBack").Visibility = i == 0 ? Visibility.Collapsed : Visibility.Visible;
             BT("BtnWSkip").Visibility = i == 0 ? Visibility.Visible : Visibility.Collapsed;
             WelcomeTexts();

@@ -1913,146 +1913,195 @@
 
     <!-- ================= WELCOME (first run) ================= -->
     <Grid x:Name="WelcomeLayer" Visibility="Collapsed" Background="{DynamicResource OverlayBrush}">
-      <Border x:Name="WelcomeCard" Width="660" CornerRadius="26" Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
-              VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" ClipToBounds="True">
+      <Border x:Name="WelcomeCard" Width="900" Height="590" CornerRadius="24" Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+              VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
         <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
         <Grid>
-          <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-          <Border Height="220" VerticalAlignment="Top" CornerRadius="26,26,0,0" IsHitTestVisible="False">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+          <!-- brand rail: the same orbit language as the Scan Engine -->
+          <Border CornerRadius="23,0,0,23" ClipToBounds="True">
             <Border.Background>
               <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#447B5CFF" Offset="0"/>
-                <GradientStop Color="#1A22D3F5" Offset="0.65"/>
-                <GradientStop Color="#0022D3F5" Offset="1"/>
+                <GradientStop Color="#0B1430" Offset="0"/>
+                <GradientStop Color="#132A6B" Offset="0.6"/>
+                <GradientStop Color="#2563EB" Offset="1"/>
               </LinearGradientBrush>
             </Border.Background>
+            <Grid>
+              <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                <Ellipse Canvas.Left="70" Canvas.Top="300" Width="420" Height="420" Stroke="#1FFFFFFF" StrokeThickness="1"/>
+                <Ellipse Canvas.Left="120" Canvas.Top="350" Width="320" Height="320" Stroke="#2E7FE3FF" StrokeThickness="1.5" StrokeDashArray="1 5"/>
+                <Ellipse Canvas.Left="170" Canvas.Top="400" Width="220" Height="220" Stroke="#24FFFFFF" StrokeThickness="1"/>
+                <Ellipse Canvas.Left="222" Canvas.Top="452" Width="116" Height="116">
+                  <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#664A93FF" Offset="0"/><GradientStop Color="#004A93FF" Offset="1"/></RadialGradientBrush></Ellipse.Fill>
+                </Ellipse>
+                <Ellipse Canvas.Left="116" Canvas.Top="420" Width="8" Height="8" Fill="#7FE3FF"/>
+                <Ellipse Canvas.Left="382" Canvas.Top="360" Width="6" Height="6" Fill="#BFD4FF"/>
+                <Ellipse Canvas.Left="232" Canvas.Top="345" Width="5" Height="5" Fill="#7FE3FF" Opacity="0.7"/>
+                <Ellipse Canvas.Left="-80" Canvas.Top="-120" Width="260" Height="260">
+                  <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#337B5CFF" Offset="0"/><GradientStop Color="#007B5CFF" Offset="1"/></RadialGradientBrush></Ellipse.Fill>
+                </Ellipse>
+              </Canvas>
+              <StackPanel Margin="32,36,28,0">
+                <Image x:Name="WLogo" Width="60" Height="60" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
+                  <Image.RenderTransform><TranslateTransform/></Image.RenderTransform>
+                </Image>
+                <TextBlock Text="KEMAS" FontSize="26" FontWeight="Black" Foreground="White" Margin="0,16,0,0"/>
+                <TextBlock Text="{DynamicResource L_tagline}" FontSize="14" Foreground="#AFC3EE"/>
+                <StackPanel Margin="0,40,0,0">
+                  <Grid Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <Border x:Name="WNum0" Width="30" Height="30" CornerRadius="15"><TextBlock x:Name="WNumT0" Text="1" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                      <TextBlock x:Name="WStepT0" Text="{DynamicResource L_wel_title}" FontSize="15" FontWeight="SemiBold"/>
+                    </StackPanel>
+                  </Grid>
+                  <Grid Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <Border x:Name="WNum1" Width="30" Height="30" CornerRadius="15"><TextBlock x:Name="WNumT1" Text="2" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                      <TextBlock x:Name="WStepT1" Text="{DynamicResource L_wel_setup}" FontSize="15" FontWeight="SemiBold"/>
+                    </StackPanel>
+                  </Grid>
+                  <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <Border x:Name="WNum2" Width="30" Height="30" CornerRadius="15"><TextBlock x:Name="WNumT2" Text="3" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                      <TextBlock x:Name="WStepT2" Text="{DynamicResource L_wel_ready}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </StackPanel>
+              <TextBlock Text="v4.0" FontSize="12.5" Foreground="#7F93B8" VerticalAlignment="Bottom" Margin="32,0,0,24"/>
+            </Grid>
           </Border>
-          <Grid Margin="36,34,36,0" MinHeight="440">
 
-            <!-- step 1: hello -->
-            <StackPanel x:Name="WStep0">
-              <Image x:Name="WLogo" Width="78" Height="78" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
-                <Image.RenderTransform><TranslateTransform/></Image.RenderTransform>
-              </Image>
-              <TextBlock x:Name="WHello" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource CyanBrush}" Margin="0,22,0,0"/>
-              <TextBlock Text="{DynamicResource L_wel_title}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,4,0,0"/>
-              <TextBlock Text="{DynamicResource L_wel_sub}" FontSize="15" LineHeight="22" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-              <UniformGrid Columns="2" Margin="-6,22,-6,0">
-                <ContentControl Margin="6">                <Border Style="{StaticResource Card}" Padding="16,14" Margin="0,0,0,0">
-                  <StackPanel Orientation="Horizontal">
-                    <Border Width="38" Height="38" CornerRadius="11" Background="{DynamicResource IconTile}" VerticalAlignment="Top">
-                      <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="16" Foreground="#9C8BFF" HorizontalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Margin="12,0,0,0" Width="196">
-                      <TextBlock Text="{DynamicResource L_wel_f1}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                      <TextBlock Text="{DynamicResource L_wel_f1_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
-                  </StackPanel>
-                </Border></ContentControl>
-                <ContentControl Margin="6">                <Border Style="{StaticResource Card}" Padding="16,14" Margin="0,0,0,0">
-                  <StackPanel Orientation="Horizontal">
-                    <Border Width="38" Height="38" CornerRadius="11" Background="{DynamicResource IconTile}" VerticalAlignment="Top">
-                      <TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="16" Foreground="#9C8BFF" HorizontalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Margin="12,0,0,0" Width="196">
-                      <TextBlock Text="{DynamicResource L_wel_f2}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                      <TextBlock Text="{DynamicResource L_wel_f2_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
-                  </StackPanel>
-                </Border></ContentControl>
-                <ContentControl Margin="6">                <Border Style="{StaticResource Card}" Padding="16,14" Margin="0,0,0,0">
-                  <StackPanel Orientation="Horizontal">
-                    <Border Width="38" Height="38" CornerRadius="11" Background="{DynamicResource IconTile}" VerticalAlignment="Top">
-                      <TextBlock Style="{StaticResource Icon}" Text="&#xE8B7;" FontSize="16" Foreground="#9C8BFF" HorizontalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Margin="12,0,0,0" Width="196">
-                      <TextBlock Text="{DynamicResource L_wel_f3}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                      <TextBlock Text="{DynamicResource L_wel_f3_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
-                  </StackPanel>
-                </Border></ContentControl>
-                <ContentControl Margin="6">                <Border Style="{StaticResource Card}" Padding="16,14" Margin="0,0,0,0">
-                  <StackPanel Orientation="Horizontal">
-                    <Border Width="38" Height="38" CornerRadius="11" Background="{DynamicResource IconTile}" VerticalAlignment="Top">
-                      <TextBlock Style="{StaticResource Icon}" Text="&#xE9D9;" FontSize="16" Foreground="#9C8BFF" HorizontalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Margin="12,0,0,0" Width="196">
-                      <TextBlock Text="{DynamicResource L_wel_f4}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                      <TextBlock Text="{DynamicResource L_wel_f4_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
-                  </StackPanel>
-                </Border></ContentControl>
-              </UniformGrid>
-            </StackPanel>
+          <!-- content -->
+          <Grid Grid.Column="1">
+            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid Margin="44,40,44,0">
 
-            <!-- step 2: make it yours -->
-            <StackPanel x:Name="WStep1" Visibility="Collapsed">
-              <TextBlock Text="{DynamicResource L_wel_step2}" Style="{StaticResource Label}"/>
-              <TextBlock Text="{DynamicResource L_wel_setup}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,8,0,0"/>
-              <TextBlock Text="{DynamicResource L_wel_setup_d}" FontSize="15" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,14"/>
-              <Grid Margin="0,10">
-                <StackPanel Margin="0,0,300,0"><TextBlock Text="{DynamicResource L_set_lang}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_set_lang_d}" Style="{StaticResource Sub}"/></StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                  <RadioButton x:Name="WLangEn" GroupName="wlang" Style="{StaticResource Pill}" Content="English"/>
-                  <RadioButton x:Name="WLangMs" GroupName="wlang" Style="{StaticResource Pill}" Content="Bahasa Melayu" Margin="0"/>
-                </StackPanel>
-              </Grid>
-              <Border Height="1" Background="{DynamicResource LineBrush}"/>
-              <Grid Margin="0,10">
-                <StackPanel Margin="0,0,300,0"><TextBlock Text="{DynamicResource L_set_theme}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_set_theme_d}" Style="{StaticResource Sub}"/></StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                  <RadioButton x:Name="WThemeDark" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_dark}"/>
-                  <RadioButton x:Name="WThemeLight" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_light}"/>
-                  <RadioButton x:Name="WThemeSystem" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_system}" Margin="0"/>
-                </StackPanel>
-              </Grid>
-              <Border Height="1" Background="{DynamicResource LineBrush}"/>
-              <Grid Margin="0,10">
-                <StackPanel Margin="0,0,300,0"><TextBlock Text="{DynamicResource L_set_startup}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_set_startup_d}" Style="{StaticResource Sub}"/></StackPanel>
-                <CheckBox x:Name="WStartup" Style="{StaticResource Switch}" HorizontalAlignment="Right"/>
-              </Grid>
-              <Border Height="1" Background="{DynamicResource LineBrush}"/>
-              <Grid Margin="0,10">
-                <StackPanel Margin="0,0,300,0"><TextBlock Text="{DynamicResource L_wel_auto}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_wel_auto_d}" Style="{StaticResource Sub}"/></StackPanel>
-                <CheckBox x:Name="WAuto" Style="{StaticResource Switch}" HorizontalAlignment="Right"/>
-              </Grid>
-            </StackPanel>
+              <!-- step 1: hello -->
+              <StackPanel x:Name="WStep0">
+                <TextBlock x:Name="WHello" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource CyanBrush}"/>
+                <TextBlock Text="{DynamicResource L_wel_title}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,6,0,0"/>
+                <TextBlock Text="{DynamicResource L_wel_sub}" FontSize="14" LineHeight="21" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <UniformGrid Columns="2" Margin="-6,26,-6,0">
+                  <Border Margin="6" CornerRadius="16" Padding="16,16" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                    <StackPanel>
+                      <Border Width="40" Height="40" CornerRadius="12" Background="#1FF0466B" HorizontalAlignment="Left"><TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="17" Foreground="#F0466B" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_wel_f1}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,12,0,0"/>
+                      <TextBlock Text="{DynamicResource L_wel_f1_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Margin="6" CornerRadius="16" Padding="16,16" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                    <StackPanel>
+                      <Border Width="40" Height="40" CornerRadius="12" Background="#1F7C5CFF" HorizontalAlignment="Left"><TextBlock Style="{StaticResource Icon}" Text="&#xE945;" FontSize="17" Foreground="#7C5CFF" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_wel_f2}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,12,0,0"/>
+                      <TextBlock Text="{DynamicResource L_wel_f2_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Margin="6" CornerRadius="16" Padding="16,16" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                    <StackPanel>
+                      <Border Width="40" Height="40" CornerRadius="12" Background="#1FF5822E" HorizontalAlignment="Left"><TextBlock Style="{StaticResource Icon}" Text="&#xE8B7;" FontSize="17" Foreground="#F5822E" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_wel_f3}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,12,0,0"/>
+                      <TextBlock Text="{DynamicResource L_wel_f3_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Margin="6" CornerRadius="16" Padding="16,16" Background="{DynamicResource AltRowBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                    <StackPanel>
+                      <Border Width="40" Height="40" CornerRadius="12" Background="#1F0EA5E9" HorizontalAlignment="Left"><TextBlock Style="{StaticResource Icon}" Text="&#xE9D9;" FontSize="17" Foreground="#0EA5E9" HorizontalAlignment="Center"/></Border>
+                      <TextBlock Text="{DynamicResource L_wel_f4}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,12,0,0"/>
+                      <TextBlock Text="{DynamicResource L_wel_f4_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                    </StackPanel>
+                  </Border>
+                </UniformGrid>
+              </StackPanel>
 
-            <!-- step 3: ready -->
-            <StackPanel x:Name="WStep2" Visibility="Collapsed">
-              <Border x:Name="WDoneBadge" Width="78" Height="78" CornerRadius="39" Background="{StaticResource AccentGrad}" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
-                <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
-                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="32" Foreground="White" HorizontalAlignment="Center"/>
-              </Border>
-              <TextBlock Text="{DynamicResource L_wel_ready}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,24,0,0"/>
-              <TextBlock Text="{DynamicResource L_wel_ready_d}" FontSize="15" LineHeight="22" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,22"/>
-              <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,0,12">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource Icon}" Text="&#xE72E;" FontSize="18" Foreground="{StaticResource CyanBrush}" VerticalAlignment="Top" Margin="0,2,14,0"/>
-                  <StackPanel Width="500"><TextBlock Text="{DynamicResource L_wel_privacy}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_wel_privacy_d}" Style="{StaticResource Sub}"/></StackPanel>
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource Card}" Padding="18,16">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource Icon}" Text="&#xE897;" FontSize="18" Foreground="{StaticResource CyanBrush}" VerticalAlignment="Top" Margin="0,2,14,0"/>
-                  <StackPanel Width="500"><TextBlock Text="{DynamicResource L_wel_help}" Style="{StaticResource H2}"/><TextBlock Text="{DynamicResource L_wel_help_d}" Style="{StaticResource Sub}"/></StackPanel>
-                </StackPanel>
-              </Border>
-            </StackPanel>
-          </Grid>
+              <!-- step 2: make it yours -->
+              <StackPanel x:Name="WStep1" Visibility="Collapsed">
+                <TextBlock Text="{DynamicResource L_wel_step2}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource CyanBrush}"/>
+                <TextBlock Text="{DynamicResource L_wel_setup}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,6,0,0"/>
+                <TextBlock Text="{DynamicResource L_wel_setup_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,18"/>
+                <Border CornerRadius="16" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="18,4">
+                  <StackPanel>
+                    <Grid Margin="0,12">
+                      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                      <StackPanel Margin="0,0,16,0"><TextBlock Text="{DynamicResource L_set_lang}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_set_lang_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton x:Name="WLangEn" GroupName="wlang" Style="{StaticResource Pill}" Content="English"/>
+                        <RadioButton x:Name="WLangMs" GroupName="wlang" Style="{StaticResource Pill}" Content="Bahasa Melayu" Margin="0"/>
+                      </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource LineBrush}"/>
+                    <Grid Margin="0,12">
+                      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                      <StackPanel Margin="0,0,16,0"><TextBlock Text="{DynamicResource L_set_theme}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_set_theme_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton x:Name="WThemeDark" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_dark}"/>
+                        <RadioButton x:Name="WThemeLight" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_light}"/>
+                        <RadioButton x:Name="WThemeSystem" GroupName="wtheme" Style="{StaticResource Pill}" Content="{DynamicResource L_system}" Margin="0"/>
+                      </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource LineBrush}"/>
+                    <Grid Margin="0,12">
+                      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                      <StackPanel Margin="0,0,16,0"><TextBlock Text="{DynamicResource L_set_startup}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_set_startup_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                      <CheckBox x:Name="WStartup" Grid.Column="1" Style="{StaticResource Switch}" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource LineBrush}"/>
+                    <Grid Margin="0,12">
+                      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                      <StackPanel Margin="0,0,16,0"><TextBlock Text="{DynamicResource L_wel_auto}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_wel_auto_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                      <CheckBox x:Name="WAuto" Grid.Column="1" Style="{StaticResource Switch}" VerticalAlignment="Center"/>
+                    </Grid>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
 
-          <!-- footer -->
-          <Grid Grid.Row="1" Margin="36,18,36,28">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <Border x:Name="WDot0" Width="22" Height="7" CornerRadius="4" Background="{StaticResource AccentGrad}" Margin="0,0,6,0"/>
-              <Border x:Name="WDot1" Width="7" Height="7" CornerRadius="4" Background="{DynamicResource LineBrush}" Margin="0,0,6,0"/>
-              <Border x:Name="WDot2" Width="7" Height="7" CornerRadius="4" Background="{DynamicResource LineBrush}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-              <Button x:Name="BtnWSkip" Style="{StaticResource Ghost}" Content="{DynamicResource L_wel_skip}"/>
-              <Button x:Name="BtnWBack" Style="{StaticResource Ghost}" Content="{DynamicResource L_wel_back}" Visibility="Collapsed"/>
-              <Button x:Name="BtnWNext" Style="{StaticResource Primary}" Content="{DynamicResource L_wel_start}" Margin="10,0,0,0" Padding="28,0"/>
-            </StackPanel>
+              <!-- step 3: ready -->
+              <StackPanel x:Name="WStep2" Visibility="Collapsed">
+                <Grid Width="76" Height="76" HorizontalAlignment="Left">
+                  <Ellipse Width="76" Height="76"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#4422B573" Offset="0.55"/><GradientStop Color="#0022B573" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+                  <Border x:Name="WDoneBadge" Width="58" Height="58" CornerRadius="29" RenderTransformOrigin="0.5,0.5">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#34D399" Offset="0"/><GradientStop Color="#22B573" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="26" Foreground="White" HorizontalAlignment="Center"/>
+                  </Border>
+                </Grid>
+                <TextBlock Text="{DynamicResource L_wel_ready}" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,20,0,0"/>
+                <TextBlock Text="{DynamicResource L_wel_ready_d}" FontSize="14" LineHeight="21" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,22"/>
+                <Border CornerRadius="16" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="18,4">
+                  <StackPanel>
+                    <Grid Margin="0,14">
+                      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                      <Border Width="38" Height="38" CornerRadius="11" Background="#1F22B573" VerticalAlignment="Top"><TextBlock Style="{StaticResource Icon}" Text="&#xE72E;" FontSize="16" Foreground="#22B573" HorizontalAlignment="Center"/></Border>
+                      <StackPanel Grid.Column="1" Margin="14,0,0,0"><TextBlock Text="{DynamicResource L_wel_privacy}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_wel_privacy_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{DynamicResource LineBrush}"/>
+                    <Grid Margin="0,14">
+                      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                      <Border Width="38" Height="38" CornerRadius="11" Background="#1F3478F6" VerticalAlignment="Top"><TextBlock Style="{StaticResource Icon}" Text="&#xE897;" FontSize="16" Foreground="#3478F6" HorizontalAlignment="Center"/></Border>
+                      <StackPanel Grid.Column="1" Margin="14,0,0,0"><TextBlock Text="{DynamicResource L_wel_help}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="{DynamicResource L_wel_help_d}" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></StackPanel>
+                    </Grid>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Grid>
+
+            <!-- footer -->
+            <Grid Grid.Row="1" Margin="44,16,44,30">
+              <Grid HorizontalAlignment="Left" VerticalAlignment="Center" Width="120" Height="4">
+                <Border CornerRadius="2" Background="{DynamicResource TrackBrush}"/>
+                <Border x:Name="WProgress" CornerRadius="2" Background="{StaticResource NavPill}" HorizontalAlignment="Left" Width="40"/>
+              </Grid>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnWSkip" Style="{StaticResource Ghost}" Content="{DynamicResource L_wel_skip}" Padding="22,0"/>
+                <Button x:Name="BtnWBack" Style="{StaticResource Ghost}" Content="{DynamicResource L_wel_back}" Visibility="Collapsed" Padding="22,0"/>
+                <Button x:Name="BtnWNext" Style="{StaticResource Primary}" Content="{DynamicResource L_wel_start}" Margin="10,0,0,0" Padding="30,0"/>
+              </StackPanel>
+            </Grid>
           </Grid>
         </Grid>
       </Border>
