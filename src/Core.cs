@@ -150,6 +150,7 @@ namespace Kemas
         [DataMember] public int SettingsRev;
         [DataMember] public string NavOpen = "";            // sidebar categories left open, e.g. "ov,cl"
         [DataMember] public bool SideCompact = false;      // icon-only sidebar
+        [DataMember] public string BoostPrevPlan = "";      // power plan to go back to when Game Boost is turned off
         [DataMember] public string AutoClean = "off";       // off | daily | weekly
         [DataMember] public bool AutoUpdate = true;
         [DataMember] public string SkippedVersion = "";

@@ -280,6 +280,30 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- secondary button on dark surfaces (Game Mode arena, Scan Engine) -->
+    <Style x:Key="DarkGhost" TargetType="Button">
+      <Setter Property="Foreground" Value="#EEF3FF"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Height" Value="44"/>
+      <Setter Property="Padding" Value="20,0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" CornerRadius="12" Background="#14FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#24FFFFFF"/></Trigger>
+              <Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Background" Value="#30FFFFFF"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#7FE3FF"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style x:Key="Danger" TargetType="Button" BasedOn="{StaticResource Primary}">
       <Setter Property="Foreground" Value="{StaticResource BadBrush}"/>
       <Setter Property="Template">

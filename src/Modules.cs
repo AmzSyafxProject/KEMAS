@@ -996,24 +996,6 @@ namespace Kemas
             else ModBody(new ScrollViewer { Content = wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         }
 
-        void ModGame()
-        {
-            ModBegin("Game", Tx("Get ready to play: a faster power plan, Windows Game Mode and fewer background apps. FPS is not measured.", "Sedia untuk bermain: pelan kuasa lebih pantas, Mod Permainan Windows dan kurang apps latar. FPS tidak diukur."));
-            bool gm = true;
-            try { using (var k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\GameBar")) { var v = k == null ? null : k.GetValue("AutoGameModeEnabled"); gm = v == null || Convert.ToInt32(v) == 1; } } catch { }
-            var plans = PowerPlans(); var act = plans.FirstOrDefault(p => p.Item3);
-            var fast = plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == "e9a42b02-d5df-448d-aa00-03f14749eb61") ?? plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c");
-            var list = new StackPanel();
-            list.Children.Add(CheckRow(Tx("Windows Game Mode", "Mod Permainan Windows"), gm ? Tx("On. Windows gives games priority.", "Hidup. Windows mengutamakan permainan.") : Tx("Off.", "Mati."), gm, gm ? null : Tx("Turn on", "Hidupkan"), () =>
-            { try { using (var k = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\GameBar")) k.SetValue("AutoGameModeEnabled", 1, RegistryValueKind.DWord); History.Add("startup", ModTitle("Game"), Tx("Windows Game Mode on", "Mod Permainan Windows hidup")); } catch { } ModGame(); }));
-            bool fastOn = fast != null && act != null && act.Item1 == fast.Item1;
-            list.Children.Add(CheckRow(Tx("Power plan", "Pelan kuasa"), act == null ? "-" : act.Item2, fastOn, fast == null || fastOn ? null : Tx("Use ", "Guna ") + fast.Item2, () => { if (SetPlan(fast.Item1)) History.Add("startup", ModTitle("Game"), fast.Item2); ModGame(); }));
-            var heavy = Memory.Groups().Where(g => !g.Protected && g.RamMB > 300).OrderByDescending(g => g.RamMB).Take(6).ToList();
-            list.Children.Add(CheckRow(Tx("Heavy background apps", "Apps latar berat"), heavy.Count == 0 ? Tx("None using over 300 MB.", "Tiada yang guna lebih 300 MB.") : string.Join(", ", heavy.Select(h => h.App + " " + h.RAM)), heavy.Count == 0, heavy.Count == 0 ? null : Tx("Review in Memory", "Semak di Memori"), () => E<RadioButton>("NavRam").IsChecked = true));
-            list.Children.Add(CheckRow(Tx("Game Bar and captures", "Game Bar dan rakaman"), Tx("Manage recording and the Xbox Game Bar in Windows settings.", "Urus rakaman dan Xbox Game Bar dalam tetapan Windows."), true, Tx("Open", "Buka"), () => OpenUri("ms-settings:gaming-gamebar")));
-            ModBody(CardOf(new ScrollViewer { Content = list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }));
-        }
-
         void ModBattery()
         {
             ModBegin("Battery", Tx("Battery level, charging and health from Windows. A full report can be created by Windows.", "Paras bateri, pengecasan dan kesihatan daripada Windows. Laporan penuh boleh dicipta oleh Windows."),
