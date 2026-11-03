@@ -546,7 +546,7 @@ namespace Kemas
             // ---- settings
             A("settings_title", "Settings", "Tetapan");
             A("settings_sub", "Make KEMAS work the way you like. Changes save automatically.", "Sesuaikan KEMAS mengikut cara anda. Perubahan disimpan secara automatik.");
-            A("set_appearance", "APPEARANCE", "PAPARAN");
+            A("set_appearance", "Appearance", "Paparan");
             A("set_theme", "Theme", "Tema");
             A("set_theme_d", "Dark, light, or follow Windows.", "Gelap, cerah, atau ikut Windows.");
             A("dark", "Dark", "Gelap"); A("light", "Light", "Cerah"); A("system", "System", "Sistem");
@@ -557,14 +557,14 @@ namespace Kemas
             A("motion_reduced", "Animations are reduced to save power.", "Animasi dikurangkan untuk jimat kuasa.");
             A("set_name", "Your name", "Nama anda");
             A("set_name_d", "Used in the greeting. Leave empty to use your Windows name.", "Digunakan dalam ucapan. Biarkan kosong untuk guna nama Windows.");
-            A("set_general", "GENERAL", "UMUM");
+            A("set_general", "General", "Umum");
             A("set_startup", "Start with Windows", "Mula bersama Windows");
             A("set_startup_d", "Open KEMAS quietly in the tray when you sign in.", "Buka KEMAS secara senyap di tray bila anda log masuk.");
             A("set_tray", "Keep running in the tray", "Terus berjalan di tray");
             A("set_tray_d", "Closing the window keeps KEMAS in the system tray.", "Menutup tetingkap mengekalkan KEMAS di system tray.");
             A("set_scanstart", "Scan on startup", "Imbas semasa mula");
             A("set_scanstart_d", "Check for junk every time KEMAS opens.", "Semak sampah setiap kali KEMAS dibuka.");
-            A("set_cleaning", "CLEANING", "PEMBERSIHAN");
+            A("set_cleaning", "Cleaning", "Pembersihan");
             A("set_auto", "Automatic cleaning", "Pembersihan automatik");
             A("set_auto_d", "Cleans the items you ticked, at 12:00 PM, even when KEMAS is closed.", "Membersihkan item yang anda tanda, pada 12:00 tengah hari, walaupun KEMAS ditutup.");
             A("off", "Off", "Tutup"); A("daily", "Daily", "Harian"); A("weekly", "Weekly", "Mingguan");
@@ -576,12 +576,12 @@ namespace Kemas
             A("set_restartdel_d", "Temp files older than a day that are still in use are removed the next time Windows starts.", "Fail temp lebih dari sehari yang masih digunakan akan dibuang bila Windows dihidupkan semula.");
             A("set_smartram", "Free RAM after Smart Clean", "Bebaskan RAM selepas Bersih Pintar");
             A("set_smartram_d", "Smart Clean also releases unused memory.", "Bersih Pintar turut melepaskan memori yang tidak digunakan.");
-            A("set_updates", "UPDATES", "KEMAS KINI");
+            A("set_updates", "Updates", "Kemas kini");
             A("set_autoupdate", "Check for updates automatically", "Semak kemas kini secara automatik");
             A("set_autoupdate_d", "KEMAS tells you when a new version is ready.", "KEMAS memberitahu bila versi baharu tersedia.");
             A("check_now", "Check for updates", "Semak kemas kini");
             A("version_line", "KEMAS {0} · Beta", "KEMAS {0} · Beta");
-            A("set_data", "DATA", "DATA");
+            A("set_data", "Data", "Data");
             A("open_data", "Open data folder", "Buka folder data");
             A("error_log", "Error log", "Log ralat");
             A("reset_settings", "Reset all settings", "Set semula semua tetapan");

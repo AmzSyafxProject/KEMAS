@@ -173,6 +173,23 @@ namespace Kemas
             // the About logo floats only while About is on screen (see AboutBob)
         }
 
+        bool smoothScrolling;
+        /// Eased scroll (macOS feel). Jumps straight there when motion is reduced.
+        void SmoothScroll(ScrollViewer sv, double to)
+        {
+            if (S.ReducedMotion) { sv.ScrollToVerticalOffset(to); return; }
+            double from = sv.VerticalOffset; var watch = Stopwatch.StartNew(); const double ms = 320;
+            EventHandler step = null;
+            smoothScrolling = true;
+            step = (s, e) =>
+            {
+                double t = Math.Min(1, watch.ElapsedMilliseconds / ms), k = 1 - Math.Pow(1 - t, 3);
+                sv.ScrollToVerticalOffset(from + (to - from) * k);
+                if (t >= 1) { CompositionTarget.Rendering -= step; smoothScrolling = false; }
+            };
+            CompositionTarget.Rendering += step;
+        }
+
         void AboutBob(bool on)
         {
             var t = (TranslateTransform)E<Image>("AboutLogo").RenderTransform;
@@ -320,16 +337,37 @@ namespace Kemas
             BT("QaClean").Click += (s, e) => E<RadioButton>("NavClean").IsChecked = true;
             BT("QaOrg").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
             E<FrameworkElement>("DashRoot").SizeChanged += (s2, e2) => LayoutDash(e2.NewSize.Width);
-            foreach (var pr in new[] { "SetCatApp:SecApp", "SetCatGen:SecGen", "SetCatClean:SecClean", "SetCatUpd:SecUpd", "SetCatHelp:SecHelp", "SetCatData:SecData" })
+            var setPairs = new[] { "SetCatApp:SecApp", "SetCatGen:SecGen", "SetCatClean:SecClean", "SetCatUpd:SecUpd", "SetCatHelp:SecHelp", "SetCatData:SecData" };
+            bool spying = false;
+            foreach (var pr in setPairs)
             {
                 var a = pr.Split(':');
-                E<RadioButton>(a[0]).Checked += (s, e) =>
+                var rb = E<RadioButton>(a[0]);
+                var tag = (rb.Tag as string ?? "E713|#3478F6").Split('|');
+                Border tb; TextBlock ti;
+                rb.Tag = NavTile(tag[0], tag[1], 28, 14, out tb, out ti);       // coloured KEMAS icon tile
+                rb.Checked += (s, e) =>
                 {
+                    if (spying) return;
                     var target = E<FrameworkElement>(a[1]); var sv = E<ScrollViewer>("SetScroll");
                     var pt = target.TransformToAncestor((Visual)sv.Content).Transform(new Point(0, 0));
-                    sv.ScrollToVerticalOffset(pt.Y);
+                    SmoothScroll(sv, Math.Min(pt.Y, sv.ScrollableHeight));
                 };
             }
+            // scroll-spy: the sidebar follows the section you are reading
+            E<ScrollViewer>("SetScroll").ScrollChanged += (s, e) =>
+            {
+                if (smoothScrolling) return;
+                var sv = (ScrollViewer)s; string pick = null;
+                foreach (var pr in setPairs)
+                {
+                    var a = pr.Split(':');
+                    var y = E<FrameworkElement>(a[1]).TransformToAncestor((Visual)sv.Content).Transform(new Point(0, 0)).Y;
+                    if (y <= sv.VerticalOffset + 60) pick = a[0];
+                }
+                if (sv.VerticalOffset >= sv.ScrollableHeight - 2) pick = setPairs[setPairs.Length - 1].Split(':')[0];
+                if (pick != null && E<RadioButton>(pick).IsChecked != true) { spying = true; E<RadioButton>(pick).IsChecked = true; spying = false; }
+            };
             BT("BtnAssist").Click += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;
             BT("BtnOvMap").Click += (s, e) => E<RadioButton>("NavMap").IsChecked = true;
             E<Border>("SideStatus").MouseLeftButtonUp += (s, e) => E<RadioButton>("NavDoctor").IsChecked = true;

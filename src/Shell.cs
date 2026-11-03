@@ -165,6 +165,7 @@ namespace Kemas
             var gloss = new Border { CornerRadius = new CornerRadius(size * 0.29) }; gloss.SetResourceReference(Border.BackgroundProperty, "TileGloss");
             ic = new TextBlock { Text = Glyph(glyph), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = font, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(c) };
             tile.Children.Add(bg); tile.Children.Add(gloss); tile.Children.Add(ic);
+            Icons.Upgrade(ic, glyph, Math.Round(font * 1.22));      // KEMAS vector icon; the glyph stays as its colour source
             return tile;
         }
         /// Category row drawn like a sidebar item: fading hover, selection tint, gradient bar, rotating chevron.
