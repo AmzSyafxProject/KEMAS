@@ -270,6 +270,7 @@ namespace Kemas
                 var tt = new TranslateTransform(0, 8); fe.RenderTransform = tt;
                 fe.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 240));
                 tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 300, new System.Windows.Media.Animation.QuinticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }));
+                StaggerIn(fe);
             }
         }
         /// Background load for a module page. The result is dropped if the page was rebuilt meanwhile.

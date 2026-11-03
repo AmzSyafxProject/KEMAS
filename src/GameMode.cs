@@ -53,7 +53,10 @@ namespace Kemas
         void BuildGame(List<Tuple<string, string, bool>> plans, List<ProcRow> heavy, bool gm)
         {
             var act = plans.FirstOrDefault(p => p.Item3);
-            var fast = plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanUltimate) ?? plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanHigh);
+            // Windows' own GUIDs first; PC makers (Lenovo Legion, ASUS, HP...) often ship the same plans under their own GUID, so fall back to the name
+            var fast = plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanUltimate) ?? plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanHigh)
+                    ?? plans.FirstOrDefault(p => p.Item2.IndexOf("ultimate", StringComparison.OrdinalIgnoreCase) >= 0)
+                    ?? plans.FirstOrDefault(p => p.Item2.IndexOf("high performance", StringComparison.OrdinalIgnoreCase) >= 0 || p.Item2.IndexOf("prestasi tinggi", StringComparison.OrdinalIgnoreCase) >= 0);
             bool fastOn = fast != null && act != null && act.Item1 == fast.Item1;
             bool boosted = fastOn && gm;
 
@@ -197,7 +200,8 @@ namespace Kemas
         /// Diagonal light streaks drifting left: faster while Boost is on. Decoration only.
         UIElement SpeedLines(bool fast)
         {
-            var cv = new Canvas { IsHitTestVisible = false, ClipToBounds = true, HorizontalAlignment = HorizontalAlignment.Right, Width = 520, Height = 270, VerticalAlignment = VerticalAlignment.Top };
+            // streaks run behind the dial (left), never across the text column
+            var cv = new Canvas { IsHitTestVisible = false, ClipToBounds = true, HorizontalAlignment = HorizontalAlignment.Left, Width = 400, Height = 270, VerticalAlignment = VerticalAlignment.Top, Opacity = Theme.IsDark ? 1 : 0.6 };
             var rnd = new Random(3);
             for (int i = 0; i < 9; i++)
             {
@@ -205,7 +209,7 @@ namespace Kemas
                 var r = new Rectangle { Width = w, Height = i % 3 == 0 ? 2.5 : 1.5, RadiusX = 1, RadiusY = 1,
                     Fill = new LinearGradientBrush(A("#7FE3FF", 0), A(i % 2 == 0 ? "#7FE3FF" : "#8B5CF6", (byte)(fast ? 0x99 : 0x55)), 0) };
                 var tt = new TranslateTransform(); r.RenderTransform = tt;
-                Canvas.SetLeft(r, 120 + rnd.Next(380)); Canvas.SetTop(r, y);
+                Canvas.SetLeft(r, 60 + rnd.Next(320)); Canvas.SetTop(r, y);
                 cv.Children.Add(r);
                 if (!S.ReducedMotion)
                 {
@@ -264,7 +268,7 @@ namespace Kemas
 
         void EndBoost(List<Tuple<string, string, bool>> plans)
         {
-            var back = plans.FirstOrDefault(p => p.Item1.Equals(S.BoostPrevPlan ?? "", StringComparison.OrdinalIgnoreCase)) ?? plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanBalanced);
+            var back = plans.FirstOrDefault(p => p.Item1.Equals(S.BoostPrevPlan ?? "", StringComparison.OrdinalIgnoreCase)) ?? (plans.FirstOrDefault(p => p.Item1.ToLowerInvariant() == PlanBalanced) ?? plans.FirstOrDefault(p => p.Item2.IndexOf("balanced", StringComparison.OrdinalIgnoreCase) >= 0 || p.Item2.IndexOf("seimbang", StringComparison.OrdinalIgnoreCase) >= 0));
             if (back == null) { Toast(Tx("No plan to go back to. Choose one in Optimization Profiles.", "Tiada pelan untuk kembali. Pilih dalam Profil Pengoptimuman."), "E7BA"); return; }
             if (SetPlan(back.Item1)) { History.Add("startup", ModTitle("Game"), Tx("Boost off: ", "Boost mati: ") + back.Item2); Toast(back.Item2, "E73E"); S.BoostPrevPlan = ""; QueueSave(); }
             else Toast(Tx("Windows did not allow the change.", "Windows tidak membenarkan perubahan."), "E7BA");

@@ -53,6 +53,7 @@
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="16"/>
       <Setter Property="Padding" Value="22,18"/>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource CardHoverLine}"/></Trigger></Style.Triggers>
     </Style>
     <Style x:Key="Tile" TargetType="Button">
       <Setter Property="Cursor" Value="Hand"/>
@@ -454,6 +455,7 @@
       <Setter Property="CornerRadius" Value="14"/>
       <Setter Property="Padding" Value="18,2"/>
       <Setter Property="Margin" Value="0,0,0,24"/>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource CardHoverLine}"/></Trigger></Style.Triggers>
     </Style>
     <Style x:Key="SetRow" TargetType="Grid">
       <Setter Property="MinHeight" Value="60"/>
@@ -1800,14 +1802,11 @@
                       <TextBlock x:Name="DoneSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                     </StackPanel>
                   </Grid>
-                  <Grid Grid.Row="1" Margin="0,18,0,0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                    <StackPanel>
-                      <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{DynamicResource EngText}"/>
-                      <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,-2,0,0"/>
-                    </StackPanel>
-                    <WrapPanel x:Name="DoneChips" Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center"/>
-                  </Grid>
+                  <StackPanel Grid.Row="1" Margin="0,18,0,0">
+                    <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{DynamicResource EngText}"/>
+                    <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="{DynamicResource MutedBrush}" Margin="0,-2,0,0"/>
+                    <WrapPanel x:Name="DoneChips" Margin="0,12,0,0"/>
+                  </StackPanel>
                   <TextBlock x:Name="DoneDetLbl" Grid.Row="2" Text="SUMMARY" Style="{StaticResource EngLabel}" Margin="0,18,0,8"/>
                   <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
@@ -1815,11 +1814,13 @@
                       <UniformGrid x:Name="DoneDetails" Columns="2" Margin="0,6,6,0" Visibility="Collapsed"/>
                     </StackPanel>
                   </ScrollViewer>
-                  <UniformGrid Grid.Row="4" Rows="1" Margin="0,14,0,0">
-                    <Button x:Name="BtnDoneDetails" Style="{StaticResource EngGhost}" Content="View details" Padding="12,0" Margin="0,0,5,0" Height="46"/>
-                    <Button x:Name="BtnDoneAgain" Style="{StaticResource EngGhost}" Content="Scan again" Padding="12,0" Margin="5,0,5,0" Height="46"/>
-                    <Button x:Name="BtnFinish" Style="{StaticResource Primary}" Padding="16,0" Height="46" Margin="5,0,0,0"/>
-                  </UniformGrid>
+                  <!-- the main action gets the widest slot so its label never clips -->
+                  <Grid Grid.Row="4" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*" MinWidth="150"/></Grid.ColumnDefinitions>
+                    <Button x:Name="BtnDoneDetails" Style="{StaticResource EngGhost}" Content="View details" Padding="16,0" Margin="0,0,8,0" Height="44"/>
+                    <Button x:Name="BtnDoneAgain" Grid.Column="1" Style="{StaticResource EngGhost}" Content="Scan again" Padding="16,0" Margin="0,0,8,0" Height="44"/>
+                    <Button x:Name="BtnFinish" Grid.Column="2" Style="{StaticResource Primary}" Padding="16,0" Height="44"/>
+                  </Grid>
                 </Grid>
               </Grid>
             </Border>

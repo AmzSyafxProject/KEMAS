@@ -370,6 +370,16 @@ namespace Kemas
             A("road_ram_d", "{0}% of RAM in use. Under 70% earns full marks. Close heavy apps or free memory.", "{0}% RAM digunakan. Bawah 70% dapat markah penuh. Tutup apps berat atau kosongkan memori.");
             A("road_ram_ok", "{0}% of RAM in use. Running smoothly.", "{0}% RAM digunakan. Berjalan lancar.");
             A("road_ram_btn", "Memory", "Memori");
+            A("w41a_t", "Settings, redesigned", "Tetapan, direka semula");
+            A("w41a_d", "A calm grouped list with one text size per role, segmented choices and a sidebar that follows as you scroll.", "Senarai berkumpulan yang tenang dengan satu saiz teks setiap peranan, pilihan bersegmen dan bar sisi yang mengikut semasa anda skrol.");
+            A("w41b_t", "KEMAS icons and motion", "Ikon dan gerakan KEMAS");
+            A("w41b_d", "Our own icon set across the app, and smooth hover, press and page animations.", "Set ikon sendiri di seluruh app, serta animasi hover, tekan dan halaman yang licin.");
+            A("w41c_t", "Follows your Windows theme", "Ikut tema Windows anda");
+            A("w41c_d", "Light or dark everywhere, scan screen, Game Mode and intro included. Change Windows and KEMAS changes with it.", "Cerah atau gelap di semua tempat, termasuk skrin imbasan, Mod Permainan dan intro. Tukar Windows dan KEMAS ikut sama.");
+            A("w41d_t", "Scan sheet, not full screen", "Helaian imbasan, bukan skrin penuh");
+            A("w41d_d", "Scans and cleans run in a floating sheet. The sidebar and title bar stay visible.", "Imbasan dan pembersihan berjalan dalam helaian terapung. Bar sisi dan bar tajuk kekal kelihatan.");
+            A("w41e_t", "Lighter on your PC", "Lebih ringan untuk PC anda");
+            A("w41e_d", "Animations that nobody could see no longer run in the background, so KEMAS idles quieter.", "Animasi yang tidak kelihatan tidak lagi berjalan di latar, jadi KEMAS lebih senyap ketika rehat.");
             A("w40a_t", "A whole new look", "Rupa baharu sepenuhnya");
             A("w40a_d", "KEMAS 4.0 New Generation: calm light design, dark mode to match, grouped menu and a Home that fits on one screen.", "KEMAS 4.0 Generasi Baharu: reka bentuk terang yang tenang, mod gelap sepadan, menu berkumpulan dan Utama yang muat satu skrin.");
             A("w40b_t", "PC Doctor", "PC Doctor");

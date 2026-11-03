@@ -150,8 +150,39 @@ namespace Kemas
                 var h = new WindowInteropHelper(W).Handle;
                 int round = 2; DwmSetWindowAttribute(h, 33, ref round, 4);            // rounded corners (Windows 11)
                 int dark = Theme.IsDark ? 1 : 0; DwmSetWindowAttribute(h, 20, ref dark, 4);
+                ApplyMica(h);
             }
             catch { }
+        }
+
+        bool micaOn;
+        /// Windows 11 Mica behind a see-through sidebar (macOS-style vibrancy). Content stays opaque. Off on Windows 10,
+        /// when Windows "Transparency effects" is off, or when Reduced motion is on; then everything is painted solid.
+        void ApplyMica(IntPtr h)
+        {
+            bool want = !S.ReducedMotion && Theme.MicaSupported();
+            var side = E<Border>("SideBar");
+            var main = (Panel)E<FrameworkElement>("TitleBar").Parent;
+            if (want)
+            {
+                var src = HwndSource.FromHwnd(h);
+                if (src == null || src.CompositionTarget == null) return;
+                src.CompositionTarget.BackgroundColor = Colors.Transparent;
+                var ch = WindowChrome.GetWindowChrome(W); if (ch != null) ch.GlassFrameThickness = new Thickness(-1);
+                int backdrop = 2; DwmSetWindowAttribute(h, 38, ref backdrop, 4);     // DWMWA_SYSTEMBACKDROP_TYPE = Mica
+                W.Background = Brushes.Transparent;
+                main.SetResourceReference(Panel.BackgroundProperty, "BgBrush");
+                side.SetResourceReference(Border.BackgroundProperty, "SideMica");
+                micaOn = true;
+            }
+            else if (micaOn)
+            {
+                int backdrop = 1; DwmSetWindowAttribute(h, 38, ref backdrop, 4);     // none
+                var ch = WindowChrome.GetWindowChrome(W); if (ch != null) ch.GlassFrameThickness = new Thickness(0, 0, 0, 1);
+                W.SetResourceReference(Window.BackgroundProperty, "BgBrush");
+                side.SetResourceReference(Border.BackgroundProperty, "SideBrush");
+                micaOn = false;
+            }
         }
 
         void SetupAurora()
@@ -236,6 +267,7 @@ namespace Kemas
         {
             W.ContentRendered -= OnFirstRender;
             PerfLog.Mark("startup: first frame", PerfLog.Now);
+            if (RunShotsIfAsked()) return;      // developer screenshot pass (only with kemas-shots.txt beside the exe)
             ShowIntro();
             UpdateStats();
             E<TextBox>("LogBox").Clear();
@@ -463,6 +495,7 @@ namespace Kemas
             BT("BtnStop").Click += (s, e) => { cancelFlag = true; if (activeCleaner != null) activeCleaner.Cancel = true; BT("BtnStop").IsEnabled = false; BT("BtnStop").Content = L.T("stopping"); };
             BT("BtnFinish").Click += (s, e) => { if (engFinish != null) engFinish(); else HideOverlay(); };
             SetupEngine();
+            SetupMotion();
             BT("BtnDialogNo").Click += (s, e) => CloseDialog(false);
             BT("BtnDialogYes").Click += (s, e) => CloseDialog(true);
             E<Border>("UpdateChip").MouseLeftButtonUp += (s, e) => { if (pendingUpdate != null) OfferUpdate(pendingUpdate); };
@@ -713,6 +746,7 @@ namespace Kemas
                 var tt = nw.RenderTransform as TranslateTransform;
                 if (tt == null) { tt = new TranslateTransform(); nw.RenderTransform = tt; }
                 tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 180, new QuinticEase { EasingMode = EasingMode.EaseOut }));
+                StaggerIn(nw);
             }
             if (!busy) TB("StatusText").Text = "";      // an old message from another page must not linger
             AboutBob(page == "PageAbout");

@@ -21,6 +21,20 @@ namespace Kemas
             return true;
         }
 
+        /// Windows 11 22H2+ with "Transparency effects" on.
+        public static bool MicaSupported()
+        {
+            try
+            {
+                using (var k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                { int b; if (k == null || !int.TryParse(Convert.ToString(k.GetValue("CurrentBuildNumber")), out b) || b < 22621) return false; }
+                using (var k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"))
+                    if (k != null && Convert.ToInt32(k.GetValue("EnableTransparency", 1)) == 0) return false;
+                return true;
+            }
+            catch { return false; }
+        }
+
         static Color C(string hex) { return (Color)ColorConverter.ConvertFromString(hex); }
         static SolidColorBrush B(string hex)
         {
@@ -57,7 +71,7 @@ namespace Kemas
                 r["IconTile"] = B("#22315A"); r["HeroText"] = B("#F4F6FC"); r["HeroMuted"] = B("#A4AEC2");
                 r["HeroBrush"] = B("#191F30"); r["RingGlow"] = B("#00000000");
                 r["AuroraA"] = B("#00000000"); r["AuroraB"] = B("#00000000"); r["AuroraC"] = B("#00000000");
-                r["ScrimBrush"] = B("#B80B0F1A"); r["EngText"] = H("#7FE3FF", "#4A93FF");
+                r["ScrimBrush"] = B("#B80B0F1A"); r["CardHoverLine"] = B("#41507A"); r["SideMica"] = new LinearGradientBrush(C("#B3171D2E"), C("#99121726"), 90); r["EngText"] = H("#7FE3FF", "#4A93FF");
             }
             else
             {
@@ -68,7 +82,7 @@ namespace Kemas
                 r["IconTile"] = B("#EAF0FE"); r["HeroText"] = B("#172033"); r["HeroMuted"] = B("#788195");
                 r["HeroBrush"] = B("#FFFFFF"); r["RingGlow"] = B("#00000000");
                 r["AuroraA"] = B("#00000000"); r["AuroraB"] = B("#00000000"); r["AuroraC"] = B("#00000000");
-                r["ScrimBrush"] = B("#B8E9EDF5"); r["EngText"] = H("#14A5D8", "#2B63E3");
+                r["ScrimBrush"] = B("#B8E9EDF5"); r["CardHoverLine"] = B("#C9D5F0"); r["SideMica"] = new LinearGradientBrush(C("#B8FBFCFF"), C("#A6EFF4FE"), 90); r["EngText"] = H("#14A5D8", "#2B63E3");
             }
         }
 

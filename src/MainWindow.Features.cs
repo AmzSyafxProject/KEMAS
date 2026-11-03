@@ -261,11 +261,11 @@ namespace Kemas
         // ================================================================ what's new
         static readonly string[][] WhatsNewItems =
         {
-            new[] { "E790", "w40a" },   // new design
-            new[] { "E9D2", "w40b" },   // PC Doctor
-            new[] { "EDA2", "w40c" },   // Storage Map
-            new[] { "E777", "w40d" },   // Recovery Centre
-            new[] { "E7E8", "w40e" },   // startup impact + search
+            new[] { "E713", "w41a" },   // settings redesign
+            new[] { "E790", "w41b" },   // icon set + motion
+            new[] { "E793", "w41c" },   // follows Windows theme
+            new[] { "E721", "w41d" },   // scan sheet
+            new[] { "E945", "w41e" },   // faster
         };
 
         /// Returns true when the welcome screen was opened (first run).
@@ -396,7 +396,8 @@ namespace Kemas
                 row.ColumnDefinitions.Add(new ColumnDefinition());
                 var tile = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), VerticalAlignment = VerticalAlignment.Top };
                 tile.SetResourceReference(Border.BackgroundProperty, "IconTile");
-                tile.Child = new TextBlock { Text = Glyph(it[0]), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                var wnIc = new TextBlock { Text = Glyph(it[0]), FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 17, Foreground = Hex("#9C8BFF"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                var wnHost = new Grid(); wnHost.Children.Add(wnIc); tile.Child = wnHost; Icons.Upgrade(wnIc, it[0], 20);
                 row.Children.Add(tile);
                 var txt = new StackPanel { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 var t1 = new TextBlock { Text = L.T(it[1] + "_t"), FontSize = 15, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
