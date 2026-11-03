@@ -1656,7 +1656,7 @@
       <Border x:Name="OverlayCard" RenderTransformOrigin="0.5,0.5">
         <Border.RenderTransform><ScaleTransform/></Border.RenderTransform>
         <Grid>
-          <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+          <Grid.RowDefinitions><RowDefinition Height="64"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
           <!-- header -->
           <Grid Margin="28,0,10,0">
@@ -1681,116 +1681,113 @@
             </StackPanel>
           </Grid>
 
-          <!-- body -->
-          <Grid Grid.Row="1" Margin="28,0,28,26">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="440"/></Grid.ColumnDefinitions>
+          <!-- body: scanner on the left, categories (or the result) on the right -->
+          <Grid Grid.Row="1" Margin="28,0,28,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="5*" MinWidth="300"/><ColumnDefinition Width="24"/><ColumnDefinition Width="7*"/></Grid.ColumnDefinitions>
 
-            <!-- orbital scanner -->
             <Grid>
-              <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-              <Viewbox x:Name="Stage" MaxWidth="520" MaxHeight="520" Stretch="Uniform" Margin="0,0,0,8">
+              <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+              <Viewbox x:Name="Stage" MaxWidth="420" MaxHeight="420" Stretch="Uniform" Margin="0,0,0,6">
                 <ContentControl x:Name="SceneHost" Width="440" Height="440"/>
               </Viewbox>
-              <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,8">
+              <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,14">
                 <TextBlock x:Name="OvTitle" FontSize="26" FontWeight="SemiBold" Foreground="#EEF3FF" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="OvStep" FontSize="15" Foreground="#9FD8FF" HorizontalAlignment="Center" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" MaxWidth="560"/>
-                <TextBlock x:Name="OvSub" FontSize="14" Foreground="#7F93B8" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="520" Margin="0,6,0,0"/>
+                <TextBlock x:Name="OvStep" FontSize="15" Foreground="#9FD8FF" HorizontalAlignment="Center" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" MaxWidth="460"/>
+                <TextBlock x:Name="OvSub" FontSize="14" Foreground="#7F93B8" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" Margin="0,6,0,0"/>
               </StackPanel>
+              <Border Grid.Row="2" CornerRadius="14" Background="#33060B18" BorderBrush="#14FFFFFF" BorderThickness="1" Padding="14,10" Margin="0,0,0,16" MaxWidth="460">
+                <StackPanel>
+                  <TextBlock x:Name="EngActLbl" Text="LIVE ACTIVITY" Style="{StaticResource EngLabel}" Margin="0,0,0,6"/>
+                  <StackPanel x:Name="EngActivity"/>
+                </StackPanel>
+              </Border>
             </Grid>
 
-            <!-- glass panel -->
-            <Border Grid.Column="2" CornerRadius="22" Background="#0DFFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" Padding="24,22">
+            <Border Grid.Column="2" CornerRadius="22" Background="#0DFFFFFF" BorderBrush="#1FFFFFFF" BorderThickness="1" Padding="22,20" Margin="0,0,0,16">
               <Grid>
-              <Grid x:Name="WorkView">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <StackPanel>
-                  <Grid>
-                    <TextBlock x:Name="OvPct" Text="0%" FontSize="42" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
-                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,9">
-                      <TextBlock Text="STAGE" Style="{StaticResource EngLabel}" HorizontalAlignment="Right"/>
-                      <TextBlock x:Name="EngStageName" FontSize="14" FontWeight="SemiBold" Foreground="#EEF3FF" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                  </Grid>
-                  <Grid Margin="0,6,0,0" ClipToBounds="True">
-                    <ProgressBar x:Name="OvBar" Height="8"/>
-                    <Border x:Name="EngShimmer" Width="90" Height="8" CornerRadius="4" HorizontalAlignment="Left" Opacity="0" IsHitTestVisible="False">
-                      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#007FE3FF" Offset="0"/><GradientStop Color="#AA7FE3FF" Offset="0.5"/><GradientStop Color="#007FE3FF" Offset="1"/></LinearGradientBrush></Border.Background>
-                      <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+                <Grid x:Name="WorkView">
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                  <Grid Margin="0,0,0,14">
+                    <TextBlock x:Name="EngCatLbl" Text="CATEGORIES" Style="{StaticResource EngLabel}" VerticalAlignment="Center"/>
+                    <Border CornerRadius="11" Background="#14FFFFFF" Padding="10,3,10,4" HorizontalAlignment="Right">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="EngItems" Text="0 / 0" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF"/>
+                        <TextBlock x:Name="EngItemsLbl" Text="Items processed" FontSize="12.5" Foreground="#7F93B8" Margin="6,0,0,0"/>
+                      </StackPanel>
                     </Border>
                   </Grid>
-                </StackPanel>
-                <Grid Grid.Row="1" Margin="0,18,0,16">
-                  <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                  <StackPanel>
-                    <TextBlock x:Name="EngItems" Text="0 / 0" FontSize="20" FontWeight="SemiBold" Foreground="#EEF3FF"/>
-                    <TextBlock x:Name="EngItemsLbl" Text="Items processed" FontSize="12.5" Foreground="#7F93B8"/>
-                  </StackPanel>
-                  <Border Grid.Column="1" Width="1" Background="#1FFFFFFF" Margin="12,2"/>
-                  <StackPanel Grid.Column="2">
-                    <TextBlock x:Name="EngFound" Text="-" FontSize="20" FontWeight="SemiBold" Foreground="#EEF3FF"/>
-                    <TextBlock x:Name="EngFoundLbl" Text="Identified" FontSize="12.5" Foreground="#7F93B8"/>
-                  </StackPanel>
-                  <Border Grid.Column="3" Width="1" Background="#1FFFFFFF" Margin="12,2"/>
-                  <StackPanel Grid.Column="4">
-                    <TextBlock x:Name="EngElapsed" Text="0:00" FontSize="20" FontWeight="SemiBold" Foreground="#EEF3FF"/>
-                    <TextBlock x:Name="EngElapsedLbl" Text="Elapsed" FontSize="12.5" Foreground="#7F93B8"/>
-                  </StackPanel>
-                </Grid>
-                <DockPanel Grid.Row="2">
-                  <TextBlock x:Name="EngCatLbl" DockPanel.Dock="Top" Text="CATEGORIES" Style="{StaticResource EngLabel}" Margin="0,0,0,8"/>
-                  <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="OvList" Margin="0,0,6,0"/>
+                  <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <UniformGrid x:Name="OvList" Columns="2" VerticalAlignment="Top" Margin="0,0,4,0"/>
                   </ScrollViewer>
-                </DockPanel>
-                <StackPanel Grid.Row="3" Margin="0,14,0,0">
-                  <TextBlock x:Name="EngActLbl" Text="LIVE ACTIVITY" Style="{StaticResource EngLabel}" Margin="0,0,0,6"/>
-                  <Border CornerRadius="12" Background="#33060B18" BorderBrush="#14FFFFFF" BorderThickness="1" Padding="12,8" MinHeight="70">
-                    <StackPanel x:Name="EngActivity"/>
-                  </Border>
-                </StackPanel>
-                <Button x:Name="BtnStop" Grid.Row="4" Content="{DynamicResource L_stop}" Style="{StaticResource EngGhost}" HorizontalAlignment="Right" Margin="0,14,0,0" Padding="28,0"/>
-              </Grid>
+                </Grid>
 
-              <Grid x:Name="DoneView" Visibility="Collapsed">
-                <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal">
-                  <Canvas Width="60" Height="60">
-                    <Ellipse Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" x:Name="DoneDisc" Fill="#2222B573"/>
-                    <Ellipse x:Name="DoneCircle" Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" Stroke="{StaticResource GoodBrush}" StrokeThickness="3.5" StrokeDashArray="51 51" StrokeDashOffset="51"/>
-                    <Path x:Name="DoneCheck" Data="M 18,31 L 27,40 L 43,23" Stroke="{StaticResource GoodBrush}" StrokeThickness="4.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeDashArray="9 9" StrokeDashOffset="9"/>
-                    <TextBlock x:Name="DoneMark" Style="{StaticResource Icon}" Canvas.Left="0" Canvas.Top="0" Width="60" Height="60" Padding="0,19,0,0" TextAlignment="Center" FontSize="22" Visibility="Collapsed"/>
-                  </Canvas>
-                  <StackPanel Margin="14,0,0,0" VerticalAlignment="Center" MaxWidth="300">
-                    <TextBlock x:Name="DoneTitle" FontSize="20" FontWeight="SemiBold" Foreground="#EEF3FF" TextWrapping="Wrap"/>
-                    <TextBlock x:Name="DoneSub" FontSize="14" Foreground="#9FB0D0" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                  </StackPanel>
-                </StackPanel>
-                <StackPanel Grid.Row="1" Margin="0,20,0,10">
-                  <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
-                  <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
-                  <WrapPanel x:Name="DoneChips" Margin="0,14,0,0"/>
-                </StackPanel>
-                <DockPanel Grid.Row="2">
-                  <TextBlock x:Name="DoneDetLbl" DockPanel.Dock="Top" Text="SUMMARY" Style="{StaticResource EngLabel}" Margin="0,6,0,8"/>
-                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="DoneView" Visibility="Collapsed">
+                  <Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <Canvas Width="60" Height="60">
+                      <Ellipse Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" x:Name="DoneDisc" Fill="#2222B573"/>
+                      <Ellipse x:Name="DoneCircle" Width="56" Height="56" Canvas.Left="2" Canvas.Top="2" Stroke="{StaticResource GoodBrush}" StrokeThickness="3.5" StrokeDashArray="51 51" StrokeDashOffset="51"/>
+                      <Path x:Name="DoneCheck" Data="M 18,31 L 27,40 L 43,23" Stroke="{StaticResource GoodBrush}" StrokeThickness="4.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeDashArray="9 9" StrokeDashOffset="9"/>
+                      <TextBlock x:Name="DoneMark" Style="{StaticResource Icon}" Canvas.Left="0" Canvas.Top="0" Width="60" Height="60" Padding="0,19,0,0" TextAlignment="Center" FontSize="22" Visibility="Collapsed"/>
+                    </Canvas>
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                      <TextBlock x:Name="DoneTitle" FontSize="26" FontWeight="SemiBold" Foreground="#EEF3FF" TextWrapping="Wrap"/>
+                      <TextBlock x:Name="DoneSub" FontSize="14" Foreground="#9FB0D0" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                  </Grid>
+                  <Grid Grid.Row="1" Margin="0,18,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                      <TextBlock x:Name="DoneBig" Text="0 B" FontSize="46" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
+                      <TextBlock x:Name="DoneBigSub" FontSize="14" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
+                    </StackPanel>
+                    <WrapPanel x:Name="DoneChips" Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center"/>
+                  </Grid>
+                  <TextBlock x:Name="DoneDetLbl" Grid.Row="2" Text="SUMMARY" Style="{StaticResource EngLabel}" Margin="0,18,0,8"/>
+                  <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                       <StackPanel x:Name="DoneNotes" Margin="0,0,6,0"/>
-                      <StackPanel x:Name="DoneDetails" Margin="0,6,6,0" Visibility="Collapsed"/>
+                      <UniformGrid x:Name="DoneDetails" Columns="2" Margin="0,6,6,0" Visibility="Collapsed"/>
                     </StackPanel>
                   </ScrollViewer>
-                </DockPanel>
-                <StackPanel Grid.Row="3" Margin="0,14,0,0">
-                  <UniformGrid Columns="2">
-                    <Button x:Name="BtnDoneDetails" Style="{StaticResource EngGhost}" Content="View details" Padding="12,0" Margin="0,0,5,0"/>
-                    <Button x:Name="BtnDoneAgain" Style="{StaticResource EngGhost}" Content="Scan again" Padding="12,0" Margin="5,0,0,0"/>
+                  <UniformGrid Grid.Row="4" Rows="1" Margin="0,14,0,0">
+                    <Button x:Name="BtnDoneDetails" Style="{StaticResource EngGhost}" Content="View details" Padding="12,0" Margin="0,0,5,0" Height="46"/>
+                    <Button x:Name="BtnDoneAgain" Style="{StaticResource EngGhost}" Content="Scan again" Padding="12,0" Margin="5,0,5,0" Height="46"/>
+                    <Button x:Name="BtnFinish" Style="{StaticResource Primary}" Padding="16,0" Height="46" Margin="5,0,0,0"/>
                   </UniformGrid>
-                  <Button x:Name="BtnFinish" Style="{StaticResource Primary}" HorizontalAlignment="Stretch" Padding="24,0" Height="46" Margin="0,10,0,0"/>
-                </StackPanel>
-              </Grid>
+                </Grid>
               </Grid>
             </Border>
           </Grid>
+
+          <!-- footer: real progress, stage, numbers, Stop -->
+          <Border Grid.Row="2" Background="#0AFFFFFF" BorderBrush="#14FFFFFF" BorderThickness="0,1,0,0" Padding="28,14,28,16">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <StackPanel VerticalAlignment="Center" MinWidth="120">
+                <TextBlock x:Name="OvPct" Text="0%" FontSize="36" FontWeight="Bold" Foreground="{StaticResource EngText}"/>
+                <TextBlock x:Name="EngStageName" FontSize="12.5" FontWeight="SemiBold" Foreground="#9FB0D0" Margin="0,-2,0,0"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="24,0,24,0" VerticalAlignment="Center">
+                <Grid ClipToBounds="True">
+                  <ProgressBar x:Name="OvBar" Height="8"/>
+                  <Border x:Name="EngShimmer" Width="90" Height="8" CornerRadius="4" HorizontalAlignment="Left" Opacity="0" IsHitTestVisible="False">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#007FE3FF" Offset="0"/><GradientStop Color="#AA7FE3FF" Offset="0.5"/><GradientStop Color="#007FE3FF" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+                  </Border>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                  <TextBlock x:Name="EngFoundLbl" Text="Identified" FontSize="12.5" Foreground="#7F93B8"/>
+                  <TextBlock x:Name="EngFound" Text="-" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF" Margin="8,0,24,0"/>
+                  <TextBlock x:Name="EngElapsedLbl" Text="Elapsed" FontSize="12.5" Foreground="#7F93B8"/>
+                  <TextBlock x:Name="EngElapsed" Text="0:00" FontSize="12.5" FontWeight="SemiBold" Foreground="#EEF3FF" Margin="8,0,0,0"/>
+                </StackPanel>
+              </StackPanel>
+              <Button x:Name="BtnStop" Grid.Column="2" Content="{DynamicResource L_stop}" Style="{StaticResource EngGhost}" VerticalAlignment="Center" Padding="30,0"/>
+            </Grid>
+          </Border>
         </Grid>
       </Border>
     </Grid>

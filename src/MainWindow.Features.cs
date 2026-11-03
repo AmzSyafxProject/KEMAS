@@ -899,35 +899,45 @@ namespace Kemas
 
         // ================================================================ overlay
         readonly Dictionary<string, Tuple<TextBlock, TextBlock>> ovRows = new Dictionary<string, Tuple<TextBlock, TextBlock>>();
+        readonly Dictionary<string, Tuple<Border, string, Border>> ovMeta = new Dictionary<string, Tuple<Border, string, Border>>();   // card, name, status pill
 
+        /// One card per category: tile, name, status pill, and the result once known. All cards share one size.
         void ShowOverlay(string title, string sub, List<Tuple<string, string>> items)
         {
             TB("OvTitle").Text = title; TB("OvSub").Text = sub;
-            var list = E<StackPanel>("OvList");
-            list.Children.Clear(); ovRows.Clear();
+            var list = E<UniformGrid>("OvList");
+            list.Children.Clear(); ovRows.Clear(); ovMeta.Clear();
+            list.Columns = items.Count <= 2 ? 1 : 2;
             foreach (var it in items)
             {
-                var b = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(8, 6, 12, 6), Margin = new Thickness(0, 0, 0, 5), Background = new SolidColorBrush(Color.FromArgb(0x0C, 255, 255, 255)) };
+                var card = new Border { CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 12, 12, 12), Margin = new Thickness(0, 0, 8, 8), MinHeight = 76,
+                    Background = new SolidColorBrush(Color.FromArgb(0x0C, 255, 255, 255)), BorderBrush = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1) };
                 var g = new Grid();
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
                 Border tbg; TextBlock tic;
-                g.Children.Add(NavTile(ItemGlyph(it.Item1), "#4A93FF", 30, 14, out tbg, out tic));
+                var tile = NavTile(ItemGlyph(it.Item1), "#4A93FF", 36, 15, out tbg, out tic); tile.VerticalAlignment = VerticalAlignment.Top;
                 tic.Foreground = new SolidColorBrush(Color.FromRgb(0x9F, 0xD8, 0xFF));
-                var nm = new TextBlock { Text = it.Item2, FontSize = 14, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+                g.Children.Add(tile);
+                var mid = new StackPanel { Margin = new Thickness(12, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+                var nm = new TextBlock { Text = it.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
                 nm.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 8, 0) };
+                var dt = new TextBlock { Text = L.T("waiting"), FontSize = 12.5, Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
                 dt.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 13.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
+                mid.Children.Add(nm); mid.Children.Add(dt);
+                Grid.SetColumn(mid, 1); g.Children.Add(mid);
+                var pill = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), VerticalAlignment = VerticalAlignment.Top, Background = new SolidColorBrush(Color.FromArgb(0x10, 255, 255, 255)) };
+                var ic = new TextBlock { Text = "○", FontFamily = new FontFamily("Segoe UI Symbol"), FontSize = 12.5, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform() };
                 ic.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
-                Grid.SetColumn(nm, 1); Grid.SetColumn(dt, 2); Grid.SetColumn(ic, 3);
-                g.Children.Add(nm); g.Children.Add(dt); g.Children.Add(ic);
-                b.Child = g;
-                list.Children.Add(b);
+                pill.Child = ic;
+                Grid.SetColumn(pill, 2); g.Children.Add(pill);
+                card.Child = g;
+                list.Children.Add(card);
                 ovRows[it.Item1] = Tuple.Create(ic, dt);
+                ovMeta[it.Item1] = Tuple.Create(card, it.Item2, pill);
             }
+            BT("BtnStop").Visibility = Visibility.Visible;
             E<Grid>("WorkView").Visibility = Visibility.Visible;
             E<Grid>("DoneView").Visibility = Visibility.Collapsed;
             BT("BtnStop").IsEnabled = true; BT("BtnStop").Content = L.T("stop");
@@ -971,33 +981,35 @@ namespace Kemas
 
         void SetOvItem(string key, ItemState state, string detail)
         {
-            Tuple<TextBlock, TextBlock> r;
-            if (!ovRows.TryGetValue(key, out r)) return;
+            Tuple<TextBlock, TextBlock> r; Tuple<Border, string, Border> meta;
+            if (!ovRows.TryGetValue(key, out r) || !ovMeta.TryGetValue(key, out meta)) return;
             var ic = r.Item1;
             var rot = (RotateTransform)ic.RenderTransform;
             rot.BeginAnimation(RotateTransform.AngleProperty, null);
             if (state != ItemState.Working && key == ovKey) OvUntrack();
             ic.FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets");
-            var row = (Border)((Grid)ic.Parent).Parent;
-            row.BorderThickness = new Thickness(1);
-            row.BorderBrush = state == ItemState.Working ? new SolidColorBrush(Color.FromArgb(0x66, 0x24, 0xC8, 0xF4)) : Brushes.Transparent;
-            row.Background = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x1A, 0x24, 0xC8, 0xF4) : Color.FromArgb(0x0C, 255, 255, 255));
+            var card = meta.Item1; var pill = meta.Item3;
+            string hex = state == ItemState.Working ? "#24C8F4" : state == ItemState.Done ? "#22B573" : state == ItemState.Partial ? "#F3A83B" : "#E85D6A";
+            var c = (Color)ColorConverter.ConvertFromString(hex);
+            card.BorderBrush = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x77, c.R, c.G, c.B) : Color.FromArgb(0x14, 255, 255, 255));
+            card.Background = new SolidColorBrush(state == ItemState.Working ? Color.FromArgb(0x1A, c.R, c.G, c.B) : Color.FromArgb(0x0C, 255, 255, 255));
+            pill.Background = new SolidColorBrush(Color.FromArgb(0x26, c.R, c.G, c.B));
+            ic.Foreground = new SolidColorBrush(c);
             switch (state)
             {
                 case ItemState.Working:
                     if (engStage == "init") EngStage(engMode == "scan" ? "scan" : engMode == "clean" ? "clean" : "op");
-                    ic.Text = Glyph("E895"); ic.Foreground = (Brush)W.FindResource("CyanBrush");
+                    ic.Text = Glyph("E895");
                     if (!S.ReducedMotion) rot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1)) { RepeatBehavior = RepeatBehavior.Forever });
-                    r.Item2.Foreground = (Brush)W.FindResource("CyanBrush"); break;
-                case ItemState.Done: ic.Text = Glyph("E73E"); ic.Foreground = (Brush)W.FindResource("GoodBrush"); r.Item2.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); break;
-                case ItemState.Partial: ic.Text = Glyph("E7BA"); ic.Foreground = (Brush)W.FindResource("WarnBrush"); r.Item2.Foreground = (Brush)W.FindResource("WarnBrush"); break;
-                case ItemState.Skipped: ic.Text = Glyph("E7BA"); ic.Foreground = (Brush)W.FindResource("BadBrush"); r.Item2.Foreground = (Brush)W.FindResource("BadBrush"); break;
+                    r.Item2.Foreground = new SolidColorBrush(c); break;
+                case ItemState.Done: ic.Text = Glyph("E73E"); r.Item2.Foreground = Hex("#C8D4EE"); break;
+                case ItemState.Partial: ic.Text = Glyph("E7BA"); r.Item2.Foreground = new SolidColorBrush(c); break;
+                case ItemState.Skipped: ic.Text = Glyph("E711"); r.Item2.Foreground = new SolidColorBrush(c); break;
             }
             if (state != ItemState.Working)
             {
-                ic.BeginAnimation(UIElement.OpacityProperty, Anim(0.2, 1, 250));
-                var name = ((TextBlock)((Grid)ic.Parent).Children[1]).Text;
-                Activity(name + ": " + detail, state == ItemState.Done ? "good" : state == ItemState.Partial ? "warn" : "bad");
+                if (!S.ReducedMotion) { pill.BeginAnimation(UIElement.OpacityProperty, Anim(0.2, 1, 260)); card.BeginAnimation(UIElement.OpacityProperty, Anim(0.75, 1, 300)); }
+                Activity(meta.Item2 + ": " + detail, state == ItemState.Done ? "good" : state == ItemState.Partial ? "warn" : "bad");
                 if (engMode != "scan") EngCount(Math.Min(engTotal, engDone + 1), null);
                 if (engMode == "op") { engIssues += state == ItemState.Done ? 0 : 1; TB("EngFound").Text = engIssues.ToString(); }
             }
@@ -1010,6 +1022,7 @@ namespace Kemas
             OvUntrack();
             if (outcome == null) outcome = cancelFlag ? "cancel" : notes.Any(n => n.Item2) || chips.Any(c => c.Item2 == "warn") ? "partial" : "done";
             E<Grid>("WorkView").Visibility = Visibility.Collapsed;
+            BT("BtnStop").Visibility = Visibility.Collapsed;
             var dv = E<Grid>("DoneView");
             dv.Visibility = Visibility.Visible;
             dv.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 380));

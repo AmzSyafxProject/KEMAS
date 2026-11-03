@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -297,8 +298,8 @@ namespace Kemas
             var w = new TextBlock { Text = Clock(DateTime.Now - engStart), FontSize = 12.5, Foreground = new SolidColorBrush(Col("#6F82A8")), Margin = new Thickness(10, 0, 0, 0) };
             Grid.SetColumn(w, 2); g.Children.Add(w);
             list.Children.Insert(0, g);
-            while (list.Children.Count > 5) list.Children.RemoveAt(list.Children.Count - 1);
-            for (int i = 0; i < list.Children.Count; i++) list.Children[i].Opacity = 1 - i * 0.16;
+            while (list.Children.Count > 3) list.Children.RemoveAt(list.Children.Count - 1);
+            for (int i = 0; i < list.Children.Count; i++) list.Children[i].Opacity = 1 - i * 0.25;
             if (!S.ReducedMotion) g.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 250));
         }
 
@@ -343,15 +344,19 @@ namespace Kemas
             mk.Text = Glyph(outcome == "error" ? "E783" : outcome == "cancel" ? "E71A" : "E7BA");
             mk.Foreground = new SolidColorBrush(Col(outcome == "error" ? "#E85D6A" : outcome == "cancel" ? "#9AA4B8" : "#F3A83B"));
             // details list (per category), hidden until asked for
-            var det = E<StackPanel>("DoneDetails"); det.Children.Clear(); det.Visibility = Visibility.Collapsed;
+            var det = E<UniformGrid>("DoneDetails"); det.Children.Clear(); det.Visibility = Visibility.Collapsed;
             foreach (var d in engDetails)
             {
-                var g = new Grid { Margin = new Thickness(0, 0, 0, 6) };
-                g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                g.Children.Add(new TextBlock { Text = d.Item1, FontSize = 14, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis });
-                var v = new TextBlock { Text = d.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(12, 0, 0, 0),
+                string dot = d.Item3 == "skip" ? "#F3A83B" : d.Item3 == "zero" ? "#7F93B8" : "#24C8F4";
+                var g = new Grid();
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                g.Children.Add(new Ellipse { Width = 7, Height = 7, Fill = new SolidColorBrush(Col(dot)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
+                var n = new TextBlock { Text = d.Item1, FontSize = 14, Foreground = new SolidColorBrush(Col("#C8D4EE")), TextTrimming = TextTrimming.CharacterEllipsis };
+                Grid.SetColumn(n, 1); g.Children.Add(n);
+                var v = new TextBlock { Text = d.Item2, FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(10, 0, 0, 0),
                     Foreground = new SolidColorBrush(Col(d.Item3 == "skip" ? "#F3A83B" : d.Item3 == "zero" ? "#7F93B8" : "#EEF3FF")) };
-                Grid.SetColumn(v, 1); g.Children.Add(v); det.Children.Add(g);
+                Grid.SetColumn(v, 2); g.Children.Add(v);
+                det.Children.Add(new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 8, 8), Background = new SolidColorBrush(A("#FFFFFF", 0x0C)) });
             }
             var bd = BT("BtnDoneDetails"); bd.Visibility = engDetails.Count > 0 ? Visibility.Visible : Visibility.Collapsed; bd.Content = Tx("View details", "Lihat butiran");
             var ag = BT("BtnDoneAgain"); ag.Visibility = engAgain != null ? Visibility.Visible : Visibility.Collapsed;
@@ -377,7 +382,7 @@ namespace Kemas
             BT("BtnEngMin").ToolTip = Tx("Minimize", "Kecilkan");
             BT("BtnDoneDetails").Click += (s, e) =>
             {
-                var det = E<StackPanel>("DoneDetails"); bool show = det.Visibility != Visibility.Visible;
+                var det = E<UniformGrid>("DoneDetails"); bool show = det.Visibility != Visibility.Visible;
                 det.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
                 BT("BtnDoneDetails").Content = show ? Tx("Hide details", "Sorok butiran") : Tx("View details", "Lihat butiran");
             };
