@@ -60,6 +60,47 @@ namespace Kemas
         }
     }
 
+    /// Timing log (perf.log in the data folder): startup, page opens, module loads, scan steps, network tests.
+    /// One line per measurement so slow spots can be found from a real PC instead of guessed.
+    public static class PerfLog
+    {
+        static readonly object Gate = new object();
+        static readonly System.Diagnostics.Stopwatch Since = System.Diagnostics.Stopwatch.StartNew();
+        public static string File { get { return Path.Combine(AppInfo.DataDir, "perf.log"); } }
+        /// Milliseconds since KEMAS started.
+        public static long Now { get { return Since.ElapsedMilliseconds; } }
+        public static void Mark(string what, long ms)
+        {
+            try
+            {
+                lock (Gate)
+                {
+                    Directory.CreateDirectory(AppInfo.DataDir);
+                    var fi = new FileInfo(File);
+                    if (fi.Exists && fi.Length > 256 * 1024) fi.Delete();
+                    System.IO.File.AppendAllText(File, DateTime.Now.ToString("HH:mm:ss.fff") + "  " + ms.ToString().PadLeft(6) + " ms  " + what + Environment.NewLine);
+                }
+            }
+            catch { }
+        }
+    }
+
+    /// Last finished scan, so Home can show real numbers at once while a fresh scan runs in the background.
+    [DataContract]
+    public class ScanCache
+    {
+        [DataMember] public string At = "";
+        [DataMember] public List<string> Keys = new List<string>();
+        [DataMember] public List<long> Sizes = new List<long>();
+        public static string FilePath { get { return Path.Combine(AppInfo.DataDir, "scan-cache.json"); } }
+        public static ScanCache Load()
+        {
+            try { if (File.Exists(FilePath)) return Json.Read<ScanCache>(File.ReadAllText(FilePath)); } catch { }
+            return null;
+        }
+        public void Save() { try { Directory.CreateDirectory(AppInfo.DataDir); File.WriteAllText(FilePath, Json.Write(this)); } catch { } }
+    }
+
     [DataContract]
     public class OrgRule
     {

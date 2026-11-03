@@ -171,6 +171,8 @@ namespace Kemas
 
         void RefreshModuleTexts()
         {
+            modBuilt.Clear();
+            if (currentPage.Length > 4 && modPages.ContainsKey(currentPage.Substring(4))) ShowModule(currentPage.Substring(4));
             foreach (var n in modNavs) n.Item1.Content = Tx(n.Item2, n.Item3);
             foreach (var g in grpLabels) g.Item1.Text = Tx(g.Item2, g.Item3);
             RefreshSidebarTexts();
@@ -179,25 +181,77 @@ namespace Kemas
         // ------------------------------------------------------------ page kit
         Grid curMod; string curModId;
         DispatcherTimer modTimer;
+        readonly Dictionary<string, int> modGen = new Dictionary<string, int>();
+        readonly Dictionary<string, DateTime> modBuilt = new Dictionary<string, DateTime>();
+        // seconds a finished page stays valid when you come back to it (buttons like Scan / Test again always reload)
+        static readonly Dictionary<string, int> ModTtl = new Dictionary<string, int>
+        {
+            { "Drivers", 600 }, { "SysInfo", 600 }, { "DiskHealth", 300 }, { "WinHealth", 300 }, { "Restore", 120 }, { "Health", 60 },
+            { "Network", 120 }, { "Large", 600 }, { "Dupes", 600 }, { "Empty", 600 }, { "Downloads", 300 }, { "DeepApp", 300 },
+            { "Residual", 600 }, { "Browser", 120 }, { "Background", 20 }, { "Battery", 30 }, { "Privacy", 60 }, { "Profiles", 30 },
+        };
+
+        /// Page header: category tile with a soft glow, title, one-line purpose, actions on the right.
         Grid ModBegin(string id, string sub, params Button[] buttons)
         {
             var g = modPages[id]; g.Children.Clear(); curMod = g; curModId = id;
-            g.MaxWidth = 1280;
-            var head = new Grid { Margin = new Thickness(0, 0, 0, 18) };
-            head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var hp = new Grid { Margin = new Thickness(0, 0, 16, 0) };
-            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            int gen; modGen.TryGetValue(id, out gen); modGen[id] = gen + 1;
+            modBuilt.Remove(id);
+            g.MaxWidth = 1240;
+            var head = new Grid { Margin = new Thickness(0, 4, 0, 20) };
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            head.ColumnDefinitions.Add(new ColumnDefinition());
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var m = Mods.FirstOrDefault(x => x[0] == id);
+            string hex = CatColor("Nav" + id);
+            var tileHost = new Grid { Width = 52, Height = 52, Margin = new Thickness(0, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
+            var c = (Color)ColorConverter.ConvertFromString(hex);
+            tileHost.Children.Add(new System.Windows.Shapes.Ellipse { Width = 74, Height = 74, Margin = new Thickness(-11), IsHitTestVisible = false,
+                Fill = new RadialGradientBrush(Color.FromArgb(0x38, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)) });
+            Border tb; TextBlock ic;
+            tileHost.Children.Add(NavTile(m == null ? "E8A5" : m[1], hex, 48, 21, out tb, out ic));
+            head.Children.Add(tileHost);
+            var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
             sp.Children.Add(new TextBlock { Text = ModTitle(id), Style = (Style)W.FindResource("H1") });
-            sp.Children.Add(new TextBlock { Text = sub, Style = (Style)W.FindResource("Sub") });
-            hp.Children.Add(sp);
-            head.Children.Add(hp);
+            var st = new TextBlock { Text = sub, Style = (Style)W.FindResource("Sub"), MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
+            sp.Children.Add(st);
+            Grid.SetColumn(sp, 1); head.Children.Add(sp);
             var bp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             for (int i = 0; i < buttons.Length; i++) { if (i > 0) buttons[i].Margin = new Thickness(10, 0, 0, 0); bp.Children.Add(buttons[i]); }
-            Grid.SetColumn(bp, 1); head.Children.Add(bp);
+            Grid.SetColumn(bp, 2); head.Children.Add(bp);
             g.Children.Add(head);
+            if (!S.ReducedMotion) head.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 220));
             return g;
         }
-        void ModBody(UIElement body) { Grid.SetRow(body, 1); curMod.Children.Add(body); }
+        void ModBody(UIElement body)
+        {
+            foreach (var o in curMod.Children.OfType<UIElement>().Where(c => Grid.GetRow(c) == 1).ToList()) curMod.Children.Remove(o);
+            Grid.SetRow(body, 1); curMod.Children.Add(body);
+            var fe = body as FrameworkElement;
+            if (fe == null || !"loading".Equals(fe.Tag)) modBuilt[curModId] = DateTime.Now;
+            if (!S.ReducedMotion && fe != null && !"loading".Equals(fe.Tag))
+            {
+                var tt = new TranslateTransform(0, 8); fe.RenderTransform = tt;
+                fe.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 240));
+                tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 300, new System.Windows.Media.Animation.QuinticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }));
+            }
+        }
+        /// Background load for a module page. The result is dropped if the page was rebuilt meanwhile.
+        void ModLoad(string id, Action work, Action done)
+        {
+            int gen = modGen[id];
+            Bg(id, work, () =>
+            {
+                if (!modGen.ContainsKey(id) || modGen[id] != gen) return;
+                curMod = modPages[id]; curModId = id;
+                done();
+            });
+        }
+        bool ModFresh(string id)
+        {
+            int ttl; DateTime t;
+            return ModTtl.TryGetValue(id, out ttl) && modBuilt.TryGetValue(id, out t) && (DateTime.Now - t).TotalSeconds < ttl && modPages[id].Children.Count > 1;
+        }
 
         static readonly string[][] Palette = { new[] { "#3978F6", "#5BA8FF" }, new[] { "#8B78F6", "#C08BFF" }, new[] { "#43C6C0", "#3978F6" }, new[] { "#F4AE43", "#ED8F5B" }, new[] { "#27B77A", "#43C6C0" }, new[] { "#ED626B", "#F48FB1" } };
         static string[] ModColor(string id) { int i = Array.FindIndex(Mods, x => x[0] == id); return Palette[Math.Max(0, i) % Palette.Length]; }
@@ -365,7 +419,51 @@ namespace Kemas
             }
             return g;
         }
-        UIElement Loading(string t) { var g = new Grid(); var m = Muted(t, 13.5); m.HorizontalAlignment = HorizontalAlignment.Center; m.VerticalAlignment = VerticalAlignment.Center; g.Children.Add(m); return CardOf(g); }
+        /// Loading state: the page's shape in soft placeholder bars, gently pulsing, with what is being read.
+        UIElement Loading(string t)
+        {
+            var sp = new StackPanel();
+            var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 18) };
+            var dot = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Fill = Hex("#3478F6"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
+            if (!S.ReducedMotion) dot.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(1, 0.25, TimeSpan.FromSeconds(0.7)) { AutoReverse = true, RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever });
+            head.Children.Add(dot); var lt = Muted(t, 12.5); lt.TextWrapping = TextWrapping.NoWrap; head.Children.Add(lt);
+            sp.Children.Add(head);
+            var bars = new StackPanel();
+            foreach (var w in new[] { 1.0, 0.82, 0.92, 0.66, 0.88 })
+            {
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 14) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new ColumnDefinition());
+                var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(10) }; tile.SetResourceReference(Border.BackgroundProperty, "TrackBrush");
+                row.Children.Add(tile);
+                var lines = new StackPanel { Margin = new Thickness(14, 2, 0, 0) };
+                var l1 = new Border { Height = 11, CornerRadius = new CornerRadius(5.5), HorizontalAlignment = HorizontalAlignment.Left }; l1.SetResourceReference(Border.BackgroundProperty, "TrackBrush");
+                var l2 = new Border { Height = 9, CornerRadius = new CornerRadius(4.5), Margin = new Thickness(0, 8, 0, 0), HorizontalAlignment = HorizontalAlignment.Left, Opacity = 0.7 }; l2.SetResourceReference(Border.BackgroundProperty, "TrackBrush");
+                var ww = w;
+                lines.SizeChanged += (s, e) => { l1.Width = Math.Max(40, e.NewSize.Width * 0.45 * ww); l2.Width = Math.Max(30, e.NewSize.Width * 0.7 * ww); };
+                lines.Children.Add(l1); lines.Children.Add(l2);
+                Grid.SetColumn(lines, 1); row.Children.Add(lines);
+                bars.Children.Add(row);
+            }
+            if (!S.ReducedMotion) bars.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(1, 0.45, TimeSpan.FromSeconds(0.9)) { AutoReverse = true, RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever, EasingFunction = new System.Windows.Media.Animation.SineEase() });
+            sp.Children.Add(bars);
+            var card = CardOf(sp, 24); card.Tag = "loading"; card.VerticalAlignment = VerticalAlignment.Top;
+            return card;
+        }
+        /// Empty state: icon, one sentence, one optional action.
+        UIElement EmptyState(string glyph, string title, string detail, string action = null, Action onClick = null)
+        {
+            var sp = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(24, 40, 24, 40), MaxWidth = 420 };
+            Border tb; TextBlock ic;
+            var tile = NavTile(glyph, "#3478F6", 64, 26, out tb, out ic); tile.HorizontalAlignment = HorizontalAlignment.Center; sp.Children.Add(tile);
+            var t = Strong(title, 17); t.HorizontalAlignment = HorizontalAlignment.Center; t.TextAlignment = TextAlignment.Center; t.Margin = new Thickness(0, 16, 0, 6); sp.Children.Add(t);
+            var d = Muted(detail, 13); d.TextAlignment = TextAlignment.Center; sp.Children.Add(d);
+            if (action != null) { var b = Btn(action, true, onClick); b.HorizontalAlignment = HorizontalAlignment.Center; b.Margin = new Thickness(0, 18, 0, 0); sp.Children.Add(b); }
+            return CardOf(sp);
+        }
+        UIElement ErrorState(string what, Action retry)
+        {
+            return EmptyState("E783", Tx("Couldn't load this page", "Halaman ini tidak dapat dimuatkan"), what, retry == null ? null : Tx("Try again", "Cuba lagi"), retry);
+        }
         UIElement CheckRow(string title, string detail, bool ok, string action = null, Action onClick = null)
         {
             var g = new Grid { Margin = new Thickness(0, 8, 0, 8) };
@@ -388,6 +486,7 @@ namespace Kemas
         void ShowModule(string id)
         {
             if (modTimer != null) { modTimer.Stop(); modTimer = null; }
+            if (ModFresh(id)) return;      // came back within the page's lifetime: keep what is already on screen
             switch (id)
             {
                 case "Health": ModHealth(); break;
@@ -444,7 +543,7 @@ namespace Kemas
                 ModBegin(id, sub, Btn(Tx("Scan", "Imbas"), false, () => doScan()), Btn(actText, true, doAct));
                 ModBody(Loading(scanText));
                 List<ModRow> rows = null;
-                Run(() => { rows = scan(() => cancelFlag); }, () =>
+                ModLoad(id, () => { rows = scan(() => false); }, () =>
                 {
                     if (rows == null) rows = new List<ModRow>();
                     if (selectAllDefault) foreach (var r in rows) r.Sel = true;
@@ -689,7 +788,7 @@ namespace Kemas
                 Btn(Tx("Open Smart Assistant", "Buka Pembantu Pintar"), true, () => E<RadioButton>("NavDoctor").IsChecked = true));
             ModBody(Loading(Tx("Checking...", "Menyemak...")));
             int priv = -1; string av = null; int startN = 0;
-            Run(() =>
+            ModLoad("Health", () =>
             {
                 priv = PrivacyScore(PrivacyChecks());
                 var a = Wmi.Q(@"root\SecurityCenter2", "SELECT displayName FROM AntiVirusProduct"); av = a.Count > 0 ? Wmi.S(a[0], "displayName") : null;
@@ -816,7 +915,7 @@ namespace Kemas
                 Btn(Tx("Refresh", "Muat semula"), false, ModBackground));
             ModBody(Loading(Tx("Reading running apps...", "Membaca apps yang berjalan...")));
             List<ModRow> rows = null;
-            Run(() =>
+            ModLoad("Background", () =>
             {
                 var withWin = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var p in Process.GetProcesses()) { try { if (p.MainWindowHandle != IntPtr.Zero) withWin.Add(p.ProcessName); } catch { } finally { p.Dispose(); } }
@@ -920,7 +1019,7 @@ namespace Kemas
                 Btn(Tx("Create battery report", "Cipta laporan bateri"), true, () =>
                 {
                     var outp = Path.Combine(AppInfo.DataDir, "battery-report.html");
-                    Run(() => { try { Directory.CreateDirectory(AppInfo.DataDir); var p = Process.Start(new ProcessStartInfo("powercfg", "/batteryreport /output \"" + outp + "\"") { UseShellExecute = false, CreateNoWindow = true }); p.WaitForExit(20000); } catch { } },
+                    Bg("battery report", () => { try { Directory.CreateDirectory(AppInfo.DataDir); var p = Process.Start(new ProcessStartInfo("powercfg", "/batteryreport /output \"" + outp + "\"") { UseShellExecute = false, CreateNoWindow = true }); p.WaitForExit(20000); } catch { } },
                         () => { if (File.Exists(outp)) OpenUri(outp); else Toast(Tx("Windows could not create the report.", "Windows tidak dapat mencipta laporan."), "E7BA"); });
                 }));
             var ps = System.Windows.Forms.SystemInformation.PowerStatus;
@@ -948,7 +1047,7 @@ namespace Kemas
             ModBegin("DiskHealth", Tx("Drive type, size and the health status Windows reports for each drive.", "Jenis cakera, saiz dan status kesihatan yang dilaporkan Windows bagi setiap cakera."));
             ModBody(Loading(Tx("Reading drives...", "Membaca cakera...")));
             List<ModRow> rows = new List<ModRow>(); bool trim = false;
-            Run(() =>
+            ModLoad("DiskHealth", () =>
             {
                 foreach (var o in Wmi.Q(@"root\Microsoft\Windows\Storage", "SELECT FriendlyName, MediaType, Size, HealthStatus, BusType, SpindleSpeed FROM MSFT_PhysicalDisk"))
                 {
@@ -1009,7 +1108,7 @@ namespace Kemas
             ModBegin("WinHealth", Tx("Windows protection, updates and system file checks. This is not an antivirus.", "Perlindungan Windows, kemas kini dan semakan fail sistem. Ini bukan antivirus."));
             ModBody(Loading(Tx("Checking Windows...", "Menyemak Windows...")));
             List<string> av = new List<string>(); string lastFix = null; bool reboot = false;
-            Run(() =>
+            ModLoad("WinHealth", () =>
             {
                 foreach (var o in Wmi.Q(@"root\SecurityCenter2", "SELECT displayName, productState FROM AntiVirusProduct")) { int st; int.TryParse(Wmi.S(o, "productState"), out st); av.Add(Wmi.S(o, "displayName") + (((st >> 12) & 0xF) == 1 ? "" : " (" + Tx("off", "mati") + ")")); }
                 DateTime best = DateTime.MinValue;
@@ -1039,12 +1138,20 @@ namespace Kemas
             ModBegin("Network", Tx("Connection, latency, packet loss, DNS and your network adapters.", "Sambungan, kependaman, kehilangan paket, DNS dan penyesuai rangkaian."), Btn(Tx("Test again", "Uji semula"), true, ModNetwork));
             ModBody(Loading(Tx("Testing connection...", "Menguji sambungan...")));
             long avg = -1; int lost = 0, sent = 8; long dns = -1; var rows = new List<ModRow>();
-            Run(() =>
+            ModLoad("Network", () =>
             {
-                var times = new List<long>();
-                using (var p = new Ping()) for (int i = 0; i < sent; i++) { try { var r = p.Send("1.1.1.1", 1500); if (r.Status == IPStatus.Success) times.Add(r.RoundtripTime); else lost++; } catch { lost++; } }
+                // every probe runs at the same time with a hard limit, so an offline PC answers in about a second, not ten
+                var times = new System.Collections.Concurrent.ConcurrentBag<long>();
+                var pings = Enumerable.Range(0, sent).Select(i => System.Threading.Tasks.Task.Factory.StartNew(() =>
+                {
+                    System.Threading.Thread.Sleep(i * 60);
+                    try { using (var p = new Ping()) { var r = p.Send("1.1.1.1", 1000); if (r.Status == IPStatus.Success) times.Add(r.RoundtripTime); } } catch { }
+                })).ToArray();
+                var dnsTask = System.Threading.Tasks.Task.Factory.StartNew(() => { var sw = Stopwatch.StartNew(); Dns.GetHostAddresses("www.microsoft.com"); return sw.ElapsedMilliseconds; });
+                try { System.Threading.Tasks.Task.WaitAll(pings, 2500); } catch { }
+                lost = sent - times.Count;
                 if (times.Count > 0) avg = (long)times.Average();
-                try { var sw = Stopwatch.StartNew(); Dns.GetHostAddresses("www.microsoft.com"); dns = sw.ElapsedMilliseconds; } catch { }
+                try { if (dnsTask.Wait(2000)) dns = dnsTask.Result; } catch { }
                 foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
                 {
                     if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
@@ -1058,8 +1165,8 @@ namespace Kemas
                     Stat(Tx("LATENCY", "KEPENDAMAN"), online ? avg + " ms" : "-", "1.1.1.1", "#3978F6"), Stat(Tx("PACKET LOSS", "KEHILANGAN PAKET"), (lost * 100 / sent) + "%", string.Format(Tx("{0} of {1} lost", "{0} daripada {1} hilang"), lost, sent), lost == 0 ? "#27B77A" : "#F4AE43"),
                     Stat("DNS", dns >= 0 ? dns + " ms" : "-", "www.microsoft.com", "#8B78F6"));
                 var dg = Table(false, Tx("Adapter", "Penyesuai") + "|3", Tx("Type", "Jenis") + "|2", "!" + Tx("Status", "Status") + "|1", Tx("Speed", "Kelajuan") + "|1", "IPv4|2"); dg.ItemsSource = rows;
-                curMod = modPages["Network"]; foreach (var o in curMod.Children.OfType<UIElement>().Where(c => Grid.GetRow(c) == 1).ToList()) curMod.Children.Remove(o);
-                ModBody(Rows(top, TableCard(dg)));
+                var note = Muted(string.Format(Tx("Tested at {0}. Press Test again for a fresh result.", "Diuji pada {0}. Tekan Uji semula untuk keputusan baharu."), DateTime.Now.ToString("HH:mm")), 12); note.Margin = new Thickness(10, 8, 10, 6);
+                ModBody(Rows(top, TableCard(dg, note)));
             });
         }
 
@@ -1069,7 +1176,7 @@ namespace Kemas
                 Btn(Tx("Device Manager", "Pengurus Peranti"), false, () => { try { Process.Start("devmgmt.msc"); } catch { } }), Btn(Tx("Check Windows Update", "Semak Windows Update"), true, () => OpenUri("ms-settings:windowsupdate-optionalupdates")));
             ModBody(Loading(Tx("Reading drivers...", "Membaca pemacu...")));
             List<ModRow> rows = new List<ModRow>();
-            Run(() =>
+            ModLoad("Drivers", () =>
             {
                 foreach (var o in Wmi.Q(@"root\cimv2", "SELECT DeviceName, Manufacturer, DriverVersion, DriverDate, DeviceClass FROM Win32_PnPSignedDriver"))
                 {
@@ -1092,7 +1199,7 @@ namespace Kemas
             ModBegin("SysInfo", Tx("Your PC's hardware and Windows details.", "Butiran perkakasan dan Windows PC anda."), Btn(Tx("Copy all", "Salin semua"), false, () => { try { Clipboard.SetText(sysInfoText ?? ""); Toast(Tx("Copied.", "Disalin."), "E73E"); } catch { } }));
             ModBody(Loading(Tx("Reading hardware...", "Membaca perkakasan...")));
             var rows = new List<ModRow>();
-            Run(() =>
+            ModLoad("SysInfo", () =>
             {
                 Action<string, string> add = (k, v) => { if (!string.IsNullOrEmpty(v)) rows.Add(new ModRow { C0 = k, C1 = v }); };
                 add("Windows", Support.WindowsVersion());
@@ -1178,7 +1285,7 @@ namespace Kemas
                 }));
             ModBody(Loading(Tx("Reading restore points...", "Membaca titik pemulihan...")));
             var rows = new List<ModRow>(); bool denied = false;
-            Run(() =>
+            ModLoad("Restore", () =>
             {
                 var q = Wmi.Q(@"root\default", "SELECT Description, CreationTime, SequenceNumber FROM SystemRestore");
                 if (q.Count == 0 && !IsAdmin()) denied = true;

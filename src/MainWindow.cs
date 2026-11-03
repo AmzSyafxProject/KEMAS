@@ -206,15 +206,21 @@ namespace Kemas
         void OnFirstRender(object sender, EventArgs e)
         {
             W.ContentRendered -= OnFirstRender;
+            PerfLog.Mark("startup: first frame", PerfLog.Now);
             ShowIntro();
             UpdateStats();
             E<TextBox>("LogBox").Clear();
             statTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            statTimer.Tick += (s, a) => { if (!busy && W.IsVisible && W.WindowState != WindowState.Minimized) UpdateStats(); };
+            statTimer.Tick += (s, a) => { if (W.IsVisible && W.WindowState != WindowState.Minimized) UpdateStats(); };
             statTimer.Start();
             bool welcome = CheckWhatsNew();
             if (welcome) { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }   // the first scan starts when the tour ends
-            else if (S.ScanOnStart) StartScan(); else { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
+            else
+            {
+                bool cached = ApplyScanCache();
+                if (S.ScanOnStart) Delay(cached ? 2500 : 900, () => { if (!busy) StartScan(); });    // let the window settle first; cached numbers show meanwhile
+                else if (!cached) { junkTotal = 0; TB("JunkText").Text = "-"; TB("JunkSub").Text = L.T("not_scanned"); }
+            }
             RemoveLegacyAnimation();
             StartBetaCountdown();
             if (S.AutoUpdate && Updater.Configured) Delay(4000, () => CheckUpdate(false));
@@ -643,6 +649,8 @@ namespace Kemas
         {
             string page = "Page" + nav.Substring(3);
             if (page == currentPage) return;
+            var pageWatch = Stopwatch.StartNew();
+            W.Dispatcher.BeginInvoke(new Action(() => PerfLog.Mark("page " + page, pageWatch.ElapsedMilliseconds)), DispatcherPriority.ContextIdle);
             var old = E<FrameworkElement>(currentPage);
             var nw = E<FrameworkElement>(page);
             old.Visibility = Visibility.Collapsed;
@@ -657,13 +665,13 @@ namespace Kemas
                 tt.BeginAnimation(TranslateTransform.YProperty, Anim(8, 0, 180, new QuinticEase { EasingMode = EasingMode.EaseOut }));
             }
             if (!busy) TB("StatusText").Text = "";      // an old message from another page must not linger
-            if (page == "PageRam" && !busy) LoadRam();
-            if (page == "PageApps" && !appsLoaded && !busy) LoadApps();
+            if (page == "PageRam") LoadRam();
+            if (page == "PageApps" && !appsLoaded) LoadApps();
             if (page == "PageRecover") RefreshHistory();
             if (modPages.ContainsKey(page.Substring(4))) ShowModule(page.Substring(4));
-            if (page == "PageDoctor" && !busy) RunDoctor();
+            if (page == "PageDoctor") RunDoctor();
             if (page == "PageMap") ShowMapHistory();
-            if (page == "PageStartup" && !startupLoaded && !busy) LoadStartup();
+            if (page == "PageStartup" && !startupLoaded) LoadStartup();
             OnPageShown();
         }
 
@@ -723,6 +731,23 @@ namespace Kemas
         }
 
         void Ui(Action a) { W.Dispatcher.BeginInvoke(a); }
+
+        /// Read-only background load (page data, lists, checks). Unlike Run it never blocks other work
+        /// and is never refused while a scan or clean is running, so a page can't get stuck on "Loading".
+        void Bg(string what, Action work, Action done)
+        {
+            var sw = Stopwatch.StartNew();
+            Task.Factory.StartNew(() =>
+            {
+                Exception err = null;
+                try { work(); } catch (Exception ex) { err = ex; global::Kemas.Log.Error("Bg " + what, ex); }
+                Ui(() =>
+                {
+                    PerfLog.Mark("load " + what, sw.ElapsedMilliseconds);
+                    try { done(); } catch (Exception ex) { global::Kemas.Log.Error("BgDone " + what, ex); }
+                });
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
 
         /// Runs work off the UI thread so animations stay smooth.
         void Run(Action work, Action done)

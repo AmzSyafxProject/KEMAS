@@ -119,6 +119,22 @@ namespace Kemas
         }
 
         // ================================================================ scan
+        /// Puts the last finished scan on screen straight away (clearly dated). A fresh scan replaces it.
+        bool ApplyScanCache()
+        {
+            var c = ScanCache.Load(); DateTime at;
+            if (c == null || c.Keys == null || c.Sizes == null || c.Keys.Count != c.Sizes.Count || !DateTime.TryParse(c.At, null, System.Globalization.DateTimeStyles.RoundtripKind, out at)) return false;
+            if ((DateTime.Now - at).TotalHours > 24) return false;
+            int hit = 0;
+            for (int i = 0; i < c.Keys.Count; i++) { var t = targets.FirstOrDefault(x => x.Key == c.Keys[i]); if (t != null) { t.Size = c.Sizes[i]; SetTargetSize(t); hit++; } }
+            if (hit == 0) return false;
+            scanned = true; junkTotal = targets.Sum(t => t.Size); lastScanAt = at;
+            TB("JunkText").Text = Fmt.Size(junkTotal);
+            TB("JunkSub").Text = string.Format(Tx("From the scan at {0}", "Daripada imbasan pada {0}"), at.ToString("HH:mm"));
+            UpdateSelectedTotal(); UpdateHealth();
+            return true;
+        }
+
         /// show = run inside the Scan Engine screen (user-started); the silent start-up scan stays inline.
         void StartScan(bool show = false)
         {
@@ -159,8 +175,8 @@ namespace Kemas
                             SetTargetSize(tt);
                             E<ProgressBar>("MainProgress").Value = k * 100.0 / targets.Count;
                             TB("StatusText").Text = L.T("scanning") + "  " + L.T("t_" + tt.Key);
-                            if (!show) return;
                             measured.Add(tt.Key);
+                            if (!show) return;
                             if (size > 0 && !tt.IsDns && !tt.MeasureByDrive) { found += size; withJunk++; }
                             SetOvItem(tt.Key, ItemState.Done, tt.IsDns ? L.T("refresh_word") : tt.MeasureByDrive ? L.T("varies_word") : size > 0 ? Fmt.Size(size) : L.T("clean_word"));
                             OvProgress(k * 100.0 / targets.Count);
@@ -182,6 +198,9 @@ namespace Kemas
                 UpdateSelectedTotal();
                 UpdateStats();
                 Log(string.Format(L.T("scan_done"), Fmt.Size(junkTotal)));
+                PerfLog.Mark("scan " + measured.Count + "/" + targets.Count + " categories" + (show ? "" : " (silent)"), watch.ElapsedMilliseconds);
+                if (!cancelFlag && err == null && measured.Count == targets.Count)
+                    new ScanCache { At = DateTime.Now.ToString("o"), Keys = targets.Select(t => t.Key).ToList(), Sizes = targets.Select(t => t.Size).ToList() }.Save();
                 if (!show) return;
                 // every category that never ran is marked, so a stopped scan is never shown as complete
                 foreach (var t in targets.Where(t => !measured.Contains(t.Key))) SetOvItem(t.Key, ItemState.Skipped, cancelFlag ? L.T("stopped") : L.T("skipped"));
@@ -487,7 +506,7 @@ namespace Kemas
             var list = E<StackPanel>("DocList");
             int issues = 0;
             List<StartupItem> st = null; int dlCount = 0;
-            Run(() =>
+            Bg("doctor", () =>
             {
                 try { st = Startup.List(); foreach (var it in st) it.Tag = it.Enabled ? StartupImpact.Level(it) : 0; } catch { st = new List<StartupItem>(); }
                 try { dlCount = Directory.EnumerateFiles(KnownFolders.Downloads).Count(); } catch { }
@@ -1296,7 +1315,7 @@ namespace Kemas
         void LoadRam()
         {
             List<ProcRow> rows = null;
-            Run(() => { rows = Memory.Groups(); }, () =>
+            Bg("memory", () => { rows = Memory.Groups(); }, () =>
             {
                 foreach (var r in rows) r.Status = r.Protected ? L.T("st_protected") : L.T("st_canclose");
                 E<DataGrid>("ProcGrid").ItemsSource = rows;
@@ -1349,7 +1368,7 @@ namespace Kemas
         void LoadStartup()
         {
             List<StartupItem> items = null;
-            Run(() => { items = Startup.List(); foreach (var it in items) it.Tag = StartupImpact.Level(it); }, () =>
+            Bg("startup", () => { items = Startup.List(); foreach (var it in items) it.Tag = StartupImpact.Level(it); }, () =>
             {
                 foreach (var it in items)
                 {
@@ -1374,7 +1393,7 @@ namespace Kemas
         void LoadApps()
         {
             List<AppRow> rows = null;
-            Run(() => { rows = Programs.List(); }, () =>
+            Bg("apps", () => { rows = Programs.List(); }, () =>
             {
                 allApps = rows; appsLoaded = true;
                 FilterApps();
