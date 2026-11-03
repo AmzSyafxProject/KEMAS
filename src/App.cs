@@ -199,7 +199,7 @@ namespace Kemas
                 var txt = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 52), Opacity = 0 };
                 txt.Children.Add(new TextBlock { Text = "KEMAS", FontSize = 26, FontWeight = FontWeights.Black, HorizontalAlignment = HorizontalAlignment.Center, FontFamily = new FontFamily("Segoe UI Variable Display, Segoe UI"),
                     Foreground = new SolidColorBrush(dark ? Color.FromRgb(0xEE, 0xF0, 0xF7) : Color.FromRgb(0x14, 0x17, 0x26)) });
-                txt.Children.Add(new TextBlock { Text = L.T("tagline"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 2, 0, 0), FontFamily = new FontFamily("Segoe UI"),
+                txt.Children.Add(new TextBlock { Text = L.T("tagline"), FontSize = 12.5, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 2, 0, 0), FontFamily = new FontFamily("Segoe UI"),
                     Foreground = new SolidColorBrush(Color.FromRgb(0x8C, 0x93, 0xAB)) });
                 root.Children.Add(txt);
                 w.Content = root;

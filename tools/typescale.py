@@ -15,25 +15,25 @@ def snap(v):
 def fmt(v): return ('%g' % v)
 ICON = re.compile(r'Segoe|Glyph\(|StaticResource Icon|Content="&#x|"WinBtn"|"IconBtn"|EngLogo')
 def ok(v): return v in SCALE or v >= 42
+def fix_chunk(chunk, n, bad, xaml):
+    if ICON.search(chunk): return chunk
+    def sub(m):
+        v = float(m.group(2))
+        if ok(v): return m.group(0)
+        bad.append((n, v))
+        return m.group(1) + fmt(snap(v)) + m.group(3)
+    if xaml: return re.sub(r'(FontSize="|Property="FontSize" Value=")([0-9.]+)(")', sub, chunk)
+    return re.sub(r'(FontSize = |FontSizeProperty, )([0-9]+(?:\.[0-9]+)?)(\b[^.0-9]|$)', sub, chunk)
+
 def run(path, fix):
+    """XAML is checked tag by tag and C# object by object, so an icon next to text on one line does not hide the text."""
     bad = []
-    src = open(path, encoding='utf-8').read().split('\n')
+    xaml = path.endswith('.xaml')
     out = []
-    for n, line in enumerate(src, 1):
-        if ICON.search(line): out.append(line); continue
-        def sub_xaml(m):
-            v = float(m.group(2))
-            if ok(v): return m.group(0)
-            bad.append((n, v))
-            return m.group(1) + fmt(snap(v)) + m.group(3)
-        line2 = re.sub(r'(FontSize="|Property="FontSize" Value=")([0-9.]+)(")', sub_xaml, line)
-        def sub_cs(m):
-            v = float(m.group(2))
-            if ok(v): return m.group(0)
-            bad.append((n, v))
-            return m.group(1) + fmt(snap(v)) + m.group(3)
-        line2 = re.sub(r'(FontSize = |FontSizeProperty, )([0-9]+(?:\.[0-9]+)?)(\b[^.0-9]|$)', sub_cs, line2)
-        out.append(line2)
+    for n, line in enumerate(open(path, encoding='utf-8').read().split('\n'), 1):
+        if xaml: parts = re.split(r'(<[^<>]*>)', line)
+        else: parts = re.split(r'(?=\bnew [A-Z][A-Za-z.]* \{)', line)
+        out.append(''.join(fix_chunk(p, n, bad, xaml) for p in parts))
     if fix: open(path, 'w', encoding='utf-8').write('\n'.join(out))
     return bad
 if __name__ == '__main__':

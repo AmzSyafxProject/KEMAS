@@ -164,6 +164,7 @@ namespace Kemas
                 modNavs.Add(Tuple.Create(nav, m[2], m[3]));
             }
             BuildSidebar();
+            DecoratePageHeaders();
             // landing-page radios live hidden in the sidebar so the nav group stays exclusive
             foreach (var h in new[] { "NavHubPerf", "NavHubStore", "NavHubPriv", "NavHubUtil", "NavTimeline", "NavOrg", "NavEmpty", "NavResidual", "NavDownloads", "NavRam", "NavProfiles", "NavBattery" })
             { var r = E<RadioButton>(h); r.Visibility = Visibility.Collapsed; E<StackPanel>("NavStack").Children.Add(r); }
@@ -204,13 +205,7 @@ namespace Kemas
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var m = Mods.FirstOrDefault(x => x[0] == id);
             string hex = CatColor("Nav" + id);
-            var tileHost = new Grid { Width = 52, Height = 52, Margin = new Thickness(0, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
-            var c = (Color)ColorConverter.ConvertFromString(hex);
-            tileHost.Children.Add(new System.Windows.Shapes.Ellipse { Width = 74, Height = 74, Margin = new Thickness(-11), IsHitTestVisible = false,
-                Fill = new RadialGradientBrush(Color.FromArgb(0x38, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)) });
-            Border tb; TextBlock ic;
-            tileHost.Children.Add(NavTile(m == null ? "E8A5" : m[1], hex, 48, 21, out tb, out ic));
-            head.Children.Add(tileHost);
+            head.Children.Add(HeaderTile(m == null ? "E8A5" : m[1], hex));
             var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 16, 0) };
             sp.Children.Add(new TextBlock { Text = ModTitle(id), Style = (Style)W.FindResource("H1") });
             var st = new TextBlock { Text = sub, Style = (Style)W.FindResource("Sub"), MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
@@ -222,6 +217,47 @@ namespace Kemas
             g.Children.Add(head);
             if (!S.ReducedMotion) head.BeginAnimation(UIElement.OpacityProperty, Anim(0, 1, 220));
             return g;
+        }
+        /// Category tile with a soft glow in the category colour: the first thing on every page header.
+        static Grid HeaderTile(string glyph, string hex)
+        {
+            var tileHost = new Grid { Width = 52, Height = 52, Margin = new Thickness(0, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
+            var c = (Color)ColorConverter.ConvertFromString(hex);
+            tileHost.Children.Add(new System.Windows.Shapes.Ellipse { Width = 74, Height = 74, Margin = new Thickness(-11), IsHitTestVisible = false,
+                Fill = new RadialGradientBrush(Color.FromArgb(0x38, c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B)) });
+            Border tb; TextBlock ic;
+            tileHost.Children.Add(NavTile(glyph, hex, 48, 21, out tb, out ic));
+            return tileHost;
+        }
+        /// The pages written in XAML get the same header as the module pages: tile on the left of title and subtitle.
+        void DecoratePageHeaders()
+        {
+            var h1Style = W.FindResource("H1");
+            foreach (var page in new[] { "Clean", "Org", "Ram", "Startup", "Apps", "Doctor", "Map", "Recover", "Settings" })
+            {
+                TextBlock h1 = null;
+                var stack = new Stack<object>(); stack.Push(E<FrameworkElement>("Page" + page));
+                while (stack.Count > 0 && h1 == null)
+                {
+                    var o = stack.Pop(); var tb = o as TextBlock;
+                    if (tb != null && tb.Style == h1Style) { h1 = tb; break; }
+                    var d = o as DependencyObject; if (d == null) continue;
+                    foreach (var ch in LogicalTreeHelper.GetChildren(d).Cast<object>().Reverse()) stack.Push(ch);
+                }
+                if (h1 == null) continue;
+                var sp = h1.Parent as FrameworkElement; var host = sp == null ? null : sp.Parent as Panel;
+                if (host == null) continue;
+                int idx = host.Children.IndexOf(sp);
+                string nav = "Nav" + page;
+                var g = new Grid { Margin = sp.Margin, HorizontalAlignment = sp.HorizontalAlignment, VerticalAlignment = sp.VerticalAlignment };
+                Grid.SetRow(g, Grid.GetRow(sp)); Grid.SetColumn(g, Grid.GetColumn(sp)); Grid.SetColumnSpan(g, Grid.GetColumnSpan(sp)); DockPanel.SetDock(g, DockPanel.GetDock(sp));
+                host.Children.RemoveAt(idx);
+                sp.Margin = new Thickness(0); sp.VerticalAlignment = VerticalAlignment.Center;
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
+                g.Children.Add(HeaderTile(NavGlyph(nav), page == "Settings" ? "#7D8BA5" : CatColor(nav)));
+                Grid.SetColumn(sp, 1); Grid.SetRow(sp, 0); Grid.SetColumnSpan(sp, 1); g.Children.Add(sp);
+                host.Children.Insert(idx, g);
+            }
         }
         void ModBody(UIElement body)
         {
@@ -547,6 +583,12 @@ namespace Kemas
                 ModLoad(id, () => { rows = scan(() => false); }, () =>
                 {
                     if (rows == null) rows = new List<ModRow>();
+                    if (rows.Count == 0)
+                    {
+                        dg = null;
+                        ModBody(EmptyState("E73E", Tx("Nothing to clean here", "Tiada apa untuk dibersihkan di sini"), string.Format(Tx("Checked at {0}. Scan again any time.", "Disemak pada {0}. Imbas semula bila-bila masa."), DateTime.Now.ToString("HH:mm")), Tx("Scan again", "Imbas semula"), () => doScan()));
+                        return;
+                    }
                     if (selectAllDefault) foreach (var r in rows) r.Sel = true;
                     dg = Table(true, cols); dg.ItemsSource = rows;
                     dg.MouseDoubleClick += (s, e) => { var r = dg.SelectedItem as ModRow; if (r != null && r.Tag is string) OpenPath((string)r.Tag); };
@@ -964,7 +1006,12 @@ namespace Kemas
         {
             ModBegin("Profiles", Tx("Choose how Windows balances speed and battery. KEMAS switches the Windows power plan; you can switch back any time.", "Pilih cara Windows mengimbangi kelajuan dan bateri. KEMAS menukar pelan kuasa Windows; anda boleh tukar semula bila-bila masa."),
                 Btn(Tx("Open power settings", "Buka tetapan kuasa"), false, () => OpenUri("ms-settings:powersleep")));
-            var plans = PowerPlans();
+            ModBody(Loading(Tx("Reading power plans...", "Membaca pelan kuasa...")));
+            List<Tuple<string, string, bool>> plans = null;
+            ModLoad("Profiles", () => { plans = PowerPlans(); }, () => BuildProfiles(plans));
+        }
+        void BuildProfiles(List<Tuple<string, string, bool>> plans)
+        {
             var desc = new Dictionary<string, string> {
                 { "381b4222-f694-41f0-9685-ff5bb260df2e", Tx("Normal performance with sensible power use. Best for most people.", "Prestasi biasa dengan penggunaan kuasa munasabah. Terbaik untuk kebanyakan orang.") },
                 { "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c", Tx("Keeps the CPU at higher speeds. Faster, uses more power and heat.", "Mengekalkan CPU pada kelajuan tinggi. Lebih pantas, guna lebih kuasa dan haba.") },
@@ -992,7 +1039,7 @@ namespace Kemas
                 b.Margin = new Thickness(0, 14, 0, 0); b.HorizontalAlignment = HorizontalAlignment.Left; sp.Children.Add(b);
                 var card = CardOf(sp); card.Margin = new Thickness(0, 0, 12, 12); wrap.Children.Add(card);
             }
-            if (plans.Count == 0) ModBody(Loading(Tx("Windows did not list any power plans.", "Windows tidak menyenaraikan pelan kuasa.")));
+            if (plans.Count == 0) ModBody(EmptyState("E945", Tx("No power plans listed", "Tiada pelan kuasa disenaraikan"), Tx("Windows did not list any power plans on this PC.", "Windows tidak menyenaraikan pelan kuasa pada PC ini.")));
             else ModBody(new ScrollViewer { Content = wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         }
 
@@ -1007,11 +1054,16 @@ namespace Kemas
                 }));
             var ps = System.Windows.Forms.SystemInformation.PowerStatus;
             if (ps.BatteryChargeStatus.HasFlag(System.Windows.Forms.BatteryChargeStatus.NoSystemBattery))
-            { ModBody(Loading(Tx("This PC has no battery (desktop or battery not detected).", "PC ini tiada bateri (desktop atau bateri tidak dikesan)."))); return; }
+            { ModBody(EmptyState("E83F", Tx("No battery found", "Tiada bateri ditemui"), Tx("This PC runs on mains power (a desktop), or Windows did not detect a battery.", "PC ini guna kuasa elektrik terus (desktop), atau Windows tidak mengesan bateri."))); return; }
+            ModBody(Loading(Tx("Reading battery...", "Membaca bateri...")));
             long design = 0, full = 0; int cycles = -1;
-            foreach (var o in Wmi.Q(@"root\WMI", "SELECT DesignedCapacity FROM BatteryStaticData")) long.TryParse(Wmi.S(o, "DesignedCapacity"), out design);
-            foreach (var o in Wmi.Q(@"root\WMI", "SELECT FullChargedCapacity FROM BatteryFullChargedCapacity")) long.TryParse(Wmi.S(o, "FullChargedCapacity"), out full);
-            foreach (var o in Wmi.Q(@"root\WMI", "SELECT CycleCount FROM BatteryCycleCount")) int.TryParse(Wmi.S(o, "CycleCount"), out cycles);
+            ModLoad("Battery", () =>
+            {
+                foreach (var o in Wmi.Q(@"root\WMI", "SELECT DesignedCapacity FROM BatteryStaticData")) long.TryParse(Wmi.S(o, "DesignedCapacity"), out design);
+                foreach (var o in Wmi.Q(@"root\WMI", "SELECT FullChargedCapacity FROM BatteryFullChargedCapacity")) long.TryParse(Wmi.S(o, "FullChargedCapacity"), out full);
+                foreach (var o in Wmi.Q(@"root\WMI", "SELECT CycleCount FROM BatteryCycleCount")) int.TryParse(Wmi.S(o, "CycleCount"), out cycles);
+            }, () =>
+            {
             int pct = (int)Math.Round(ps.BatteryLifePercent * 100);
             string left = ps.BatteryLifeRemaining > 0 ? TimeSpan.FromSeconds(ps.BatteryLifeRemaining).ToString(@"h\:mm") : "-";
             int health = design > 0 && full > 0 ? (int)Math.Round(full * 100.0 / design) : -1;
@@ -1022,6 +1074,7 @@ namespace Kemas
                 Stat(Tx("HEALTH", "KESIHATAN"), health > 0 ? Math.Min(100, health) + "%" : "-", health > 0 ? string.Format(Tx("{0} of {1} mWh", "{0} daripada {1} mWh"), full, design) : Tx("not reported", "tidak dilaporkan"), "#8B78F6"),
                 Stat(Tx("CYCLES", "KITARAN"), cycles >= 0 ? cycles.ToString() : "-", cycles >= 0 ? Tx("charge cycles", "kitaran cas") : Tx("not reported", "tidak dilaporkan"), "#F4AE43")),
                 CardOf(Muted(Tx("Health compares today's full charge with the capacity the battery was designed for. Values come from the battery's own firmware and may not be reported on every laptop.", "Kesihatan membandingkan cas penuh hari ini dengan kapasiti asal bateri. Nilai datang daripada perisian tegar bateri dan mungkin tidak dilaporkan pada setiap komputer riba."), 13))));
+            });
         }
 
         // ============================================================ STORAGE / SECURITY
